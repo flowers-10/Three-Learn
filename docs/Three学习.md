@@ -52,7 +52,7 @@ console.log('Hello Three.js')
 您应该始终保持控制台打开，以查看潜在的错误和警告。
 ## 如何加载Three.js
 现在我们需要加载 `Three.js` 库。有很多方法可以做到这一点。现在，我们将简单地下载库并使用.
-转到[https://threejs.org/](https://threejs.org/)并单击下载按钮下载 zip 文件并解压缩。文件很大，不过不用担心，我们只需要其中的一个文件。
+转到[https://threejs.org/](https://threejs.org/)单击下载按钮下载 zip 文件并解压缩。文件很大，不过不用担心，我们只需要其中的一个文件。
 你应该得到一个如下所示的文件夹：
 ![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684314458513-0ddfe88a-730b-4fa7-8db8-b2df4b0ec852.png#averageHue=%2321252a&clientId=u7631935b-3db6-4&from=paste&id=u4a142807&originHeight=532&originWidth=816&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u8126d498-b163-42d6-add4-026a2caaa0b&title=)
 转到`build/`文件夹并将`three.min.js` 文件复制到您的项目。
@@ -63,21 +63,22 @@ console.log('Hello Three.js')
 <script src="./three.min.js"></script>
 <script src="./script.js"></script>
 ```
-确保`**three.min.js**`在您之前加载`**script.js**`；否则，您的脚本先执行了，将不知道文件中的内容`**three.min.js**`。
+确保`**three.min.js**`在`**script.js**`之前加载；否则，`script.js`中脚本先执行了，将不知道`**three.min.js**`文件中的内容。
 ## 如何使用 Three.js
-在我们的文件中`**script.js**`，我们现在可以访问一个名为`**THREE**`. 注意使用大写字母书写。
-如果你使用`**console.log()**`这个变量，你会发现里面发生了很多事情：
+在我们的`**script.js**`文件中，我们可以访问到一个名为`**THREE**`的变量。 注意必须使用大写字母书写。
+如果你`**console.log()**`这个变量，你会发现里面有许多属性：
 ```javascript
 console.log(THREE)
 ```
-该`**THREE**`变量包含您在经典 `Three.js` 项目中可能需要的大部分类和属性。不幸的是，并不是所有的类都在这个变量中，但我们稍后会看到如何访问它们。
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684372344468-94aea981-48ff-44b1-8d16-4bcc29352c1e.png#averageHue=%23fefefe&clientId=u3fca3da3-310b-4&from=paste&height=366&id=u2447bbd3&originHeight=732&originWidth=792&originalType=binary&ratio=2&rotation=0&showTitle=false&size=155450&status=done&style=none&taskId=u173daff8-8d0d-4eb1-87c9-9ae7312c7ee&title=&width=396)
+该`**THREE**`变量包含开发 `Three.js` 项目中可能需要的大部分类和属性。不幸的是，并不是所有的类都在这个变量中，但我们稍后会教学如何访问使用它们。
 要使用其中一个类，您需要实例化它。例如，如果你想创建一个场景，你会写`**const scene = new THREE.Scene()**`. 如果你想创建一个球体几何体，你需要写`**const sphereGeometry = new THREE.SphereGeometry(1.5, 32, 32)**`——我们稍后会更深入地研究这些。
 ## 第一幕
 是时候创建我们的场景并在屏幕上制作一些东西了。
-我们需要 4 个元素才能开始：
+我们需要准备 4 个要素才能开始：
 
-1. 将包含对象的场景
-2. 一些对象
+1. 包含对象的场景
+2. 一些模型对象
 3. 相机
 4. 渲染器
 #### 场景
@@ -88,7 +89,7 @@ console.log(THREE)
 const scene = new THREE.Scene()
 ```
 #### 对象
-对象可以是很多东西。原始几何体、导入的模型、粒子、灯光等。
+对象可以是很多东西。包括原始几何体、导入的模型、粒子、灯光等。
 我们将从一个简单的红色立方体开始设计。
 要创建红色立方体，我们需要创建一种名为[Mesh](https://threejs.org/docs/#api/en/objects/Mesh)的对象。网格是几何体（形状）和材质[（](https://threejs.org/docs/#api/en/objects/Mesh)外观）的组合。
 有许多种几何体和材料的类型，但我们现在先简单的创建一个[BoxGeometry](https://threejs.org/docs/index.html#api/en/geometries/BoxGeometry)和一个[MeshBasicMaterial](https://threejs.org/docs/#api/en/materials/MeshBasicMaterial)。
@@ -180,6 +181,6 @@ scene.add(camera)
 ```
 
 ![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684314459056-6c554e73-cef0-4176-9a5d-82de52c9a5bc.png#averageHue=%23c4c2c2&clientId=u7631935b-3db6-4&from=paste&id=ubb5848d7&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ud8ae2eb8-5e28-4d2b-ad03-2fc9e8f509e&title=)
-恭喜，您应该看到您的第一个渲染出来的作品。它看起来像一个正方形，那是因为相机与立方体完美对齐，你只能看到它的一侧。
+恭喜，我们看到了的第一个渲染出来的作品。它看起来像一个正方形，那是因为相机与立方体完美对齐，你只能看到它的一侧。
 不要担心渲染的大小；稍后我们将学习如何使画布适合视口。
 在接下来的课程中，您将了解有关`**position**`、`**rotation**`和`**scale**`属性的更多信息，以及如何更改它们以及为场景制作动画。
