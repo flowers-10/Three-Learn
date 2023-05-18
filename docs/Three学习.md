@@ -302,5 +302,174 @@ renderer.render(scene, camera)
 就是这样。我们有与上一课相同的代码运行，但这次使用构建工具来处理本地服务器并为我们做一些其他优化。
 接下来大部分课程都是使用 `Webpack` 录制的，您可能会看到细微差别。但是，应该不会太影响你学习three.js。
 
+# 05.Transform objects变换对象
+## 介绍
+现在一切就绪，我们可以探索 `Three.js` 的功能。
+在为我们的场景设置动画之前，我们需要知道如何变换场景中的对象。我们已经通过使用`camera.position.z = 3`.
+有 4 个属性可以在我们的场景中转换对象
 
+- **position（移动物体）**
+- **scale（调整对象大小）**
+- **rotation（旋转物体）**
+- **quaternion（同时旋转对象；稍后会详细介绍）**
+
+从[Object3D](https://threejs.org/docs/#api/en/core/Object3D)类继承的所有类都拥有那些属性，如[PerspectiveCamera](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera)或[Mesh](https://threejs.org/docs/#api/en/objects/Mesh)以及我们尚未涵盖的类。
+你可以在 `Three.js` 文档的顶部看到继承每个类。
+这些属性将被编译成我们所说的**矩阵**。`Three.js`、`WebGL` 和 `GPU` 在内部使用矩阵来转换事物。幸运的是，您不必自己处理矩阵，只需修改前面提到的属性即可。
+## 设置
+我们现在所拥有的只是我们在上一课中如何将立方体放在视图中心的项目。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684377960958-cb9e8e14-ba92-48ea-a3fe-fd05c440d5f2.png#averageHue=%23c5c2c2&clientId=u021ba30b-3007-4&from=paste&id=u67fc49b2&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u4ddc12a7-75fa-45e2-a84d-d6b91659a4f&title=)
+## 移动对象
+`position`具有3 个基本属性，分别是`x`、`y`和`z`。这些是在 3D 空间中定位某物的 **3 个必要轴**。
+每个轴的方向都是任意的，可以根据环境而变化。在`Three.js`中，我们通常认为`**y**`**轴是向上的，**`**z**`**轴是向后的，**`**x**`**轴是向右的**。
+至于`1unit`是什么意思，就看你的了。1可以是 1 厘米、1 米，甚至 1 公里。我建议您根据要构建的内容调整`unit`。如果你打算建造一座房子，你可能应该将1单位视为 1 米。
+您可以多多尝试`mesh.position`属性，并尝试猜测立方体将到达哪里（尝试将其保留在屏幕中）。
+确保在调用该render(...)方法之前执行此操作，否则您将在mesh移动它之前渲染它。
+
+```javascript
+mesh.position.x = 0.7
+mesh.position.y = - 0.6
+mesh.position.z = 1
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684377961224-41a94372-bce9-4f90-8336-720965ede32a.png#averageHue=%23cbc2c2&clientId=u021ba30b-3007-4&from=paste&id=ueedcfee7&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u0897521e-6af4-4f1b-a71f-e5271a8e894&title=)
+该`position`属性不是任何对象。它是[Vector3](https://threejs.org/docs/#api/en/math/Vector3)类的一个实例。虽然此类具有`x`、 `y`和`z`属性，它还有许多有用的方法。
+您可以获得向量的长度：
+```javascript
+console.log(mesh.position.length())
+```
+[您可以获得与另一个Vector3](https://threejs.org/docs/#api/en/math/Vector3)的距离（确保在创建相机后使用此代码）：
+```javascript
+console.log(mesh.position.distanceTo(camera.position))
+```
+您可以对其值进行归一化（这意味着您会将向量的长度减少到1单位但保留其原始方向）：
+```javascript
+console.log(mesh.position.normalize())
+```
+要更改所有值，而不是单独更改`x`,`y`和`z`，您还可以使用以下`set(...)`方法：
+```javascript
+mesh.position.set(0.7, - 0.6, 1)
+```
+## 坐标轴助手 
+**在空间中定位物体可能是一个真正的挑战**。我们知道每个轴的方向很复杂，尤其是当我们开始移动相机时。
+有一个好的解决方案是使用 Three.js [AxesHelper](https://threejs.org/docs/#api/en/helpers/AxesHelper)。
+AxesHelper将显示与轴对应[的](https://threejs.org/docs/#api/en/helpers/AxesHelper)3 条线，每条线都从场景的中心开始并朝相应的方向移动。`x``y``z`
+要创建[AxesHelper](https://threejs.org/docs/#api/en/helpers/AxesHelper)，请将其实例化并在实例化后将其添加到右侧scene。您可以将行的长度指定为唯一的参数：
+```javascript
+/**
+ * Axes Helper
+ */
+const axesHelper = new THREE.AxesHelper(2)
+scene.add(axesHelper)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684377961258-eee715eb-d14f-4f27-a32c-8e07625de5fa.png#averageHue=%23cbc2c2&clientId=u021ba30b-3007-4&from=paste&id=ucafeefb6&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u78396854-78c3-43d5-8cbc-2168dd05e22&title=)
+我们看到一条绿线和一条红线。
+绿线对应于y轴。红线对应于x轴，还有一条蓝线对应于z轴，但我们看不到它，因为它与相机完美对齐。xz
+我们在接下来的课程中不会使用此[AxesHelper ，但如果您需要可视化参考，请随时添加它。](https://threejs.org/docs/#api/en/helpers/AxesHelper)
+## 缩放对象
+`scale`也是一个[Vector3](https://threejs.org/docs/#api/en/math/Vector3)属性。**默认情况下**`**x**`**，**`**y**`**和**`**z**`**都等于1**，这意味着对象没有应用缩放。如果你把它的数值赋予为`0.5`，对象将会缩放到它在这个轴上的一半大小，如果你把它的数值赋予为`2`，对象将会缩放到它在这个轴上的原始大小的两倍。
+如果更改这些值，对象将开始相应地缩放。注释position并添加这些比例：
+```javascript
+mesh.scale.x = 2
+mesh.scale.y = 0.25
+mesh.scale.z = 0.5
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684377961207-463466d3-622e-46df-a471-5a5a86459eac.png#averageHue=%23c3c2c2&clientId=u021ba30b-3007-4&from=paste&id=ua93d2693&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u833620e2-5bea-4fef-8d55-41d3c03aeaf&title=)
+显然，我们看不到比例尺z，因为我们的[网格](https://threejs.org/docs/#api/en/objects/Mesh)正对着相机。
+虽然您可以使用负值来看到Z轴，但稍后可能会产生错误，因为轴不会以逻辑反方向去定位。我们应该尽量避免这样做。
+因为它是一个[Vector3](https://threejs.org/docs/#api/en/math/Vector3)属性，所以我们可以使用前面提到的所有方法。
+## 旋转对象
+`position`旋转比较`scale`麻烦一点。一般有两种处理旋转的方法。
+您可以使用不言自明的`rotation`属性，但也可以使用不太明显的`quaternion`属性。`Three.js` 两者都支持，更新一个会自动更新另一个。这只是你喜欢哪一个的问题。
+#### `rotation`
+该`rotation`属性还具有`x`、`y`和`z`属性，但不是[Vector3](https://threejs.org/docs/#api/en/math/Vector3)类的属性，而是[Euler](https://threejs.org/docs/index.html#api/en/math/Euler)类。当您更改[Euler](https://threejs.org/docs/index.html#api/en/math/Euler)的`x`、`y`和`z`属性时，您可以想象将一根棍子沿轴的方向穿过对象的中心，然后在该棍子上旋转该对象。
+
+- 如果你绕y轴旋转，你可以把它想象成一个旋转木马。
+- 如果您绕x轴旋转，您可以想象您正在旋转您将要乘坐的汽车的车轮。
+- 如果你绕z轴旋转，你可以想象你正在旋转你所在飞机前面的螺旋桨。
+
+这些轴的值以弧度表示。如果你想实现半圈旋转，你必须写出类似圆周率 `3.14159`的东西......你可能认为这个数字是 π。在原生 JavaScript 中，您可以使用 得到 π 的近似值`Math.PI`。
+`scale`的x和y轴上添加八分之一圈旋转：
+```javascript
+mesh.rotation.x = Math.PI * 0.25
+mesh.rotation.y = Math.PI * 0.25
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684377961167-3a4e3b46-105e-42f3-86a4-c5e73589779d.png#averageHue=%23c5c2c2&clientId=u021ba30b-3007-4&from=paste&id=ucf8a80c8&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=uf0af77f3-73f4-4347-afda-517e78d7d27&title=)
+这简单吗？是的，但是当你组合这些旋转时，你可能会得到奇怪的结果。
+为什么？因为，在旋转x轴的同时，您还更改了其他轴的方向。旋转按以下顺序执行：`x`、`y`，然后`z`。当一个轴不再起作用时，这可能会导致奇怪的行为，例如一个名为 gimbal lock 的行为，这都是因为之前的轴旋转造成的。
+我们可以使用以下`reorder(...)`方法 更改此顺序`object.rotation.reorder('YXZ')`
+虽然[Euler](https://threejs.org/docs/index.html#api/en/math/Euler)更容易理解，但此顺序问题可能会导致问题。这就是为什么大多数引擎和 3D 软件使用另一种名为[Quaternion](https://threejs.org/docs/#api/en/math/Quaternion)的解决方案。
+#### `quaternion`
+该`quaternion`属性还表示旋转，但以更数学的方式解决了顺序问题。
+我们不会在本课中介绍四元数的工作原理，但请记住，`quaternion`当您更改`rotation`. 这意味着您可以随意使用两者中的任何一个。
+#### lookAt(...)
+[Object3D](https://threejs.org/docs/#api/en/core/Object3D)实例有一个名为`lookAt(...)`的出色方法，可让您要求查看某对象。该对象将自动将其-z轴旋转到您提供的目标位置。不需要复杂的数学。
+您可以使用它来将相机旋转到一个物体上，类似将大炮对准敌人，或者将角色的眼睛移到一个物体上。
+参数是目标并且必须是[Vector3](https://threejs.org/docs/#api/en/math/Vector3)。您可以创建一个来尝试一下：
+
+```javascript
+camera.lookAt(new THREE.Vector3(0, - 1, 0))
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684377965463-36c1dfac-d0ea-484d-887b-11613ba379ca.png#averageHue=%23c6c2c2&clientId=u021ba30b-3007-4&from=paste&id=ue6d9f8ad&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ua207a768-0381-4c68-a3e8-2faf4e1cc35&title=)
+立方体看似更高，但实际上是因为摄像机是在立方体下方看的。
+我们也可以使用任何现有的[Vector3，](https://threejs.org/docs/#api/en/math/Vector3)例如 `mesh`，`position`但这将导致mesh位置改变，因为我们mesh位于scene的中心。
+
+```javascript
+camera.lookAt(mesh.position)
+```
+## 组合变换
+您可以按任意顺序组合`position`、`rotation`（或`quaternion`）和`scale`结果是一样的。它相当于对象的状态。
+让我们结合之前尝试过的所有转换：
+
+```javascript
+mesh.position.x = 0.7
+mesh.position.y = - 0.6
+mesh.position.z = 1
+mesh.scale.x = 2
+mesh.scale.y = 0.25
+mesh.scale.z = 0.5
+mesh.rotation.x = Math.PI * 0.25
+mesh.rotation.y = Math.PI * 0.25
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684377965509-a9e839c2-0b25-4621-a551-d7b38762cba0.png#averageHue=%23c6c2c2&clientId=u021ba30b-3007-4&from=paste&id=ua5199ae5&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ub33a7003-1178-49ad-8d20-a5716d0cce1&title=)
+## 场景图
+在某些时候，您可能想要对事物进行分组。假设您正在建造一座有墙壁、门、窗户、屋顶、灌木等的房子。
+当您认为已经完成时，您会意识到房子太小了，您必须重新缩放每个对象并更新它们的位置。
+**一个好的替代方法是将所有这些对象分组到一个容器中并缩放该容器**。
+您可以使用[Group](https://threejs.org/docs/#api/en/objects/Group)类来做到这一点。
+实例化一个[组](https://threejs.org/docs/#api/en/objects/Group)并将其添加到场景中。现在，当你想创建一个新对象时，你可以使用方法将它添加到刚刚创建的[组](https://threejs.org/docs/#api/en/objects/Group)add(...)中，而不是直接添加到场景中
+因为[Group](https://threejs.org/docs/#api/en/objects/Group)类继承自[Object3D](https://threejs.org/docs/#api/en/core/Object3D)类，所以它可以访问前面提到的属性和方法，如`position`、`scale`、`rotation`、`quaternion`和`lookAt`。
+创建 3 个多维数据集并将它们添加到一个[组](https://threejs.org/docs/#api/en/objects/Group)中。然后在`group`上应用转换：
+```javascript
+/**
+ * Objects
+ */
+const group = new THREE.Group()
+group.scale.y = 2
+group.rotation.y = 0.2
+scene.add(group)
+
+const cube1 = new THREE.Mesh(
+    new THREE.BoxGeometry(1, 1, 1),
+    new THREE.MeshBasicMaterial({ color: 0xff0000 })
+)
+cube1.position.x = - 1.5
+group.add(cube1)
+
+const cube2 = new THREE.Mesh(
+    new THREE.BoxGeometry(1, 1, 1),
+    new THREE.MeshBasicMaterial({ color: 0xff0000 })
+)
+cube2.position.x = 0
+group.add(cube2)
+
+const cube3 = new THREE.Mesh(
+    new THREE.BoxGeometry(1, 1, 1),
+    new THREE.MeshBasicMaterial({ color: 0xff0000 })
+)
+cube3.position.x = 1.5
+group.add(cube3)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684377965246-a85aaa00-9fc6-45f5-8177-57cc36858c95.png#averageHue=%23d7c2c2&clientId=u021ba30b-3007-4&from=paste&id=uc99e135f&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u093fc1b6-25bd-4d31-b71f-9cae739f0ee&title=)
+顺序并不重要，只要它是有效的 JavaScript。
+现在我们知道如何变换对象，是时候创建一些动画了。
 
