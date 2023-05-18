@@ -473,3 +473,194 @@ group.add(cube3)
 顺序并不重要，只要它是有效的 JavaScript。
 现在我们知道如何变换对象，是时候创建一些动画了。
 
+# 06.Animations动画
+## 介绍
+我们创建了一个场景，我们在代码末尾渲染了一次。这已经是不错的进步了，但大多数时候，您会想要为您的作品制作一些动态效果动画。
+使用 Three.js 时，动画效果类似于定格动画。您移动对象，然后进行渲染。然后再移动对象一点，再做一次渲染。等等。在渲染之间移动对象越多，它们看起来移动得越快。
+您正在查看的屏幕以特定频率运行。我们称之为帧率。帧率主要取决于屏幕，但计算机本身有局限性。大多数屏幕以每秒 60 帧的速度运行。如果你算一下，这意味着大约每 16 毫秒一帧。但是有些屏幕可以运行得更快，当计算机处理事情有困难时，它会运行得更慢。
+我们想要执行一个函数，该函数将移动对象并在每帧上进行渲染，而不管帧速率如何。
+这样做的本机 JavaScript 方法是使用`window.requestAnimationFrame(...)`方法。
+## 设置
+和以前一样，我们在启动器中拥有的只是场景中心的立方体。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684390315765-8c33f1ee-6651-4912-be1f-f66fae187339.png#averageHue=%23c5c2c2&clientId=ue2f5f078-9d3d-4&from=paste&id=uffcc68aa&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u9bd70f84-9526-4125-99ef-07f2eb1ab4e&title=)
+## 使用 requestAnimationFrame
+[requestAnimationFrame](https://developer.mozilla.org/docs/Web/API/window/requestAnimationFrame)没有办法在每一帧上运行代码。
+`requestAnimationFrame`是将在下一帧执行我们提供的命令。但是，如果我们使用**递归死循环调用自身，**此函数`requestAnimationFrame`也用于在下一帧再次执行自己，那么最终将永远在每一帧执行这个函数。
+创建一个名为的函数`tick`并调用该函数一次。在此函数中，用于`window.requestAnimationFrame(...)`在下一帧调用相同的函数：
+
+```javascript
+/**
+ * Animate
+ */
+const tick = () =>
+{
+    console.log('tick')
+
+    window.requestAnimationFrame(tick)
+}
+
+tick()
+```
+就是这样。开始了无限循环。
+我们可以在控制台上看到的，'tick'在每一帧上都调用了。如果您在高帧率的计算机上测试此代码，'tick'会以更高的频率出现。
+您现在可以`renderer.render(...)`在该函数内移动调用并增加立方体`rotation`：
+
+```javascript
+/**
+ * Animate
+ */
+const tick = () =>
+{
+    // Update objects
+    mesh.rotation.y += 0.01
+
+    // Render
+    renderer.render(scene, camera)
+
+    // Call tick again on the next frame
+    window.requestAnimationFrame(tick)
+}
+
+tick()
+```
+
+恭喜，你现在有了一个 Three.js 动画。
+问题是，如果你在高帧率的计算机上测试这段代码，立方体会旋转得更快，而如果你在较低的帧率下测试，立方体会旋转得更慢。
+#### 适配帧率
+为了使动画适应帧率，我们需要知道自上次更新以来已经过了多少时间。
+首先，我们需要一种测量时间的方法。在本机 JavaScript 中，您可以使用`Date.now()`获取当前时间戳：
+
+```javascript
+const time = Date.now()
+```
+时间戳对应于自 1970 年 1 月 1 日（Unix 时间的开始）以来经过的时间。在 JavaScript 中，它的单位是毫秒。
+现在需要的是将当前时间戳减去前一帧的时间戳，以获得我们可以调用的值，`deltaTime`并在为对象设置动画时使用该值：
+
+```javascript
+/**
+ * Animate
+ */
+let time = Date.now()
+
+const tick = () =>
+{
+		// Time
+    const currentTime = Date.now()
+    const deltaTime = currentTime - time
+    time = currentTime
+
+    // Update objects
+    mesh.rotation.y += 0.01 * deltaTime
+
+    // ...
+}
+
+tick()
+```
+我们的旋转基于自上一帧以来所花费的时间，那么无论帧速率如何，每个屏幕和每台计算机的旋转速度都是相同的。
+## 使用时钟
+[虽然这段代码并没有那么复杂，但 Three.js 中有一个名为Clock](https://threejs.org/docs/#api/en/core/Clock)的内置解决方案来处理时间计算。
+您只需实例化一个[Clock](https://threejs.org/docs/#api/en/core/Clock)变量并使用内置方法，如`getElapsedTime().` [此方法将返回自时钟](https://threejs.org/docs/#api/en/core/Clock)创建以来经过了多少秒。
+您可以使用此值来旋转对象：
+```javascript
+/**
+ * Animate
+ */
+const clock = new THREE.Clock()
+
+const tick = () =>
+{
+    const elapsedTime = clock.getElapsedTime()
+
+    // Update objects
+    mesh.rotation.y = elapsedTime
+
+    // ...
+}
+
+tick()
+```
+您还可以使用tick来移动带有`position`属性的东西。如果你想把这两个属性结合起来，使用`Math.sin(...)`你会得到一个环形运动的几何体：
+
+```javascript
+/**
+ * Animate
+ */
+const clock = new THREE.Clock()
+
+const tick = () =>
+{
+    const elapsedTime = clock.getElapsedTime()
+
+    // Update objects
+    mesh.position.x = Math.cos(elapsedTime)
+    mesh.position.y = Math.sin(elapsedTime)
+
+    // ...
+}
+
+tick()
+```
+显然，您可以使用这些技术为任何[Object3D](https://threejs.org/docs/#api/en/core/Object3D)制作动画，例如相机：
+```javascript
+/**
+ * Animate
+ */
+const clock = new THREE.Clock()
+
+const tick = () =>
+{
+    const elapsedTime = clock.getElapsedTime()
+
+    // Update objects
+    camera.position.x = Math.cos(elapsedTime)
+    camera.position.y = Math.sin(elapsedTime)
+    camera.lookAt(mesh.position)
+
+    // ...
+}
+
+tick()
+```
+
+另一个可用的方法是`getDelta(...)`，但除非您确切知道[Clock](https://threejs.org/docs/#api/en/core/Clock)类代码中发生了什么，否则不应使用它。使用它可能会弄乱您的动画，并且您会得到不需要的结果。
+## 使用库
+有时您会想要以一种非常特殊的方式为您的场景制作动画，这将需要使用另一个库。动画库有很多，但最著名的是[GSAP](https://greensock.com/gsap/)。
+要将 GSAP 添加到我们的项目中，我们可以使用 Node.js 提供的依赖管理器，称为`npm`.
+在您的终端中（当服务器未运行或在同一文件夹上使用另一个终端窗口时），运行`npm install --save gsap@3.5.1`
+该`--save`参数将依赖项保存在 中，`package.json`因此如果我们执行`npm install`.
+强制@3.5.1版本。我们使用这个版本是因为它是编写课程时使用的版本，但如果您愿意，可以通过删除@3.5.1来安装最新版本.
+GSAP 现在在文件夹中可用`node_modules/`，我们可以将其导入我们的`script.js`：
+
+```javascript
+import './style.css'
+import * as THREE from 'three'
+import gsap from 'gsap'
+
+// ...
+```
+
+使用 GSAP 的方法有很多种，我们可以用一门完整的课程来介绍它，但这不是本课程的目标。我们将简单地创建一个demo来测试。如果您已经知道如何使用 GSAP，那么它与 Three.js 的工作方式相同。
+注释与先前动画相关的代码，但保留`tick`功能与渲染。然后你可以使用以下方法创建我们所说的补间（从 A 到 B 的动画）`gsap.to(...)`：
+
+```javascript
+/**
+ * Animate
+ */
+gsap.to(mesh.position, { duration: 1, delay: 1, x: 2 })
+
+const tick = () =>
+{
+    // Render
+    renderer.render(scene, camera)
+
+    // Call tick again on the next frame
+    window.requestAnimationFrame(tick)
+}
+
+tick()
+```
+GSAP 有一个内置的`requestAnimationFrame`，所以你不需要自己更新动画，但是，如果你想看到立方体移动，你需要在每一帧上继续渲染你的场景。
+## 选择正确的解决方案 
+至于原生JS和动画库的选择，看你想达到什么效果。如果您要创建一个永远旋转的旋转木马，则不需要任何库。但是如果你想制作动画，例如剑的挥动，我更推荐你用别的动画库实现。
+
