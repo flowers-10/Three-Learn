@@ -664,3 +664,268 @@ GSAP 有一个内置的`requestAnimationFrame`，所以你不需要自己更新�
 ## 选择正确的解决方案 
 至于原生JS和动画库的选择，看你想达到什么效果。如果您要创建一个永远旋转的旋转木马，则不需要任何库。但是如果你想制作动画，例如剑的挥动，我更推荐你用别的动画库实现。
 
+# 07.Cameras相机
+## 介绍
+我们已经创建过了一个`PerspectiveCamera`，但还有其他类型的相机，如您在文档中所见。
+#### 相机
+`Camera`类就是我们所说[的](https://threejs.org/docs/#api/en/cameras/Camera)抽象类。你不应该直接使用它，但你可以继承它来访问公共属性和方法。以下一些类继承自[Camera](https://threejs.org/docs/#api/en/cameras/Camera)类。
+#### 阵列相机
+ArrayCamera 用于通过使用多个相机来多次渲染您的场景。每个相机将渲染画布的特定区域。你可以想象这看起来像老式的多人游戏控制台，我们必须共享一个分屏。
+#### 立体相机
+StereoCamera用于通过两个模仿眼睛的相机渲染场景，以创建我们所说的视差效果，从而诱使您的大脑认为存在深度[。](https://threejs.org/docs/#api/en/cameras/StereoCamera)您必须拥有足够的设备，例如 VR 耳机或红色和蓝色眼镜才能看到结果。
+#### 立方相机
+CubeCamera用于获取面向每个方向（向前、向后、向左、向右、向上和向下）的渲染，以创建周围环境的渲染[。](https://threejs.org/docs/#api/en/cameras/CubeCamera)您可以使用它来创建用于反射的环境贴图或阴影贴图。我们稍后会谈到这些。
+#### 正交相机
+OrthographicCamera用于在没有透视的情况下创建场景的正交渲染[。](https://threejs.org/docs/#api/en/cameras/OrthographicCamera)如果您制作像帝国时代这样的 RTS 游戏，它会很有用。无论元素与相机的距离如何，它们在屏幕上的大小都是相同的。
+#### 透视相机
+PerspectiveCamera是我们已经使用过的[，](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera)它模拟了具有透视功能的真实相机。
+我们将重点关注[OrthographicCamera](https://threejs.org/docs/#api/en/cameras/OrthographicCamera)和[PerspectiveCamera](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera)。
+## 透视相机
+正如我们之前看到的，[PerspectiveCamera](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera)类需要一些参数来实例化，但我们并没有使用所有可能的参数。添加第三个和第四个参数：
+
+```javascript
+const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 1, 100)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684395670204-4c375b1d-2ab8-4514-9516-a191200200d0.png#averageHue=%23c4c2c2&clientId=u83458110-111d-4&from=paste&id=ue386b335&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u2f04765b-a2e9-424e-a437-98516ede5f4&title=)
+您应该得到相同的结果，但让我们详细讨论这些参数。
+#### 视野
+第一个参数称为**视野**，对应于您的相机视图的垂直振幅角度（以度为单位）。如果你使用小角度，你最终会得到一个长范围的效果，如果你使用广角，你最终会得到一个鱼眼效果，因为最终，相机看到的东西会被拉伸或挤压以适合画布。
+至于选择正确的视野，您必须尝试一下。我通常使用45～75之间的视野。
+#### 纵横比
+第二个参数称为宽高比，对应于宽度除以高度。虽然您可能认为这显然是画布宽度乘以画布高度并且 Three.js 应该自己计算它，但如果您以非常谨慎的方式开始使用 Three.js，那么情况可能并不总是这样。在我们的例子中，我们可以简单地使用画布宽度和画布高度。
+我建议将这些值保存在一个对象中，因为我们将多次需要它们：
+
+```javascript
+const sizes = {
+    width: 800,
+    height: 600
+}
+```
+#### 近与远
+第三个和第四个参数称为**near**和**far**，对应于相机可以看到多近和多远。任何对象或对象的一部分比该`near`值更靠近相机或比`far`该值更远离相机,那么这个物体将不会显示在可视的范围上。	
+你可以想象，就像在那些古老的赛车游戏中一样，你可以看到远处的树木突然冒出来，又从背后消失不见。
+虽然您可能很想使用非常小和非常大的值，例如，0.0001您9999999，但是可能会遇到一个称为 z-fighting 的错误，其中两个面似乎在叠合在一起了，因为其中一个将渲染在另一个之上。
+[https://twitter.com/FreyaHolmer/status/799602767081848832](https://twitter.com/FreyaHolmer/status/799602767081848832)
+[https://twitter.com/Snapman_I_Am/status/800567120765616128](https://twitter.com/Snapman_I_Am/status/800567120765616128)
+尝试使用合理的值并仅在需要时增加这些值。在我们的例子中，我们可以使用0.1和100。
+## 正交相机
+虽然我们不会在课程的其余部分使用这种类型的相机，但它对特定项目很有用。
+OrthographicCamera与[PerspectiveCamera](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera)的不同之处在于它没有透视，这意味着无论对象与相机的距离如何，它们都将具有相同的大小[。](https://threejs.org/docs/#api/en/cameras/OrthographicCamera)
+您必须提供的参数与[PerspectiveCamera](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera)有很大不同。
+您必须提供相机在每个方向（ `left`、`right`和`top`）可以看到的距离，而不是视野`bottom`。然后您可以像我们为[PerspectiveCamera](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera)所做的那样提供`near`和`far`值。
+在项目中我们注释[PerspectiveCamera](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera)并添加[OrthographicCamera](https://threejs.org/docs/#api/en/cameras/OrthographicCamera)。保持`position`更新并`lookAt(...)`：
+
+```javascript
+const camera = new THREE.OrthographicCamera(- 1, 1, 1, - 1, 0.1, 100)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684395670221-cad8e26b-a90a-4d96-ac39-69073a9113de.png#averageHue=%23dcc2c2&clientId=u83458110-111d-4&from=paste&id=ua0428c2a&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=uce00698b-0f56-4bd8-8909-7f1683ca91f&title=)
+如您所见，没有透视图，立方体的边看起来是平行的。问题是我们的立方体看起来不是立方体。
+这是由于我们为`left`、`right`、`top`和`bottom`提供的值是1或- 1，这意味着我们渲染一个正方形区域，但该正方形区域将被拉伸以适合我们的矩形画布，而我们的画布不是正方形。
+我们需要使用画布比例（宽度乘以高度）。让我们创建一个名为`aspectRatio`（就像 PerspectiveCamera）的变量并将该比率存储在其中：
+
+```javascript
+const aspectRatio = sizes.width / sizes.height
+const camera = new THREE.OrthographicCamera(- 1 * aspectRatio, 1 * aspectRatio, 1, - 1, 0.1, 100)
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684395670186-78e90a32-6ae3-479f-b52f-f2916877143a.png#averageHue=%23d5c2c2&clientId=u83458110-111d-4&from=paste&id=u1b2b7fda&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u280b252e-78fa-44a4-bf2f-cab3437c69f&title=)
+这导致渲染区域宽度大于渲染区域高度，因为我们的画布宽度大于其高度。
+现在我们有一个看起来像立方体的立方体。
+## 自定义控件
+让我们回到我们的[PerspectiveCamera](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera)。注释[OrthographicCamera](https://threejs.org/docs/#api/en/cameras/OrthographicCamera)，取消注释[PerspectiveCamera](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera)，移动`camera`使其面向立方体，并删除函数中的网格旋转tick：
+
+```javascript
+// Camera
+const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 1, 1000)
+
+// const aspectRatio = sizes.width / sizes.height
+// const camera = new THREE.OrthographicCamera(- 1 * aspectRatio, 1 * aspectRatio, 1, - 1, 0.1, 100)
+
+// camera.position.x = 2
+// camera.position.y = 2
+camera.position.z = 3
+camera.lookAt(mesh.position)
+scene.add(camera)
+```
+我们现在要做的是用鼠标控制相机。首先，我们要知道鼠标坐标。我们可以通过使用原生 `JavaScript` `addEventListener`监听`mousemove`事件来做到这一点。
+坐标将位于回调函数的参数中，如`event.clientX`和`event.clientY`：
+
+```javascript
+// Cursor
+window.addEventListener('mousemove', (event) =>
+{
+    console.log(event.clientX, event.clientY)
+})
+```
+我们可以使用这些值，但我建议再调整一下它们。通过调整，我的意思是有一个振幅1的浮动，这个值可以是正的也可以是负的。
+如果我们只关注`x`，那就意味着：
+
+- 如果你的光标在画布的最左边，你应该得到- 0.5
+- 如果你的光标在画布的中心，你应该得到0
+- 如果你的光标在画布的最右边，你应该得到0.5
+
+虽然这不是强制性的，但做好规范这样的习惯，它有助于提高你的代码水平。
+就像我们规定的`size`变量一样，我们将创建一个具有默认值`x`和`y`属性的变量`cursor`，然后在`mousemove`回调中更新这些属性：
+
+```javascript
+// Cursor
+const cursor = {
+    x: 0,
+    y: 0
+}
+
+window.addEventListener('mousemove', (event) =>
+{
+    cursor.x = event.clientX / sizes.width - 0.5
+    cursor.y = event.clientY / sizes.height - 0.5
+
+    console.log(cursor.x, cursor.y)
+})
+```
+event.clientX除以sizes.width会给我们一个介于`0`和`1`之间的值 （如果我们将光标保持在画布上方），而减法`- 0.5`会给我们一个介于`- 0.5`和`0.5`之间的值。
+您现在已将鼠标位置存储在`cursor`对象变量中，您可以在函数中更新相机的位置`tick`：
+
+```javascript
+const tick = () =>
+{
+    // ...
+
+    // Update camera
+    camera.position.x = cursor.x
+    camera.position.y = cursor.y
+
+    // ...
+}
+```
+轴的运动似乎有点不对劲。这是因为`position.y`在 `Three.js` 中向上时轴为正，而`clientY`在网页中向下时轴为正。
+您可以通过在整个公式前面`cursor.y`添加一个来简单地反转更新它（不要忘记括号）：-
+
+```javascript
+window.addEventListener('mousemove', (event) =>
+{
+    cursor.x = event.clientX / sizes.width - 0.5
+    cursor.y = - (event.clientY / sizes.height - 0.5)
+})
+```
+最后，您可以通过乘以`cursor.x`和来增加振幅`cursor.y`，并使用以下方法让相机观察网格`lookAt(...)`：
+
+```javascript
+const tick = () =>
+{
+    // ...
+
+    // Update camera
+    camera.position.x = cursor.x * 5
+    camera.position.y = cursor.y * 5
+    camera.lookAt(mesh.position)
+
+    // ...
+}
+```
+我们可以更进一步，使用`Math.sin(...)`和`Math.cos(...)`使相机围绕网格进行完整旋转。
+`sin`和`cos`，当以相同的角度组合使用时，我们可以将东西放在一个圆圈上。要进行完整旋转，该角度的振幅必须是 π 的 2 倍（称为“pi”）。就像你知道的那样，一个完整的旋转被称为“tau”，但我们无法在 JavaScript 中访问这个值，我们必须使用 π 代替。
+您可以使用本机 JavaScript 访问 π 的近似值`Math.PI`。
+要增加该圆的半径，您可以简单地将`Math.sin(...)`和的结果相乘`Math.cos(...)`：
+
+```javascript
+const tick = () =>
+{
+    // ...
+
+    // Update camera
+    camera.position.x = Math.sin(cursor.x * Math.PI * 2) * 2
+    camera.position.z = Math.cos(cursor.x * Math.PI * 2) * 2
+    camera.position.y = cursor.y * 3
+    camera.lookAt(mesh.position)
+
+    // ...
+}
+
+tick()
+```
+
+虽然这是控制相机的良好开端，但 Three.js 集成了多个称为控件的类来帮助您做同样的事情以及更多。
+## 内置控件
+如果您在[Three.js 文档](https://threejs.org/docs/index.html#api/en/math/Euler)中键入“控件” ，您会看到有很多预制控件。我们课程案例将只使用其中一个，但了解它们的作用可能会很有趣。
+#### 设备方向控件
+[如果您的设备、操作系统和浏览器允许， DeviceOrientationControls](https://threejs.org/docs/#examples/en/controls/DeviceOrientationControls)将自动检索设备方向并相应地旋转相机。如果您拥有合适的设备，您可以使用它来创建身临其境的宇宙或 VR 体验。
+#### 飞控
+[FlyControls](https://threejs.org/docs/#examples/en/controls/FlyControls)可以像在宇宙飞船上一样移动相机。您可以在所有 3 个轴上旋转，前进和后退。
+#### 第一人称控制
+[FirstPersonControls](https://threejs.org/docs/#examples/en/controls/FirstPersonControls)就像[FlyControls](https://threejs.org/docs/#examples/en/controls/FlyControls)一样，但有一个固定的向上轴。你可以看到的视图就像飞翔的鸟，鸟不能滚动。虽然 FirstPersonControls 包含“FirstPerson”，但它不像在 FPS 游戏中那样工作。
+#### 指针锁定控件
+[PointerLockControls](https://threejs.org/docs/#examples/en/controls/PointerLockControls)使用[指针锁定 JavaScript API](https://developer.mozilla.org/docs/Web/API/Pointer_Lock_API)。此 API 隐藏光标，使其居中，并在mousemove事件回调中不断发送坐标位置移动。使用此 API，您可以直接在浏览器内创建 FPS 游戏。虽然如果您想创建那种交互，这个类很合适，但它只会在指针锁定时处理相机旋转。您必须自己处理摄像机位置和游戏物理。
+#### 轨道控制
+[OrbitControls](https://threejs.org/docs/#examples/en/controls/OrbitControls)与我们在上一课中制作的控件非常相似。您可以使用鼠标左键围绕一个点旋转，使用鼠标右键横向平移，并使用滚轮放大或缩小。
+#### 轨迹球控件
+[TrackballControls](https://threejs.org/docs/#examples/en/controls/TrackballControls)就像[OrbitControls](https://threejs.org/docs/#examples/en/controls/OrbitControls)，但在垂直角度方面没有限制。即使场景颠倒，您也可以继续旋转并旋转相机。
+#### 变换控件
+[TransformControls](https://threejs.org/docs/#examples/en/controls/TransformControls)与相机无关。您可以使用它向对象添加小控件以移动该对象。
+#### 拖动控件
+就像[TransformControls](https://threejs.org/docs/#examples/en/controls/TransformControls)一样，[DragControls](https://threejs.org/docs/#examples/en/controls/DragControls)与相机无关。您可以使用它通过拖放来移动面向相机的平面上的对象。
+我们将只使用[OrbitControls](https://threejs.org/docs/#examples/en/controls/OrbitControls)，但可以随意测试其他类。
+## 轨道控制
+我们在`tick`函数中更新`camera`的部分。
+### 实例化
+首先，我们需要使用[OrbitControls](https://threejs.org/docs/#examples/en/controls/OrbitControls)类实例化一个变量。虽然您可能认为`THREE.OrbitControls`可以使用，但不幸的是您错了,``在`THREE`变量中没有包含`OrbitControls`该类；
+OrbitControls 类属于是THREE变量中包含的默认不可用的类的。该决定有助于减轻库的重量。这就是我们的 Vite 模板的用武之地。
+它仍然位于依赖项文件夹中。要导入它，您必须提供文件夹内部的路径`/node_modules/`，即`/three/examples/jsm/controls/OrbitControls.js`：
+
+```javascript
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+```
+您现在可以使用类`OrbitControls`（不带`THREE.`）实例化一个变量，**并确保在创建相机后执行此操作**。
+要使其工作，您必须在页面中提供相机和将要添加鼠标事件的元素作为参数：
+
+```javascript
+// Controls
+const controls = new OrbitControls(camera, canvas)
+```
+
+您现在可以使用鼠标左键或右键拖放来移动相机，并且可以向上或向下滚动以放大或缩小。
+它比我们的自定义代码要容易得多，而且它带有更多的控件。但让我们更进一步。
+### 目标
+默认情况下，相机正在注视场景的中心。我们可以用`target`属性改变它。
+这个属性是一个[Vector3](https://threejs.org/docs/#api/en/math/Vector3)，意味着我们可以改变它的x,y和z属性。
+如果我们希望 OrbitControls[默认](https://threejs.org/docs/#examples/en/controls/OrbitControls)在立方体上方查看，我们只需增加属性y：
+
+```javascript
+controls.target.y = 2
+```
+
+但这不会像那样工作，因为我们需要告诉它`OrbitControl`自己更新。我们可以通过`update`在之后立即调用方法来做到这一点：
+
+```javascript
+controls.target.y = 2
+controls.update()
+```
+### 减震
+[如果您阅读OrbitControls](https://threejs.org/docs/#examples/en/controls/OrbitControls)的文档，会提到`damping`. 阻尼将通过添加某种加速度和摩擦力公式来平滑动画。
+要启用阻尼感，请将`controls`的属性`enableDamping`切换为`true`。
+为了正常工作，还需要通过调用在每一帧上更新控件`controls.update()`。您可以在`tick`函数上执行此操作：
+
+```javascript
+// Controls
+const controls = new OrbitControls(camera, canvas)
+controls.enableDamping = true
+
+// ...
+
+const tick = () =>
+{
+    // ...
+
+    // Update controls
+    controls.update()
+
+    // ...
+}
+```
+
+您会发现控件现在更加流畅。
+您可以使用许多其他方法和属性来自定义您的控件，例如旋转速度、缩放速度、缩放限制、角度限制、阻尼强度和键绑定（您也可以使用键盘控制）。
+## 何时使用内置控件
+虽然这些控件很方便，但它们也有局限性。如果您过于依赖它们，您可能最终不得不以意想不到的方式改变代码实现逻辑。
+首先，确保列出您需要的这些控件的所有功能，然后检查您将要使用的类是否可以处理所有这些功能。
+如果没有，你将不得不自己封装一个。
+
