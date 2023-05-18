@@ -184,3 +184,123 @@ scene.add(camera)
 恭喜，我们看到了的第一个渲染出来的作品。它看起来像一个正方形，那是因为相机与立方体完美对齐，你只能看到它的一侧。
 不要担心渲染的大小；稍后我们将学习如何使画布适合视口。
 在接下来的课程中，您将了解有关`**position**`、`**rotation**`和`**scale**`属性的更多信息，以及如何更改它们以及为场景制作动画。
+
+# 04.Local Server本地服务器
+## 介绍
+上节课我们实现的加载Three.js的方式是最简单的。不幸的是，它有两个缺点及主要限制。
+首先，**我们只能访问“核心”类**。这个核心中有几十个类，我们可以用它们做很多事情，但我们并没有掌握所有的的类和属性。例如，在以后的课程中，我们将需要访问`OrbitControls`该类，这在核心类中是不可用的。
+其次，当打开这样的 `HTML` 文件时，您的浏览器不会让 `JavaScript` 执行任何指令。例如，**您将无法加载纹理或模型等本地文件**。出于安全原因，这实际上是一件好事。我们不希望脚本仅仅因为打开了一个被我们认为安全的 `HTML` 文件就可以从我们的计算机里读取并加载文件。
+但是，我们仍然需要能够像运行在线网站一样运行 `JavaScript` 代码，为此，我们需要一个能运行在本地服务器的项目。
+有很多方法可以处理这些问题，但最简单的解决方案是使用“构建工具”或“捆绑器”。
+## 构建工具的状态
+现在有很多可用的构建工具，您可能听说过其中一些，例如 `Webpack`、`Vite`、`Gulp`、`Parcel` 等。
+它们都有各自的优点和缺点，但我们将在接下来的课程中使用其中一个进行构筑。
+现在最流行的构建工具是`Webpack`。它被广泛使用，它有一个很棒的社区，你可以用它做很多事情。但是，尽管 `Webpack` 最受欢迎，但它并不是最受赞赏的。
+事实上，如今最受欢迎的构建工具是[Vite](https://vitejs.dev/)（法语中“快速”的意思，发音/vit/类似于“veet”）。它安装速度更快，运行速度更快，而且更不容易出现错误。开发人员的体验更好。
+最初，所有 `Three.js Journey` 练习都在 `Webpack` 上运行，并且大多数课程都是这样记录的。但是现在，练习是在 `Vite` 上运行的。别担心即使你还没接触过`Vite`，学习没有额外的学习成本，因为 `Vite`的配置与 `Webpack` 配置非常相似。
+## Vite 
+> 如果你已经会使用Vite了
+> 请直接下载启动包：启动包文件在我的[github](https://github.com/flowers-10/Three-Learn/tree/de9b6fcc0504929701cb9de876402c4c5a7bfdaf)的一次提交中。（[https://github.com/flowers-10/Three-Learn/tree/de9b6fcc0504929701cb9de876402c4c5a7bfdaf](https://github.com/flowers-10/Three-Learn/tree/de9b6fcc0504929701cb9de876402c4c5a7bfdaf)）
+
+这不是关于 `Vite` 的课程，我将简单的解释一些关于它的事情。
+如前所述，[Vite](https://vitejs.dev/)是一个构建工具。我们的想法是，我们将编写 `HTML/CSS/JS` 等 `Web` 代码，而 `Vite` 将构建最终网站。它还会做很多事情，比如**优化、缓存中断、源映射、运行本地服务器**等。
+ `Vite` 可以处理一些基本的需求，我们还可以添加插件以处理更多功能，例如外来语言或特殊文件。实际上，我们将在课程的后面添加一个插件，它将能够处理 `GLSL` 文件以**创建自定义着色器**。
+`Vite` 由 `Vue.js`的创建者 Evan You (鱿鱼须)创建，并由数百名开发人员高度维护。
+### 节点.js
+首先，您需要在计算机上安装[Node.js。](https://nodejs.org/)
+`Node.js` 允许在浏览器之外的计算机上运行 `JavaScript`。能运行各种工具，像`Vite`，它已经存在很多年了，非常流行。
+如果您不知道 `Node.js` 是否已安装或安装了哪个版本，请打开您的终端 (MacOS) 或命令提示符 (Windows) 并运行`node -v`.
+如果终端告诉您`node`无法识别该命令，则表示未安装。
+如果已安装，答案将包含当前版本。确保它已更新到最新版本。`Vite` 目前适用于**14.18**及以上版本，但我建议您始终安装 `Node.js` 的 `LTS`（长期支持）版本。
+要安装或更新 `Node.js`，请转到[https://nodejs.org/en/](https://nodejs.org/en/)，下载“LTS”并使用默认设置安装它。
+关闭您的终端 (MacOS) 或命令提示符 (Windows)，重新打开它，然后node -v再次运行以检查版本。
+### 压缩文件
+现在我们已经在我们的计算机上安装了 `Node.js`，我们可以运行 `starter`。
+文件在我的[github](https://github.com/flowers-10/Three-Learn/tree/de9b6fcc0504929701cb9de876402c4c5a7bfdaf)的入门包提交中。
+![288aa54acec49a8cc06f90fd38e00008.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684376727017-6ee91acb-4092-4954-8e91-b872405d5145.png#averageHue=%23fefefe&clientId=ube14fb02-61aa-4&from=paste&height=212&id=uf93a4418&originHeight=424&originWidth=1570&originalType=binary&ratio=2&rotation=0&showTitle=false&size=68535&status=done&style=none&taskId=u91854a96-20a4-4f14-856f-c35439903e7&title=&width=785)
+### 依赖关系
+现在我们在项目文件夹中，我们需要安装依赖项。“什么依存关系？” 你可能会问？好吧，这个项目有两个依赖项：`Vite` 和 `Three.js`。
+要安装它们，请`npm install`从您的终端运行。
+稍等片刻，您应该会看到`node_modules`在项目文件夹中创建了一个文件夹。
+当我们安装 `Node.js` 时，我们会自动安装 `NPM`。[NPM](http://npmjs.com/)是一个依赖项管理器，它将获取`package.json`文件中列出的依赖项并将它们安装到`node_modules`文件夹中。
+### 运行服务器
+ 现在我们可以让 `Vite` 运行服务器了。
+为此，仍然在终端和项目文件夹中，运行`npm run dev`.
+等待一两秒钟，该网站将在您的默认浏览器中打开，页面上写着“Soon to be a Three.js experience”。
+如果页面没有打开，终端应该显示两个类似于`http://localhost:5173/`和 的URL `http://0.0.0.0:5173/`。在您的浏览器中输入它们也可以访问。
+## 更多关于 Vite 模板 
+在我们继续之前，您需要了解有关 Vite 模板的一些事项：
+
+- 文件中设置了 `Vite` 配置`vite.config.js`。如果你对如何配置 `Vite` 项目感到好奇，请查看[Vite 网站](https://vitejs.dev/)。
+- `npm install`下载项目后只需运行一次。
+- 每次要`npm run dev`运行服务器并开始编码时都需要运行。您的终端可能看起来卡住了，但这是完全正常的，这意味着服务器正在运行。
+- 按`CTRL + C`停止服务器。您可能需要在 `Windows` 系统上多次按快捷方式或使用字母 确认o。
+- 您需要探索的唯一文件夹是`src/`和`static/`文件夹。
+- 在该`src/`文件夹中，您可以找到传统的`index.html`、`script.js`和`tyle.css`文件。
+- 您可以将“静态文件”放在该`static/`文件夹中。这些文件将被使用，就好像它们在根文件夹中可用一样（无需编写static/）。`/door.jpg`您可以通过在 URL 末尾添加( http://localhost:5173/door.jpg) 来进行访问。稍后我们将**使用它来加载纹理和模型**。
+- 当您保存任何这些文件时，该页面将自动热更新重新加载。
+- 您可以通过键入看起来像这样的相同 URL 从同一网络上的任何其他设备访问您的本地服务器http://192.168.1.25:5173。在手机等其他设备上进行调试非常有用。如果它不起作用，通常是因为您的防火墙拦截导致。
+## 找回 Three.js 场景
+这是简单的部分。我们先在这个 `Vite` 模板中恢复我们的 `Three.js` 场景。
+首先，我们需要把`<canvas>`添加到文件`src/index.html`中：
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>04 - Local Server</title>
+    <link rel="stylesheet" href="./style.css">
+  </head>
+  <body>
+    <canvas class="webgl"></canvas>
+    <script type="module" src="./script.js"></script>
+  </body>
+</html>
+```
+现在我们需要在文件中添加与上一课相同的 `JavaScript` 代码`/src/script.js`。唯一的区别是我们需要先导入 `Three.js`。
+要导入 `Three.js`，我们需要在文件的最开头写下以下行`/src/script.js`：
+这样就可以在项目引入THREE依赖
+```javascript
+import * as THREE from 'three'
+```
+这将在变量`THREE`中导入 `Three.js` 的所有核心类。该`three`模块在`/node_modules/`文件夹中，但我们不需要关心它的位置。
+然后我们可以写入与之前相同的代码：
+```javascript
+import * as THREE from 'three'
+
+// Scene
+const scene = new THREE.Scene()
+
+// Object
+const geometry = new THREE.BoxGeometry(1, 1, 1)
+const material = new THREE.MeshBasicMaterial({ color: 0xff0000 })
+const mesh = new THREE.Mesh(geometry, material)
+scene.add(mesh)
+
+// Sizes
+const sizes = {
+    width: 800,
+    height: 600
+}
+
+// Camera
+const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height)
+camera.position.z = 3
+scene.add(camera)
+
+// Renderer
+const renderer = new THREE.WebGLRenderer({
+    canvas: document.querySelector('canvas.webgl')
+})
+renderer.setSize(sizes.width, sizes.height)
+renderer.render(scene, camera)
+```
+如果服务器已经在运行，请打开页面（无需重新加载）。
+如果没有，`npm run dev`从终端运行，页面应该打开。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684374471284-f6bbe476-b3b8-49e8-aa48-7282cd51dae6.png#averageHue=%23c4c2c2&clientId=udacd111f-f86f-4&from=paste&id=u49def181&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u631ee010-2ebe-4b13-9c3a-27df7d8994c&title=)
+就是这样。我们有与上一课相同的代码运行，但这次使用构建工具来处理本地服务器并为我们做一些其他优化。
+接下来大部分课程都是使用 `Webpack` 录制的，您可能会看到细微差别。但是，应该不会太影响你学习three.js。
+
+
+
