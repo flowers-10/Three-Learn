@@ -1201,3 +1201,160 @@ window.addEventListener('dblclick', () =>
 })
 ```
 一切功能都应该在所有现代浏览器上正常工作，兼容所有浏览器。
+
+# 09.Geometries 几何图形
+## 介绍
+到目前为止，我们只使用[BoxGeometry](https://threejs.org/docs/#api/en/geometries/BoxGeometry)类来创建我们的立方体。在本课中，我们将发现各种其他几何图形，但首先，我们需要了解几何图形的真正含义。
+## 什么是几何？
+在 Three.js 中，几何图形由顶点（3D 空间中的点坐标）和面（连接这些顶点以创建表面的三角形）组成。
+我们使用几何体来创建网格，为了以后的课程做铺垫，您也可以使用几何体来形成粒子。每个顶点（单个顶点）将对应一个粒子。
+我们可以存储比顶点位置更多的数据。一个很好的例子是谈论 UV 坐标或法线。我们稍后会详细了解这些内容。
+## 不同的内置几何形状
+Three.js 有很多内置的几何图形。虽然您不需要确切地知道如何实例化每一个，但最好知道它们的存在。
+我们将看到的所有内置几何图形都继承自[BufferGeometry](https://threejs.org/docs/#api/en/core/BufferGeometry)类。此类有许多内置方法，例如`translate(...)`、`rotateX(...)`、`normalize()` 等，但我们不会在本课中使用它们。
+大多数几何文档页面都有示例。
+
+- [BoxGeometry](https://threejs.org/docs/#api/en/geometries/BoxGeometry) 创建一个盒子。
+- [PlaneGeometry](https://threejs.org/docs/#api/en/geometries/PlaneGeometry) 创建一个矩形平面。
+- [CircleGeometry](https://threejs.org/docs/#api/en/geometries/CircleGeometry) 创建圆盘或圆盘的一部分（如饼图）。
+- [ConeGeometry](https://threejs.org/docs/#api/en/geometries/ConeGeometry) 创建圆锥体或圆锥体的一部分。您可以打开或关闭圆锥体的底部。
+- [CylinderGeometry](https://threejs.org/docs/#api/en/geometries/CylinderGeometry) 创建一个圆柱体。您可以打开或关闭圆柱体的两端，并且可以更改每一端的半径。
+- [RingGeometry](https://threejs.org/docs/#api/en/geometries/RingGeometry) 创建扁平环或扁平圆的一部分。
+- [TorusGeometry](https://threejs.org/docs/#api/en/geometries/TorusGeometry) 创建一个具有厚度（如甜甜圈）或环的一部分的环。
+- [TorusKnotGeometry](https://threejs.org/docs/#api/en/geometries/TorusKnotGeometry) 创建某种几何结。
+- [DodecahedronGeometry](https://threejs.org/docs/#api/en/geometries/DodecahedronGeometry) 创建一个有 12 个面的球体。您可以为更圆的球体添加细节。
+- [OctahedronGeometry](https://threejs.org/docs/#api/en/geometries/OctahedronGeometry) 创建一个有 8 个面的球体。您可以为更圆的球体添加细节。
+- [TetrahedronGeometry](https://threejs.org/docs/#api/en/geometries/TetrahedronGeometry) 创建一个 4 面球体（如果不增加细节，它不会是一个很大的球体）。您可以为更圆的球体添加细节。
+- [IcosahedronGeometry](https://threejs.org/docs/#api/en/geometries/IcosahedronGeometry) 创建一个由大小大致相同的三角形组成的球体。
+- [SphereGeometry](https://threejs.org/docs/#api/en/geometries/SphereGeometry) 创建最流行的球体类型，其中的面看起来像四边形（四边形只是两个三角形的组合）。
+- [ShapeGeometry](https://threejs.org/docs/#api/en/geometries/ShapeGeometry) 根据路径创建形状。
+- [TubeGeometry](https://threejs.org/docs/#api/en/geometries/TubeGeometry) 按照路径创建管。
+- [ExtrudeGeometry](https://threejs.org/docs/#api/en/geometries/ExtrudeGeometry) 根据路径创建挤压。您可以添加和控制斜角。
+- [LatheGeometry](https://threejs.org/docs/#api/en/geometries/LatheGeometry) 创建花瓶或花瓶的一部分（更像是一场革命）。
+- [TextGeometry](https://threejs.org/docs/?q=textge#examples/en/geometries/TextGeometry) 创建 3D 文本。您必须提供字体 json 格式的字体。
+
+如果您需要 Three.js 不支持的特定特殊几何体，您可以在 JavaScript 中创建自己的几何体，或者您可以在 3D 软件中制作它，将其导出并导入到您的项目中。我们稍后的课程会介绍更多。
+## 框示例
+我们已经制作了一个立方体，但我们并没有过多讨论参数。大多数几何图形都有参数，在使用它之前，您应该始终查看文档。
+BoxGeometry有 6 个参数[：](https://threejs.org/docs/#api/en/geometries/BoxGeometry)
+
+- `widthx`：轴上的尺寸
+- `heighty`：轴上的尺寸
+- `depthz`：轴上的尺寸
+- `widthSegmentsx`：轴有多少细分
+- `heightSegmentsy`：轴有多少细分
+- `depthSegmentsz`：轴有多少细分
+
+细分对应于构成面部的三角形数量。默认情况下它是`1`，这意味着每个面只有 `2` 个三角形。如果将细分设置为`2`，每个面最终会得到 8 个三角形：
+
+```javascript
+const geometry = new THREE.BoxGeometry(1, 1, 1, 2, 2, 2)
+```
+问题是我们看不到这些三角形。
+一个好的解决方案是添加`wireframe: true`到我们的材料中。线框将显示分隔每个三角形的线：
+
+```javascript
+const material = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true })
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684463600780-6be5b027-768e-4a49-b8e9-6aebad2e0c5e.png#averageHue=%23020000&clientId=u98f0ea70-c8ef-4&from=paste&id=u13e7067d&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u5f93883a-9e1c-4176-ae8d-972e53196d6&title=)
+如您所见，面有 8 个三角形。
+虽然这与平面立方体无关，但在使用 `SphereGeometry` 时会变得更[有趣](https://threejs.org/docs/#api/en/geometries/SphereGeometry)：
+
+```javascript
+const geometry = new THREE.SphereGeometry(1, 32, 32)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684463600542-cc0473c0-2c1e-4fcd-924c-2439d019cd9b.png#averageHue=%230a0000&clientId=u98f0ea70-c8ef-4&from=paste&id=u4d0b13fd&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ub9c5d1e8-a1ae-4214-9e3a-9502d38538c&title=)
+我们添加的细分越多，图形就越接近完美。但请记住，过多的顶点和面会影响性能。
+## 创建自己的缓冲区几何
+有时，我们需要创建自己的几何图形。如果几何体非常复杂或具有精确的形状，最好在 3D 软件中创建它（我们将在以后的课程中介绍），但如果几何体不太复杂，我们可以通过使用[缓冲区几何](https://threejs.org/docs/#api/en/core/BufferGeometry)[BufferGeometry](https://threejs.org/docs/#api/en/core/BufferGeometry)自己构建它。
+要创建您自己的缓冲区几何图形，首先要实例化一个空的[BufferGeometry](https://threejs.org/docs/#api/en/core/BufferGeometry)。我们将示例创建一个简单的三角形：
+
+```javascript
+// Create an empty BufferGeometry
+const geometry = new THREE.BufferGeometry()
+```
+要将顶点添加到[BufferGeometry，您必须从](https://threejs.org/docs/#api/en/core/BufferGeometry)[Float32Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Float32Array)开始。
+[Float32Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Float32Array)是原生 JavaScript 数组类型。您只能在内部存储浮点数，并且该数组的长度是固定的。
+要创建[Float32Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Float32Array)，您可以指定它的长度，然后再填充它：
+
+```javascript
+const positionsArray = new Float32Array(9)
+
+// First vertice
+positionsArray[0] = 0
+positionsArray[1] = 0
+positionsArray[2] = 0
+
+// Second vertice
+positionsArray[3] = 0
+positionsArray[4] = 1
+positionsArray[5] = 0
+
+// Third vertice
+positionsArray[6] = 1
+positionsArray[7] = 0
+positionsArray[8] = 0
+```
+或者你可以传递一个数组：
+
+```javascript
+const positionsArray = new Float32Array([
+    0, 0, 0, // First vertex
+    0, 1, 0, // Second vertex
+    1, 0, 0  // Third vertex
+])
+```
+
+如您所见，顶点的坐标是线性指定的。该数组是一个一维数组，您可以在其中指定第一个顶点的`x`、`y`和`z`，然后是第二个顶点的`x`、`y`和`z`，依此类推。
+在将该数组发送到 BufferGeometry 之前[，](https://threejs.org/docs/#api/en/core/BufferGeometry)您必须将其转换为[BufferAttribute](https://threejs.org/docs/#api/en/core/BufferAttribute)。
+第一个参数对应于您的类型数组，第二个参数对应于一个顶点属性的值。正如我们之前看到的，要读取这个数组，我们必须 3 乘 3，因为顶点位置由 3 个值（`x`,`y`和`z`）组成：
+
+```javascript
+const positionsAttribute = new THREE.BufferAttribute(positionsArray, 3)
+```
+然后我们可以使用该方法将此属性添加到我们的[BufferGeometry](https://threejs.org/docs/#api/en/core/BufferGeometry).setAttribute(...)。第一个参数是这个属性的名称，第二个参数是值：
+
+```javascript
+geometry.setAttribute('position', positionsAttribute)
+```
+我们选择`'position'`这个名称是因为 Three.js 内部着色器将查找该值来定位顶点。我们将在着色器课程中看到更多相关信息。
+面将按照顶点的顺序自动创建。
+全部一起：
+```javascript
+// Create an empty BufferGeometry
+const geometry = new THREE.BufferGeometry()
+
+// Create a Float32Array containing the vertices position (3 by 3)
+const positionsArray = new Float32Array([
+    0, 0, 0, // First vertex
+    0, 1, 0, // Second vertex
+    1, 0, 0  // Third vertex
+])
+
+// Create the attribute and name it 'position'
+const positionsAttribute = new THREE.BufferAttribute(positionsArray, 3)
+geometry.setAttribute('position', positionsAttribute)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684463601268-900de4e5-5b88-407b-a7c4-995210272d49.png#averageHue=%23000000&clientId=u98f0ea70-c8ef-4&from=paste&id=ubea421b7&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u6dd1114e-24e3-41c9-baaa-87aa54d379c&title=)
+我们还可以创建一堆随机三角形：
+
+```javascript
+// Create an empty BufferGeometry
+const geometry = new THREE.BufferGeometry()
+
+// Create 50 triangles (450 values)
+const count = 50
+const positionsArray = new Float32Array(count * 3 * 3)
+for(let i = 0; i < count * 3 * 3; i++)
+{
+    positionsArray[i] = (Math.random() - 0.5) * 4
+}
+
+// Create the attribute and name it 'position'
+const positionsAttribute = new THREE.BufferAttribute(positionsArray, 3)
+geometry.setAttribute('position', positionsAttribute)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684463601239-38d0cb17-9bfe-457c-b538-1ea608cdc3a9.png#averageHue=%230a0000&clientId=u98f0ea70-c8ef-4&from=paste&id=u817a0aea&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=uae03f777-a55c-4fbf-a073-d2dbfbd5632&title=)
+唯一理解困难的可能是`count * 3 * 3`零件，但解释起来很简单：我们需要`50`三角形。每个三角形由顶点组成，每个顶点由值3（`x`、`y`和`z`）组成。
+#### 指数Index
+[BufferGeometry](https://threejs.org/docs/#api/en/core/BufferGeometry)的一件有趣的事情是您可以使用该`index`属性使顶点相互化，形成成一个立方体。多个面可以使用一些预计的顶点，例如立方体八个角落中的顶点。如果你仔细观察，每个顶点都可以被不同的相邻三角形使用。这将优化出更小的属性数组和性能上的改进。但我们不会在那节课中介绍这部分内容。
