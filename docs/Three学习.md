@@ -81,14 +81,14 @@ console.log(THREE)
 2. 一些模型对象
 3. 相机
 4. 渲染器
-#### 场景
+#### 场景[Scene](https://threejs.org/docs/index.html#api/en/scenes/Scene)
 场景就像一个容器。您将对象、模型、粒子、灯光等放入其中，并在某个时候要求 `Three.js` 渲染该场景。
 要创建场景，请使用[Scene](https://threejs.org/docs/index.html#api/en/scenes/Scene)类：
 ```javascript
 // Scene
 const scene = new THREE.Scene()
 ```
-#### 对象
+#### 对象[Mesh](https://threejs.org/docs/#api/en/objects/Mesh)
 对象可以是很多东西。包括原始几何体、导入的模型、粒子、灯光等。
 我们将从一个简单的红色立方体开始设计。
 要创建红色立方体，我们需要创建一种名为[Mesh](https://threejs.org/docs/#api/en/objects/Mesh)的对象。网格是几何体（形状）和材质[（](https://threejs.org/docs/#api/en/objects/Mesh)外观）的组合。
@@ -117,7 +117,7 @@ const mesh = new THREE.Mesh(geometry, material)
 scene.add(mesh)
 ```
 **如果不向scene场景添加mesh对象，那么这个对象就无法渲染了。**
-#### 相机
+#### 相机Camera
 相机不可见。这更像是一种理论观点。**当我们对场景进行渲染时，将从该摄像机的视觉角度进行渲染**。
 你可以抽象为电影场景中的摄像机，所以`three.js`中一样拥有**多个摄像机**，并且可以根据需要，**在这些摄像机之间切换**。通常，我们只使用一台相机。 
 有不同视角类型的相机，我们将在以后的课程中讨论这些。现在，我们只需要一个处理透视的相机（使近距离物体看起来比远距离物体更突出）。
@@ -139,7 +139,7 @@ const sizes = {
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height)
 scene.add(camera)
 ```
-#### 渲染器
+#### 渲染器[WebGLRenderer](https://threejs.org/docs/index.html#api/en/renderers/WebGLRenderer)
 **渲染器的工作是进行渲染**。
 我们将简单地要求**渲染器从相机的角度渲染我们的场景**，**结果将被绘制到画布中**。**您可以自己创建画布**，**也可以让渲染器生成它**，**然后将其添加到您的页面中**。对于本练习，我们会将画布添加到 `html` 并通过`JavaScript`获得元素节点将其绑定给渲染器。
 在加载脚本**之前**创建`**<canvas>**`元素并给它一个`class`：
@@ -319,7 +319,7 @@ renderer.render(scene, camera)
 ## 设置
 我们现在所拥有的只是我们在上一课中如何将立方体放在视图中心的项目。
 ![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684377960958-cb9e8e14-ba92-48ea-a3fe-fd05c440d5f2.png#averageHue=%23c5c2c2&clientId=u021ba30b-3007-4&from=paste&id=u67fc49b2&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u4ddc12a7-75fa-45e2-a84d-d6b91659a4f&title=)
-## 移动对象
+## 移动对象 mesh.position
 `position`具有3 个基本属性，分别是`x`、`y`和`z`。这些是在 3D 空间中定位某物的 **3 个必要轴**。
 每个轴的方向都是任意的，可以根据环境而变化。在`Three.js`中，我们通常认为`**y**`**轴是向上的，**`**z**`**轴是向后的，**`**x**`**轴是向右的**。
 至于`1unit`是什么意思，就看你的了。1可以是 1 厘米、1 米，甚至 1 公里。我建议您根据要构建的内容调整`unit`。如果你打算建造一座房子，你可能应该将1单位视为 1 米。
@@ -349,7 +349,7 @@ console.log(mesh.position.normalize())
 ```javascript
 mesh.position.set(0.7, - 0.6, 1)
 ```
-## 坐标轴助手 
+## 坐标轴助手 [AxesHelper](https://threejs.org/docs/#api/en/helpers/AxesHelper)
 **在空间中定位物体可能是一个真正的挑战**。我们知道每个轴的方向很复杂，尤其是当我们开始移动相机时。
 有一个好的解决方案是使用 Three.js [AxesHelper](https://threejs.org/docs/#api/en/helpers/AxesHelper)。
 AxesHelper将显示与轴对应[的](https://threejs.org/docs/#api/en/helpers/AxesHelper)3 条线，每条线都从场景的中心开始并朝相应的方向移动。`x``y``z`
@@ -365,7 +365,7 @@ scene.add(axesHelper)
 我们看到一条绿线和一条红线。
 绿线对应于y轴。红线对应于x轴，还有一条蓝线对应于z轴，但我们看不到它，因为它与相机完美对齐。xz
 我们在接下来的课程中不会使用此[AxesHelper ，但如果您需要可视化参考，请随时添加它。](https://threejs.org/docs/#api/en/helpers/AxesHelper)
-## 缩放对象
+## 缩放对象 mesh.scale
 `scale`也是一个[Vector3](https://threejs.org/docs/#api/en/math/Vector3)属性。**默认情况下**`**x**`**，**`**y**`**和**`**z**`**都等于1**，这意味着对象没有应用缩放。如果你把它的数值赋予为`0.5`，对象将会缩放到它在这个轴上的一半大小，如果你把它的数值赋予为`2`，对象将会缩放到它在这个轴上的原始大小的两倍。
 如果更改这些值，对象将开始相应地缩放。注释position并添加这些比例：
 ```javascript
@@ -377,7 +377,7 @@ mesh.scale.z = 0.5
 显然，我们看不到比例尺z，因为我们的[网格](https://threejs.org/docs/#api/en/objects/Mesh)正对着相机。
 虽然您可以使用负值来看到Z轴，但稍后可能会产生错误，因为轴不会以逻辑反方向去定位。我们应该尽量避免这样做。
 因为它是一个[Vector3](https://threejs.org/docs/#api/en/math/Vector3)属性，所以我们可以使用前面提到的所有方法。
-## 旋转对象
+## 旋转对象 mesh.rotation
 `position`旋转比较`scale`麻烦一点。一般有两种处理旋转的方法。
 您可以使用不言自明的`rotation`属性，但也可以使用不太明显的`quaternion`属性。`Three.js` 两者都支持，更新一个会自动更新另一个。这只是你喜欢哪一个的问题。
 #### `rotation`
@@ -431,7 +431,7 @@ mesh.rotation.x = Math.PI * 0.25
 mesh.rotation.y = Math.PI * 0.25
 ```
 ![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684377965509-a9e839c2-0b25-4621-a551-d7b38762cba0.png#averageHue=%23c6c2c2&clientId=u021ba30b-3007-4&from=paste&id=ua5199ae5&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ub33a7003-1178-49ad-8d20-a5716d0cce1&title=)
-## 场景图
+## 场景图 [Group](https://threejs.org/docs/#api/en/objects/Group)
 在某些时候，您可能想要对事物进行分组。假设您正在建造一座有墙壁、门、窗户、屋顶、灌木等的房子。
 当您认为已经完成时，您会意识到房子太小了，您必须重新缩放每个对象并更新它们的位置。
 **一个好的替代方法是将所有这些对象分组到一个容器中并缩放该容器**。
@@ -483,7 +483,7 @@ group.add(cube3)
 ## 设置
 和以前一样，我们在启动器中拥有的只是场景中心的立方体。
 ![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684390315765-8c33f1ee-6651-4912-be1f-f66fae187339.png#averageHue=%23c5c2c2&clientId=ue2f5f078-9d3d-4&from=paste&id=uffcc68aa&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u9bd70f84-9526-4125-99ef-07f2eb1ab4e&title=)
-## 使用 requestAnimationFrame
+## 使用 [requestAnimationFrame](https://developer.mozilla.org/docs/Web/API/window/requestAnimationFrame)
 [requestAnimationFrame](https://developer.mozilla.org/docs/Web/API/window/requestAnimationFrame)没有办法在每一帧上运行代码。
 `requestAnimationFrame`是将在下一帧执行我们提供的命令。但是，如果我们使用**递归死循环调用自身，**此函数`requestAnimationFrame`也用于在下一帧再次执行自己，那么最终将永远在每一帧执行这个函数。
 创建一个名为的函数`tick`并调用该函数一次。在此函数中，用于`window.requestAnimationFrame(...)`在下一帧调用相同的函数：
@@ -526,7 +526,7 @@ tick()
 
 恭喜，你现在有了一个 Three.js 动画。
 问题是，如果你在高帧率的计算机上测试这段代码，立方体会旋转得更快，而如果你在较低的帧率下测试，立方体会旋转得更慢。
-#### 适配帧率
+#### 适配帧率 Date.now()
 为了使动画适应帧率，我们需要知道自上次更新以来已经过了多少时间。
 首先，我们需要一种测量时间的方法。在本机 JavaScript 中，您可以使用`Date.now()`获取当前时间戳：
 
@@ -558,9 +558,9 @@ const tick = () =>
 tick()
 ```
 我们的旋转基于自上一帧以来所花费的时间，那么无论帧速率如何，每个屏幕和每台计算机的旋转速度都是相同的。
-## 使用时钟
+## 使用时钟 [Clock](https://threejs.org/docs/#api/en/core/Clock)
 [虽然这段代码并没有那么复杂，但 Three.js 中有一个名为Clock](https://threejs.org/docs/#api/en/core/Clock)的内置解决方案来处理时间计算。
-您只需实例化一个[Clock](https://threejs.org/docs/#api/en/core/Clock)变量并使用内置方法，如`getElapsedTime().` [此方法将返回自时钟](https://threejs.org/docs/#api/en/core/Clock)创建以来经过了多少秒。
+您只需[Clock](https://threejs.org/docs/#api/en/core/Clock)实例化一个`clock`变量并使用内置方法，如`getElapsedTime().` [此方法将返回自时钟](https://threejs.org/docs/#api/en/core/Clock)创建以来经过了多少秒。
 您可以使用此值来旋转对象：
 ```javascript
 /**
@@ -624,7 +624,7 @@ tick()
 ```
 
 另一个可用的方法是`getDelta(...)`，但除非您确切知道[Clock](https://threejs.org/docs/#api/en/core/Clock)类代码中发生了什么，否则不应使用它。使用它可能会弄乱您的动画，并且您会得到不需要的结果。
-## 使用库
+## 使用动画库 [GSAP](https://greensock.com/gsap/)
 有时您会想要以一种非常特殊的方式为您的场景制作动画，这将需要使用另一个库。动画库有很多，但最著名的是[GSAP](https://greensock.com/gsap/)。
 要将 GSAP 添加到我们的项目中，我们可以使用 Node.js 提供的依赖管理器，称为`npm`.
 在您的终端中（当服务器未运行或在同一文件夹上使用另一个终端窗口时），运行`npm install --save gsap@3.5.1`
@@ -667,20 +667,20 @@ GSAP 有一个内置的`requestAnimationFrame`，所以你不需要自己更新�
 # 07.Cameras相机
 ## 介绍
 我们已经创建过了一个`PerspectiveCamera`，但还有其他类型的相机，如您在文档中所见。
-#### 相机
+#### 相机 [Camera](https://threejs.org/docs/#api/en/cameras/Camera)
 `Camera`类就是我们所说[的](https://threejs.org/docs/#api/en/cameras/Camera)抽象类。你不应该直接使用它，但你可以继承它来访问公共属性和方法。以下一些类继承自[Camera](https://threejs.org/docs/#api/en/cameras/Camera)类。
-#### 阵列相机
+#### 阵列相机 ArrayCamera
 ArrayCamera 用于通过使用多个相机来多次渲染您的场景。每个相机将渲染画布的特定区域。你可以想象这看起来像老式的多人游戏控制台，我们必须共享一个分屏。
-#### 立体相机
+#### 立体相机 StereoCamera
 StereoCamera用于通过两个模仿眼睛的相机渲染场景，以创建我们所说的视差效果，从而诱使您的大脑认为存在深度[。](https://threejs.org/docs/#api/en/cameras/StereoCamera)您必须拥有足够的设备，例如 VR 耳机或红色和蓝色眼镜才能看到结果。
-#### 立方相机
+#### 立方相机 CubeCamera
 CubeCamera用于获取面向每个方向（向前、向后、向左、向右、向上和向下）的渲染，以创建周围环境的渲染[。](https://threejs.org/docs/#api/en/cameras/CubeCamera)您可以使用它来创建用于反射的环境贴图或阴影贴图。我们稍后会谈到这些。
-#### 正交相机
+#### 正交相机 OrthographicCamera
 OrthographicCamera用于在没有透视的情况下创建场景的正交渲染[。](https://threejs.org/docs/#api/en/cameras/OrthographicCamera)如果您制作像帝国时代这样的 RTS 游戏，它会很有用。无论元素与相机的距离如何，它们在屏幕上的大小都是相同的。
-#### 透视相机
+#### 透视相机 PerspectiveCamera
 PerspectiveCamera是我们已经使用过的[，](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera)它模拟了具有透视功能的真实相机。
 我们将重点关注[OrthographicCamera](https://threejs.org/docs/#api/en/cameras/OrthographicCamera)和[PerspectiveCamera](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera)。
-## 透视相机
+## 透视相机 [PerspectiveCamera](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera)
 正如我们之前看到的，[PerspectiveCamera](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera)类需要一些参数来实例化，但我们并没有使用所有可能的参数。添加第三个和第四个参数：
 
 ```javascript
@@ -701,14 +701,14 @@ const sizes = {
     height: 600
 }
 ```
-#### 近与远
+#### 近与远 **near/far**
 第三个和第四个参数称为**near**和**far**，对应于相机可以看到多近和多远。任何对象或对象的一部分比该`near`值更靠近相机或比`far`该值更远离相机,那么这个物体将不会显示在可视的范围上。	
 你可以想象，就像在那些古老的赛车游戏中一样，你可以看到远处的树木突然冒出来，又从背后消失不见。
 虽然您可能很想使用非常小和非常大的值，例如，0.0001您9999999，但是可能会遇到一个称为 z-fighting 的错误，其中两个面似乎在叠合在一起了，因为其中一个将渲染在另一个之上。
 [https://twitter.com/FreyaHolmer/status/799602767081848832](https://twitter.com/FreyaHolmer/status/799602767081848832)
 [https://twitter.com/Snapman_I_Am/status/800567120765616128](https://twitter.com/Snapman_I_Am/status/800567120765616128)
 尝试使用合理的值并仅在需要时增加这些值。在我们的例子中，我们可以使用0.1和100。
-## 正交相机
+## 正交相机 [OrthographicCamera](https://threejs.org/docs/#api/en/cameras/OrthographicCamera)
 虽然我们不会在课程的其余部分使用这种类型的相机，但它对特定项目很有用。
 OrthographicCamera与[PerspectiveCamera](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera)的不同之处在于它没有透视，这意味着无论对象与相机的距离如何，它们都将具有相同的大小[。](https://threejs.org/docs/#api/en/cameras/OrthographicCamera)
 您必须提供的参数与[PerspectiveCamera](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera)有很大不同。
@@ -847,24 +847,24 @@ tick()
 虽然这是控制相机的良好开端，但 Three.js 集成了多个称为控件的类来帮助您做同样的事情以及更多。
 ## 内置控件
 如果您在[Three.js 文档](https://threejs.org/docs/index.html#api/en/math/Euler)中键入“控件” ，您会看到有很多预制控件。我们课程案例将只使用其中一个，但了解它们的作用可能会很有趣。
-#### 设备方向控件
+#### 设备方向控件 [DeviceOrientationControls](https://threejs.org/docs/#examples/en/controls/DeviceOrientationControls)
 [如果您的设备、操作系统和浏览器允许， DeviceOrientationControls](https://threejs.org/docs/#examples/en/controls/DeviceOrientationControls)将自动检索设备方向并相应地旋转相机。如果您拥有合适的设备，您可以使用它来创建身临其境的宇宙或 VR 体验。
-#### 飞控
+#### 飞控 [FlyControls](https://threejs.org/docs/#examples/en/controls/FlyControls)
 [FlyControls](https://threejs.org/docs/#examples/en/controls/FlyControls)可以像在宇宙飞船上一样移动相机。您可以在所有 3 个轴上旋转，前进和后退。
-#### 第一人称控制
+#### 第一人称控制 [FirstPersonControls](https://threejs.org/docs/#examples/en/controls/FirstPersonControls)
 [FirstPersonControls](https://threejs.org/docs/#examples/en/controls/FirstPersonControls)就像[FlyControls](https://threejs.org/docs/#examples/en/controls/FlyControls)一样，但有一个固定的向上轴。你可以看到的视图就像飞翔的鸟，鸟不能滚动。虽然 FirstPersonControls 包含“FirstPerson”，但它不像在 FPS 游戏中那样工作。
-#### 指针锁定控件
+#### 指针锁定控件 [PointerLockControls](https://threejs.org/docs/#examples/en/controls/PointerLockControls)
 [PointerLockControls](https://threejs.org/docs/#examples/en/controls/PointerLockControls)使用[指针锁定 JavaScript API](https://developer.mozilla.org/docs/Web/API/Pointer_Lock_API)。此 API 隐藏光标，使其居中，并在mousemove事件回调中不断发送坐标位置移动。使用此 API，您可以直接在浏览器内创建 FPS 游戏。虽然如果您想创建那种交互，这个类很合适，但它只会在指针锁定时处理相机旋转。您必须自己处理摄像机位置和游戏物理。
-#### 轨道控制
+#### 轨道控制 [OrbitControls](https://threejs.org/docs/#examples/en/controls/OrbitControls)
 [OrbitControls](https://threejs.org/docs/#examples/en/controls/OrbitControls)与我们在上一课中制作的控件非常相似。您可以使用鼠标左键围绕一个点旋转，使用鼠标右键横向平移，并使用滚轮放大或缩小。
-#### 轨迹球控件
+#### 轨迹球控件 [TrackballControls](https://threejs.org/docs/#examples/en/controls/TrackballControls)
 [TrackballControls](https://threejs.org/docs/#examples/en/controls/TrackballControls)就像[OrbitControls](https://threejs.org/docs/#examples/en/controls/OrbitControls)，但在垂直角度方面没有限制。即使场景颠倒，您也可以继续旋转并旋转相机。
-#### 变换控件
+#### 变换控件 [TransformControls](https://threejs.org/docs/#examples/en/controls/TransformControls)
 [TransformControls](https://threejs.org/docs/#examples/en/controls/TransformControls)与相机无关。您可以使用它向对象添加小控件以移动该对象。
-#### 拖动控件
+#### 拖动控件 [DragControls](https://threejs.org/docs/#examples/en/controls/DragControls)
 就像[TransformControls](https://threejs.org/docs/#examples/en/controls/TransformControls)一样，[DragControls](https://threejs.org/docs/#examples/en/controls/DragControls)与相机无关。您可以使用它通过拖放来移动面向相机的平面上的对象。
 我们将只使用[OrbitControls](https://threejs.org/docs/#examples/en/controls/OrbitControls)，但可以随意测试其他类。
-## 轨道控制
+## 轨道控制 [OrbitControls](https://threejs.org/docs/#examples/en/controls/OrbitControls)
 我们在`tick`函数中更新`camera`的部分。
 ### 实例化
 首先，我们需要使用[OrbitControls](https://threejs.org/docs/#examples/en/controls/OrbitControls)类实例化一个变量。虽然您可能认为`THREE.OrbitControls`可以使用，但不幸的是您错了,``在`THREE`变量中没有包含`OrbitControls`该类；
@@ -884,7 +884,7 @@ const controls = new OrbitControls(camera, canvas)
 
 您现在可以使用鼠标左键或右键拖放来移动相机，并且可以向上或向下滚动以放大或缩小。
 它比我们的自定义代码要容易得多，而且它带有更多的控件。但让我们更进一步。
-### 目标
+### 目标 target
 默认情况下，相机正在注视场景的中心。我们可以用`target`属性改变它。
 这个属性是一个[Vector3](https://threejs.org/docs/#api/en/math/Vector3)，意味着我们可以改变它的x,y和z属性。
 如果我们希望 OrbitControls[默认](https://threejs.org/docs/#examples/en/controls/OrbitControls)在立方体上方查看，我们只需增加属性y：
@@ -899,7 +899,7 @@ controls.target.y = 2
 controls.target.y = 2
 controls.update()
 ```
-### 减震
+### 减震 `enableDamping`
 [如果您阅读OrbitControls](https://threejs.org/docs/#examples/en/controls/OrbitControls)的文档，会提到`damping`. 阻尼将通过添加某种加速度和摩擦力公式来平滑动画。
 要启用阻尼感，请将`controls`的属性`enableDamping`切换为`true`。
 为了正常工作，还需要通过调用在每一帧上更新控件`controls.update()`。您可以在`tick`函数上执行此操作：
@@ -929,3 +929,275 @@ const tick = () =>
 首先，确保列出您需要的这些控件的所有功能，然后检查您将要使用的类是否可以处理所有这些功能。
 如果没有，你将不得不自己封装一个。
 
+# 08.Fullscreen and resizing 全屏和调整大小
+## 介绍 
+我们的画布目前有一个固定的分辨率`800x600`。项目中不一定需要 WebGL 填满整个屏幕，但如果您想要身临其境的体验，填满整屏的体验可能会更好。
+首先，我们想让画布占据所有屏幕可用空间。然后，我们需要确保在用户调整窗口大小时它仍然自适应变化视口。最后，我们需要为用户提供一种全屏体验的方法。
+## 设置
+入门包含我们在上一课中完成的内容。我们的立方体位于中心，我们可以拖放以移动相机。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684461049903-c5c46628-b641-450c-915b-f2880970b7f4.png#averageHue=%23c5c2c2&clientId=ubbff3603-642e-4&from=paste&id=udc189f85&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u6d396bf9-6d8f-49f7-acf3-586431a6fbf&title=)
+## 适合视口
+要使画布完全根据视口变化，那就不能在`sizes`变量中使用固定数字了，请使用`window.innerWidth`and `window.innerHeight`：
+
+```javascript
+// ...
+
+// Sizes
+const sizes = {
+    width: window.innerWidth,
+    height: window.innerHeight
+}
+
+// ...
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684461049737-4c494897-7300-4068-994a-82b0701fc9b4.png#averageHue=%23120707&clientId=ubbff3603-642e-4&from=paste&id=ub319ccd7&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ud3300213-f1c9-4dbb-8f83-d4ca163635b&title=)
+您可以看到画布现在具有视口的宽度和高度。不幸的是，有一个白色边距和一个滚动条（如果看不到任何滚动条，请尝试滚动）。
+原因是**浏览器都有默认样式**，例如重要的标题`<h1>`、带下划线的链接`<a/>`、段落之间的空格以及页面上的填充。有很多方法可以解决这个问题，这可能取决于您网站的其余页面。如果您有其他页面的内容，请尽量不要在执行此操作时污染全局样式。
+我们将保持样式并使用 CSS 固定画布的位置。
+我们的 HTML 加载`src/style.css`文件：
+```javascript
+<link rel="stylesheet" href="./style.css">
+```
+您可以像往常一样编写标准 CSS，页面将自动重新加载。
+首先要做的一件好事是使用`*`通配符删除所有元素上的`margin`和`padding`的样式：
+
+```css
+*
+{
+    margin: 0;
+    padding: 0;
+}
+```
+然后，我们可以将画布固定在左上角，使用它的class `webgl` 来选择它：
+
+```css
+.webgl
+{
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+```
+您不需要在画布上指定`width` 或者`height`因为 Three.js 在您调用`renderer.setSize(...)`该方法时已经处理好了。
+拖放时，您可能已经注意到上面有一个蓝色轮廓。这主要发生在最新版本的 Chrome 上。要解决这个问题，我们可以简单地在`.webgl`添加`outline: none`：
+
+```javascript
+.webgl
+{
+    position: fixed;
+    top: 0;
+    left: 0;
+    outline: none;
+}
+```
+如果你想删除任何类型的滚动，即使是在触摸屏上，你可以在`html`,`body`上添加`overflow: hidden`：
+```css
+html,
+body
+{
+    overflow: hidden;
+}
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684461049922-2726aa6c-99da-45fc-be5e-74110abd3e76.png#averageHue=%230c0000&clientId=ubbff3603-642e-4&from=paste&id=u742337a0&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ua5f062d8-ffc0-4706-a94d-3afee0e587d&title=)
+不幸的是，如果调整窗口大小，画布将不会随之改变。
+**我们需要处理渲染器，让他自适应窗口调整大小**。
+## 处理调整大小
+要调整画布大小，我们首先需要知道何时调整窗口大小。为此，可以在窗口上监听`resize`事件。
+添加侦听器`resize`，在浏览器的`sizes`变量改变之后会自动触发：
+
+```javascript
+window.addEventListener('resize', () =>
+{
+    console.log('window has been resized')
+})
+```
+现在我们在调整窗口大小时触发了一个函数，我们需要更新代码中的一些东西。
+首先，我们必须更新`sizes`变量：
+```javascript
+window.addEventListener('resize', () =>
+{
+    // Update sizes
+    sizes.width = window.innerWidth
+    sizes.height = window.innerHeight
+})
+```
+其次，我们必须`camera`通过更改其`aspect`属性来更新纵横比：
+```javascript
+window.addEventListener('resize', () =>
+{
+    // ...
+
+    // Update camera
+    camera.aspect = sizes.width / sizes.height
+})
+```
+当您更改相机属性时，`aspect`还需要使用`camera.updateProjectionMatrix()`更新投影矩阵。稍后我们将讨论矩阵：
+```javascript
+window.addEventListener('resize', () =>
+{
+    // ...
+
+    camera.updateProjectionMatrix()
+})
+```
+最后，我们必须更新`renderer.` **更新渲染器会自动更新画布的宽度和高度**：
+
+```javascript
+window.addEventListener('resize', () =>
+{
+    // ...
+
+    // Update renderer
+    renderer.setSize(sizes.width, sizes.height)
+})
+```
+全部代码：
+```javascript
+window.addEventListener('resize', () =>
+{
+    // Update sizes
+    sizes.width = window.innerWidth
+    sizes.height = window.innerHeight
+
+    // Update camera
+    camera.aspect = sizes.width / sizes.height
+    camera.updateProjectionMatrix()
+
+    // Update renderer
+    renderer.setSize(sizes.width, sizes.height)
+})
+```
+您可以根据需要调整窗口大小，画布应覆盖视口而没有任何滚动条或溢出。
+## 处理像素比
+我们开发中，有些人可能会看到**一种模糊的渲染和边缘形状像楼梯的伪影**（称为锯齿），但不是所有人都会看到。如果遇到了这样的问题，那是因为**您的屏幕像素比大于1**。
+像素比对应于软件部分的一个像素单元在屏幕上有多少个物理像素。
+#### 一些历史
+几年前，所有屏幕的像素比都`1`，一切都很好。但是当你仔细观察你的屏幕时，你可以看到那些像素，这限制了图像的精确度和字体的细度。
+在这方面做得最多的公司是苹果公司。Apple 看到了机会，开始制造像素比为`2`Retina 的屏幕。现在，很多建设者都在这样做，你可以看到像素比更高的屏幕。
+虽然这对图像质量来说是件好事，但像素比`2`意味着要渲染的像素也要多 4 倍。像素比`3`意味着要渲染的像素多 9 倍。
+你猜怎么着？最高像素比通常出现在屏幕最小的设备上——移动设备。
+包括帧速率。
+#### 处理像素比
+`window.devicePixelRatio`获得您可以使用的屏幕像素比，获得像素比后只需调用`renderer.setPixelRatio(...)`更新渲染器的像素比。
+您可能只想简单地将设备像素比发送到该方法，但最终会在高像素比设备上遇到性能问题。
+像素比大于`2`主要是出于营销。你的眼睛几乎看不到`2`和`3`之间的区别，但它会产生性能问题并更快地耗尽电池。可以做的优化是将像素比限制为`2`. 为此，您可以使用`Math.min()`：
+
+```javascript
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684461049811-f6531ae7-e981-403e-b507-d115d5b6c390.png#averageHue=%230b0000&clientId=ubbff3603-642e-4&from=paste&id=u55b2c6bb&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u2f9d8e5b-2314-4399-a796-a5da0d64634&title=)
+当像素比率发生变化时，有一些技术可以通知我们开发者，但它只涉及拥有多个像素比率不同的屏幕的用户，并且他们通常会在从一个屏幕切换到另一个屏幕时调整窗口大小。这就是为什么我们也只需将此方法添加到`resize`回调中：
+
+```javascript
+window.addEventListener('resize', () =>
+{
+    // Update sizes
+    sizes.width = window.innerWidth
+    sizes.height = window.innerHeight
+
+    // Update camera
+    camera.aspect = sizes.width / sizes.height
+
+    // Update renderer
+    renderer.setSize(sizes.width, sizes.height)
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+})
+```
+## 处理全屏
+现在我们的画布以正确的像素比例占据了所有可用空间，是时候添加对全屏的支持了。
+首先，我们需要决定什么动作会触发全屏模式。它可以是一个 HTML 按钮，但我们案例将使用双击触发全屏。
+当双击发生时，我们将切换全屏——这意味着如果窗口不是全屏，双击将启用全屏模式，如果窗口已经全屏，双击将退出全屏模式。
+首先，我们需要监听双击事件，我们可以通过`dblclick`事件来实现：
+
+```javascript
+window.addEventListener('dblclick', () =>
+{
+    console.log('double click')
+})
+```
+此事件适用于除 Chrome Android 之外的大多数现代浏览器： https: [//developer.mozilla.org/docs/Web/API/Element/dblclick_event](https://developer.mozilla.org/docs/Web/API/Element/dblclick_event)
+现在我们有了我们的双击事件，我们需要三样东西：
+
+- 一种知道它是否已经全屏的方法
+- 进入全屏模式的方法
+- 一种退出全屏模式的方法
+
+要知道我们是否已经处于全屏模式，我们可以使用`document.fullscreenElement`：
+
+```javascript
+window.addEventListener('dblclick', () =>
+{
+    if(!document.fullscreenElement)
+    {
+        console.log('go fullscreen')
+    }
+    else
+    {
+        console.log('leave fullscreen')
+    }
+})
+```
+请求全屏的方法与元素相关联。这是因为您可以选择全屏显示的内容。它可以是整个页面、任何 DOM 元素或`<canvas>`.
+我们将使用`<canvas>`并调用r`equestFullscreen()`它的方法：
+
+```javascript
+window.addEventListener('dblclick', () =>
+{
+    if(!document.fullscreenElement)
+    {
+        canvas.requestFullscreen()
+    }
+    else
+    {
+        console.log('leave fullscreen')
+    }
+})
+```
+退出全屏模式的方法可直接在`document`:
+
+```javascript
+window.addEventListener('dblclick', () =>
+{
+    if(!document.fullscreenElement)
+    {
+        canvas.requestFullscreen()
+    }
+    else
+    {
+        document.exitFullscreen()
+    }
+})
+```
+您可以通过双击任意位置来切换全屏模式来测试结果。不幸的是，这不适用于 `Safari`
+`Safari`浏览器正在花时间支持全屏等正式的简单功能，我们需要使用前缀版本使其适用于`document.fullscreenElement`、`canvas.requestFullscreen`和`document.exitFullscreen`：
+
+```javascript
+window.addEventListener('dblclick', () =>
+{
+    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
+
+    if(!fullscreenElement)
+    {
+        if(canvas.requestFullscreen)
+        {
+            canvas.requestFullscreen()
+        }
+        else if(canvas.webkitRequestFullscreen)
+        {
+            canvas.webkitRequestFullscreen()
+        }
+    }
+    else
+    {
+        if(document.exitFullscreen)
+        {
+            document.exitFullscreen()
+        }
+        else if(document.webkitExitFullscreen)
+        {
+            document.webkitExitFullscreen()
+        }
+    }
+})
+```
+一切功能都应该在所有现代浏览器上正常工作，兼容所有浏览器。
