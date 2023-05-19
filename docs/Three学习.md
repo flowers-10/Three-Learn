@@ -1905,4 +1905,477 @@ colorTexture.minFilter = THREE.NearestFilter
 
 如果不是供个人使用，请始终确保您有权使用该纹理。
 [您还可以使用照片和 2D 软件（如 Photoshop）或什至使用Substance Designer](https://www.adobe.com/products/substance3d-designer.html)等软件创建自己的程序纹理。
+# 
+12.Materials 材质
+## 介绍
+材质用于为几何体的每个可见像素着色。
+决定每个像素颜色的算法属于着色器中编写的。编写着色器是 WebGL 和 Three.js 最具挑战性的部分之一，但不要担心；Three.js 有许多带有预制着色器的内置材质。
+我们将在以后的课程中探索如何创建我们自己的着色器。现在，让我们使用 Three.js 自带材料。
+## Setup 设置
+启动器不包含任何对象。[这是一个很好的机会来修改创建网格](https://threejs.org/docs/#api/en/objects/Mesh)的基础知识。
+## 准备我们的场景 
+为了测试材质，我们应该准备一个可爱的场景并加载一些纹理。
+创建由 3 种不同[几何体](https://threejs.org/docs/#api/en/objects/Mesh)（一个球体、一个平面和一个环面）组成的 3 个网格体，并在所有 3 个几何体上使用相同的 MeshBasicMaterial。[是的，您可以在多个网格体上使用一种材质。](https://threejs.org/docs/index.html#api/en/materials/MeshBasicMaterial)移动左侧的球体和右侧的环面以将它们分开。
+该`add(...)`方法支持一次添加多个对象：
+
+```javascript
+/**
+ * Objects
+ */
+const material = new THREE.MeshBasicMaterial()
+
+const sphere = new THREE.Mesh(
+    new THREE.SphereGeometry(0.5, 16, 16),
+    material
+)
+sphere.position.x = - 1.5
+
+const plane = new THREE.Mesh(
+    new THREE.PlaneGeometry(1, 1),
+    material
+)
+
+const torus = new THREE.Mesh(
+    new THREE.TorusGeometry(0.3, 0.2, 16, 32),
+    material
+)
+torus.position.x = 1.5
+
+scene.add(sphere, plane, torus)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479671610-dca5f0f2-f69e-44f2-8d58-0988cf5076b3.png#averageHue=%23222222&clientId=u8048d26c-0295-4&from=paste&id=u8a07c07e&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u0c847303-ab9f-4c97-a177-8648ef01575&title=)
+tick我们现在可以像在动画课上那样在函数上旋转对象：
+```javascript
+/**
+ * Animate
+ */
+const clock = new THREE.Clock()
+
+const tick = () =>
+{
+    const elapsedTime = clock.getElapsedTime()
+
+    // Update objects
+    sphere.rotation.y = 0.1 * elapsedTime
+    plane.rotation.y = 0.1 * elapsedTime
+    torus.rotation.y = 0.1 * elapsedTime
+
+    sphere.rotation.x = 0.15 * elapsedTime
+    plane.rotation.x = 0.15 * elapsedTime
+    torus.rotation.x = 0.15 * elapsedTime
+
+    // ...
+}
+
+tick()
+```
+你应该看到你的 3 个物体在缓慢旋转。
+我们将要发现的材料以许多不同的方式使用纹理。让我们像在纹理课程中所做的那样使用[TextureLoader加载一些纹理。](https://threejs.org/docs/#api/en/loaders/TextureLoader)
+所有纹理图像都位于该`/static/textures/`文件夹中。现在，我们将加载`/static/textures/door/`文件夹中的所有门纹理、`/static/textures/matcaps/`文件夹中的第一个 matcap 纹理和`/static/textures/gradients/`文件夹中的第一个渐变纹理。
+确保在`material`实例化之前这样做：
+
+```javascript
+/**
+ * Textures
+ */
+const textureLoader = new THREE.TextureLoader()
+
+const doorColorTexture = textureLoader.load('/textures/door/color.jpg')
+const doorAlphaTexture = textureLoader.load('/textures/door/alpha.jpg')
+const doorAmbientOcclusionTexture = textureLoader.load('/textures/door/ambientOcclusion.jpg')
+const doorHeightTexture = textureLoader.load('/textures/door/height.jpg')
+const doorNormalTexture = textureLoader.load('/textures/door/normal.jpg')
+const doorMetalnessTexture = textureLoader.load('/textures/door/metalness.jpg')
+const doorRoughnessTexture = textureLoader.load('/textures/door/roughness.jpg')
+const matcapTexture = textureLoader.load('/textures/matcaps/1.png')
+const gradientTexture = textureLoader.load('/textures/gradients/3.jpg')
+```
+为确保所有纹理都加载良好，您可以使用属性在材质上使用它们`map`，正如我们在纹理课程中看到的那样。
+
+```javascript
+const material = new THREE.MeshBasicMaterial({ map: doorColorTexture })
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479671661-5d76a6d9-1f7b-438a-9443-ce772fb4c1ed.png#averageHue=%23170c06&clientId=u8048d26c-0295-4&from=paste&id=u9ce7a529&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ue6121096-35a8-4bc5-8376-fd1a0183a1c&title=)
+到目前为止，我们只使用了 MeshBasicMaterial [，](https://threejs.org/docs/index.html#api/en/materials/MeshBasicMaterial)它在我们的几何体上应用了统一的颜色或纹理。
+[如果您在Three.js 文档](https://threejs.org/docs/)中搜索“material” ，您会发现有很多我们可以使用的类。让我们都试试看。
+## 网格基础材质
+[MeshBasicMaterial](https://threejs.org/docs/#api/en/materials/MeshBasicMaterial)可能是最“基本”的材质……但是还有很多我们还没有涉及的属性。
+您可以在[MeshBasicMaterial](https://threejs.org/docs/#api/en/materials/MeshBasicMaterial)实例化前，材质参数传入的对象中设置其中的大部分属性，但您也可以直接在实例上更改这些属性：
+
+```javascript
+const material = new THREE.MeshBasicMaterial({
+    map: doorColorTexture
+})
+
+// Equals
+const material = new THREE.MeshBasicMaterial()
+material.map = doorColorTexture
+```
+我们将使用第二种方法，但您可以随意使用。
+### map 地图
+该`map`属性将在几何体表面应用纹理：
+
+```javascript
+material.map = doorColorTexture
+```
+### color 颜色
+该`color`属性将在几何体表面应用统一的颜色。当您直接更改`color`属性时，您必须实例化一个[Color](https://threejs.org/docs/index.html#api/en/math/Color)类。您可以使用许多不同的格式：
+
+```javascript
+material.color = new THREE.Color('#ff0000')
+material.color = new THREE.Color('#f00')
+material.color = new THREE.Color('red')
+material.color = new THREE.Color('rgb(255, 0, 0)')
+material.color = new THREE.Color(0xff0000)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479671687-07a7f174-e6ad-4226-890c-933afe8b77f3.png#averageHue=%231f0705&clientId=u8048d26c-0295-4&from=paste&id=ud0767cb7&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u6fca1ae9-f60b-4613-8c10-3a296a3793a&title=)
+结合`color`和`map`用颜色为纹理着色：
+
+```javascript
+material.map = doorColorTexture
+material.color = new THREE.Color('#ff0000')
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479671911-8c0166ef-6209-4249-b744-96ccad49517d.png#averageHue=%23170503&clientId=u8048d26c-0295-4&from=paste&id=u63e1d80b&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ub9612fc9-a88d-450f-a1d6-8b3080ba94c&title=)
+### wireframe 线框
+无论相机的距离如何，该`wireframe`属性都会用 1px 的细线显示构成几何体的三角形：
+```javascript
+material.wireframe = true
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479671757-f742f6c1-c2fb-42bd-82ab-2fe8cb714f27.png#averageHue=%23060606&clientId=u8048d26c-0295-4&from=paste&id=u93de257f&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ucffcfa1f-1a22-4bc7-8014-5f95ec39d21&title=)
+### opacity 不透明度
+该`opacity`属性控制透明度，但要正常工作，您应该将`transparent`属性设置为`true`以通知 Three.js 此材质现在支持透明度：
+
+```javascript
+material.transparent = true
+material.opacity = 0.5
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479675220-3be16cd4-ee35-4ab0-b321-730f8d42d4e6.png#averageHue=%23212121&clientId=u8048d26c-0295-4&from=paste&id=u0e05362c&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ub395b128-abf7-4f3d-967e-805d55ec6ea&title=)
+### alphaMap 阿尔法地图
+现在透明度开始工作了，我们可以使用该`alphaMap`属性来控制纹理的透明度：
+
+```javascript
+material.transparent = true
+material.alphaMap = doorAlphaTexture
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479675925-559ac677-6b03-4985-92c4-8f435d6e95a8.png#averageHue=%23131313&clientId=u8048d26c-0295-4&from=paste&id=u7950ff2f&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u6346d6ef-5e3a-419e-80c0-96b3d7d3d9d&title=)
+### side 边
+该`side`属性可让您决定面部的哪一侧可见。默认情况下，正面是可见的 ( `THREE.FrontSide`)，但您可以改为显示背面 ( `THREE.BackSide`) 或同时显示背面 ( `THREE.DoubleSide`)：
+
+```javascript
+material.side = THREE.DoubleSide
+```
+您应该看到曲面的的正面和背面。
+**尽量避免使用**`**THREE.DoubleSide**`**因为渲染两侧意味着要渲染两倍以上的三角形。**
+其中一些属性类似于`wireframe`或`opacity`可以与其他类型的材料一起使用。我们不会每次都重复这些。
+## MeshNormalMaterial 网格法线材质
+MeshNormalMaterial显示漂亮的紫色、蓝色、绿色，看起来像我们在纹理课程中看到的法线纹理[。](https://threejs.org/docs/#api/en/materials/MeshNormalMaterial)这并非巧合，因为两者都与我们所说的法线有关：
+
+```javascript
+const material = new THREE.MeshNormalMaterial()
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479676921-bda25d30-a325-40ad-acbf-22420d85f814.png#averageHue=%23000000&clientId=u8048d26c-0295-4&from=paste&id=ucb3de2db&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ud0a59da9-a883-4a67-9f62-1aa9999b9b3&title=)
+**法线是在每个顶点中编码的信息，包含面部外侧的方向。如果将这些法线显示为箭头，您会得到从组成几何体的每个顶点出来的直线。**
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479676612-29575aa5-b991-4387-9de9-ef5cec003fd6.png#averageHue=%23e0d5cb&clientId=u8048d26c-0295-4&from=paste&id=u9abca595&originHeight=1080&originWidth=1920&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u98e6784a-9e54-419a-bf41-e5be7796493&title=)
+您可以将法线用于许多事情，例如计算如何照亮面部或环境应如何在几何体表面反射或折射。
+使用[MeshNormalMaterial](https://threejs.org/docs/#api/en/materials/MeshNormalMaterial)时，颜色将仅显示法线相对于相机的方向。如果围绕球体旋转，您会发现颜色始终相同，无论您正在查看球体的哪个部分。
+[虽然您可以使用我们在MeshBasicMaterial](https://threejs.org/docs/index.html#api/en/materials/MeshBasicMaterial)中发现的一些属性，例如wireframe、transparent、opacity和side，但您还可以使用一个新属性，称为：`flatShading`
+
+```javascript
+material.flatShading = true
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479678810-53a25346-8656-4247-a12b-8e51c32e14aa.png#averageHue=%23000000&clientId=u8048d26c-0295-4&from=paste&id=u0bedbd17&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u3a6e6495-82c3-4109-aed2-236291e5b85&title=)
+`flatShading`将使面变平，这意味着法线不会在顶点之间进行插值。
+[MeshNormalMaterial](https://threejs.org/docs/#api/en/materials/MeshNormalMaterial)可用于调试法线，但它看起来也很棒，您可以像 ilithya 在她的作品集[https://www.ilithya.rocks](https://www.ilithya.rocks/)上所做的那样使用它。
+## MeshMatcap材质
+[MeshMatcapMaterial](https://threejs.org/docs/#api/en/materials/MeshMatcapMaterial)是一种很棒的材料，因为它看起来很棒，同时又非常高效。
+为了使其工作，MeshMatcapMaterial[需要](https://threejs.org/docs/#api/en/materials/MeshMatcapMaterial)一个看起来像球体的参考纹理。
+![](https://cdn.nlark.com/yuque/0/2023/jpeg/35159616/1684479678764-8ba826b9-0a81-4799-9b8b-8dc78d4f4ecb.jpeg#averageHue=%23845a41&clientId=u8048d26c-0295-4&from=paste&id=u4100f885&originHeight=256&originWidth=256&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u13b67279-6ee1-44fd-8602-2667eccfe7e&title=)
+然后材质将根据相对于相机的法线方向在纹理上拾取颜色。
+要设置该参考 matcap 纹理，请使用以下`matcap`属性：
+
+```javascript
+const material = new THREE.MeshMatcapMaterial()
+material.matcap = matcapTexture
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479678815-3711455d-63db-492e-8c77-c70d89883338.png#averageHue=%23120c08&clientId=u8048d26c-0295-4&from=paste&id=uaf61491b&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u6802ce0f-05dc-435a-9c1f-7e642de6fd0&title=)
+网格看起来会被照亮,并且反射光泽，但它只是一个看起来像金属的纹理。
+唯一的问题是无论相机方向如何，错觉都是一样的。此外，您无法更新灯光，因为没有灯光。
+尝试文件夹上可用的不同纹理/static/textures/matcaps/（只是下面一行之一）：
+
+```javascript
+const matcapTexture = textureLoader.load('/textures/matcaps/2.png')
+const matcapTexture = textureLoader.load('/textures/matcaps/3.png')
+const matcapTexture = textureLoader.load('/textures/matcaps/4.png')
+const matcapTexture = textureLoader.load('/textures/matcaps/5.png')
+const matcapTexture = textureLoader.load('/textures/matcaps/6.png')
+const matcapTexture = textureLoader.load('/textures/matcaps/7.png')
+const matcapTexture = textureLoader.load('/textures/matcaps/8.png')
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479680079-976e4a4e-8990-4dc2-80d2-03999939cd0f.png#averageHue=%23060403&clientId=u8048d26c-0295-4&from=paste&id=uc24dcbb9&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u1a2160b7-98be-4f4e-a0e5-5cfd1046af6&title=)
+关于在哪里可以找到 matcaps 纹理，您可以像任何类型的纹理一样在网络上进行简单的搜索。如果不是供个人使用，请确保您有权使用该纹理。还有这个庞大的 matcaps 列表：[https ://github.com/nidorx/matcaps](https://github.com/nidorx/matcaps)
+您还可以使用 3D 软件创建自己的 matcaps，方法是在相机前以方形图像渲染一个球体。最后，您可以尝试在 Photoshop 等 2D 软件中制作 matcap。
+## [MeshDepthMaterial](https://threejs.org/docs/index.html#api/en/materials/MeshDepthMaterial)near 网格深度材质
+如果MeshDepthMaterial接近相机的值， [MeshDepthMaterial](https://threejs.org/docs/index.html#api/en/materials/MeshDepthMaterial)near将简单地将几何体着色为白色，如果它接近far相机的值，则为黑色：
+
+```javascript
+const material = new THREE.MeshDepthMaterial()
+```
+
+您可以将此材质用于特殊效果，您需要知道像素与相机的距离。我们将在以后的课程中使用它。
+## [AmbientLight](https://threejs.org/docs/index.html#api/en/lights/AmbientLight) 添加灯光-- 后续的材质反射灯光 
+后面几个材料需要灯光才能看到。因为材料会反射灯光了，让我们在场景中添加两个简单的灯光。
+创建一个[AmbientLight](https://threejs.org/docs/index.html#api/en/lights/AmbientLight)并将其添加到场景中：
+
+```javascript
+/**
+ * Lights
+ */
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
+scene.add(ambientLight)
+```
+创建一个[PointLight](https://threejs.org/docs/#api/en/lights/PointLight)并将其添加到场景中：
+
+```javascript
+// ...
+
+const pointLight = new THREE.PointLight(0xffffff, 0.5)
+pointLight.position.x = 2
+pointLight.position.y = 3
+pointLight.position.z = 4
+scene.add(pointLight)
+```
+在以后的课程中，我们将更多地了解灯光、它们的工作原理以及如何调整它们。
+## MeshLambert光材质 
+MeshLambertMaterial是我们将要使用的第一种对光有反应的材料[：](https://threejs.org/docs/#api/en/materials/MeshLambertMaterial)
+
+```javascript
+const material = new THREE.MeshLambertMaterial()
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479681362-1ad14fdb-8684-4592-8533-dbe87680cbc7.png#averageHue=%23191919&clientId=u8048d26c-0295-4&from=paste&id=u7bd8f644&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ub41a6e06-22af-4901-9526-c018aeb43a9&title=)
+如您所见，事情变得越来越现实。虽然照明不是很令人信服，但这是一个好的开始。
+[MeshLambertMaterial支持与](https://threejs.org/docs/#api/en/materials/MeshLambertMaterial)[MeshBasicMaterial](https://threejs.org/docs/index.html#api/en/materials/MeshBasicMaterial)相同的属性，但也支持一些与灯光相关的属性。我们将在本课稍后使用更充分的材料看到这些属性。
+MeshLambertMaterial是使用灯光[的](https://threejs.org/docs/#api/en/materials/MeshLambertMaterial)最高性能材料。不幸的是，这些参数并不方便，如果您仔细观察像球体这样的圆形几何体，您会在几何体上看到奇怪的图案。
+## MeshPhong高光材质
+MeshPhongMaterial与[MeshLambertMaterial](https://threejs.org/docs/#api/en/materials/MeshPhongMaterial)非常相似，但奇怪的图案不太明显，您还可以看到几何体表面的光反射[：](https://threejs.org/docs/#api/en/materials/MeshLambertMaterial)
+
+```javascript
+const material = new THREE.MeshPhongMaterial()
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479681850-886f8b81-bef1-4753-8f1b-7b81b9dd521c.png#averageHue=%231b1b1b&clientId=u8048d26c-0295-4&from=paste&id=ue756eca7&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u3cca4be2-992e-4f82-b64b-06047b48dff&title=)
+[MeshPhongMaterial](https://threejs.org/docs/#api/en/materials/MeshPhongMaterial)的性能不如[MeshLambertMaterial](https://threejs.org/docs/#api/en/materials/MeshLambertMaterial)。但是，在这个级别上并不重要。
+**您可以使用该属性控制光反射**`**shininess**`**。值越高，表面越光亮。您还可以使用以下属性更改反射的颜色**`**specular**`：
+
+```javascript
+material.shininess = 100
+material.specular = new THREE.Color(0x1188ff)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479681821-68e3049f-3201-4a72-8196-619664d5e872.png#averageHue=%233a3a3a&clientId=u8048d26c-0295-4&from=paste&id=u5627ca35&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u4f53e5af-486f-43ee-9490-8524bf3cc89&title=)
+光反射将呈蓝色。
+## MeshToon材质
+MeshToonMaterial在属性方面类似于[MeshLambertMaterial](https://threejs.org/docs/#api/en/materials/MeshLambertMaterial)[，但具有卡通风格：](https://threejs.org/docs/#api/en/materials/MeshToonMaterial)
+
+```javascript
+const material = new THREE.MeshToonMaterial()
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479683698-3ad9eea3-0138-437b-b7cf-0e0d4c68ce02.png#averageHue=%23202020&clientId=u8048d26c-0295-4&from=paste&id=ueea21dcf&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=uee67801e-cfc7-49d0-b1a8-60b9c4348c8&title=)
+默认情况下，您只能获得两部分着色（一个用于阴影，一个用于光）。要为着色添加更多步骤，您可以使用该`gradientMap`属性并使用`gradientTexture`我们在课程开始时加载的：
+
+```javascript
+material.gradientMap = gradientTexture
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479684325-5c20c286-54af-42ca-9097-6703f8626139.png#averageHue=%23202020&clientId=u8048d26c-0295-4&from=paste&id=u6a6eaee0&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=uabbec5b2-1635-42a5-8eea-7a2184403e8&title=)
+如果您对此进行测试，您会发现卡通效果不再起作用。那是因为我们使用的渐变纹理很小，并且该纹理的像素是混合的。是的，就像我们在纹理课程中看到的那样`mipmapping`，这是`minFilter`,`magFilter`和的问题。
+要解决这个问题，我们可以简单地将`minFilterand`更改`magFilter`为`THREE.NearestFilter`.
+使用`THREE.NearestFilter`意味着我们没有使用 mip 映射，我们可以通过以下方式停用它`gradientTexture.generateMipmaps = false`：
+
+```javascript
+gradientTexture.minFilter = THREE.NearestFilter
+gradientTexture.magFilter = THREE.NearestFilter
+gradientTexture.generateMipmaps = false
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479684771-d9604789-a876-4fda-9267-bec9beb2cecf.png#averageHue=%231e1e1e&clientId=u8048d26c-0295-4&from=paste&id=u864532b3&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u70abe302-53d6-429d-9e29-7a602204ac6&title=)
+您现在应该可以通过中间步骤看到卡通效果。
+您可以使用位于以下位置的图像尝试更多步骤`/static/textures/gradients.5.jpg`：
+
+```javascript
+const gradientTexture = textureLoader.load('/textures/gradients/5.jpg')
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479685835-02fdf597-004a-4d21-93d9-6173a075281f.png#averageHue=%23171717&clientId=u8048d26c-0295-4&from=paste&id=u1364b412&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u8a4f2f2d-80d7-4195-92c6-d439d864183&title=)
+## 网格标准材料
+MeshStandardMaterial使用基于物理引擎的渲染原理[。](https://threejs.org/docs/#api/en/materials/MeshStandardMaterial)是的，我们正在谈论在纹理课程中看到的 PBR。[与MeshLambertMaterial](https://threejs.org/docs/#api/en/materials/MeshLambertMaterial)和[MeshPhongMaterial](https://threejs.org/docs/#api/en/materials/MeshPhongMaterial)一样，它支持灯光，但具有更逼真的算法和更好的参数，如粗糙度和金属度。
+之所以称为“标准”，是因为 PBR 正在成为许多软件、引擎和库中的标准。这个想法是用真实的参数获得真实的结果，无论您使用何种技术，您都应该得到非常相似的结果：
+
+```javascript
+const material = new THREE.MeshStandardMaterial()
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479686205-a34f18d7-1f5d-4685-83d8-27d8dbb9df07.png#averageHue=%231c1c1c&clientId=u8048d26c-0295-4&from=paste&id=u44d0088d&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u41a7bacc-f263-4e2e-bf17-acc51f8cb1b&title=)
+您可以直接更改`roughness`和`metalness`属性：
+
+```javascript
+material.metalness = 0.45
+material.roughness = 0.65
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479687087-fb74e0af-cd8a-4e2d-b96b-b172302e40c9.png#averageHue=%23111111&clientId=u8048d26c-0295-4&from=paste&id=uf525cc9d&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u32d3cb87-6cc5-4a6d-88c8-9cc2877d684&title=)
+### 添加调试界面
+虽然这不是必需的，但现在是添加调试 UI 的绝佳时机。这对于测试不同的属性非常有用。
+首先，我们必须将[Dat.GUI](https://www.npmjs.com/package/dat.gui)依赖项添加到我们的项目中。在终端的项目文件夹（服务器当前运行的位置）上，使用以下命令：
+
+```shell
+npm install --save lil-gui
+```
+正如调试课程中提到的，我们正在安装`lil-gui`而不是 dat.gui。这个库的工作原理与 dat.gui 完全相同，我们将在课程的其余部分将其称为“dat.gui”。
+然后，在你的代码之上，导入（如果你停止了它，`lil-gui`不要忘记重新启动服务器）：`npm run dev`
+
+```javascript
+import * as dat from 'lil-gui'
+```
+您现在可以创建它的一个实例：
+
+```javascript
+/**
+ * Debug
+ */
+const gui = new dat.GUI()
+```
+并添加调整（在创建材料之后）：
+
+```javascript
+gui.add(material, 'metalness').min(0).max(1).step(0.0001)
+gui.add(material, 'roughness').min(0).max(1).step(0.0001)
+```
+就是这样。您现在可以根据需要更改`metalness`和`roughness`。
+[让我们继续MeshStandardMaterial](https://threejs.org/docs/#api/en/materials/MeshStandardMaterial)的其他属性。
+该`map`属性允许您应用简单的纹理。您可以使用`doorColorTexture`：
+
+```javascript
+material.map = doorColorTexture
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479687064-14c89659-5659-4ecc-b3c1-e09c07b0907b.png#averageHue=%230d0602&clientId=u8048d26c-0295-4&from=paste&id=u30ff0917&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u49023945-7373-4619-9f17-3e55303faf7&title=)
+该`aoMap`属性（字面意思是“环境遮挡贴图”）将在纹理较暗的地方添加阴影。为了让它起作用，您必须添加我们所说的第二组 UV（有助于在几何体上定位纹理的坐标）。
+我们可以像在几何课上那样简单地添加新属性并使用默认`uv`属性。更简单地说，我们复制了`uv`属性。
+调用这个新属性`uv2`：
+
+```javascript
+sphere.geometry.setAttribute('uv2', new THREE.BufferAttribute(sphere.geometry.attributes.uv.array, 2))
+plane.geometry.setAttribute('uv2', new THREE.BufferAttribute(plane.geometry.attributes.uv.array, 2))
+torus.geometry.setAttribute('uv2', new THREE.BufferAttribute(torus.geometry.attributes.uv.array, 2))
+```
+您现在可以添加`aoMap`使用`doorAmbientOcclusionTexture`纹理并使用`aoMapIntensity`属性控制强度：
+
+```javascript
+material.aoMap = doorAmbientOcclusionTexture
+material.aoMapIntensity = 1
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479687780-f37ddff3-4105-43c8-adf6-420b03a8eeb2.png#averageHue=%230d0502&clientId=u8048d26c-0295-4&from=paste&id=u52a199c5&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u9a12d5fb-fa70-4865-9d4b-1653bd79b90&title=)
+裂缝应该看起来更暗，这会产生对比并增加尺寸。
+该`displacementMap`属性将移动顶点以创建真正的浮雕：
+
+```javascript
+material.displacementMap = doorHeightTexture
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479688944-ee37f625-78c4-4879-84f9-eacbfc4b8f3e.png#averageHue=%23261006&clientId=u8048d26c-0295-4&from=paste&id=ub51c954b&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u3c767f7f-9706-4314-9a9f-3a84bb7efd7&title=)
+它应该看起来很糟糕。这是由于我们的几何图形缺少顶点（我们需要更多细分）并且位移太强：
+
+```javascript
+material.displacementScale = 0.05
+
+// ...
+
+new THREE.SphereGeometry(0.5, 64, 64),
+
+// ...
+
+new THREE.PlaneGeometry(1, 1, 100, 100),
+
+// ...
+
+new THREE.TorusGeometry(0.3, 0.2, 64, 128),
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479691488-21bf9e15-9879-4a84-92b3-d2e5e1813f05.png#averageHue=%23190b04&clientId=u8048d26c-0295-4&from=paste&id=u923a299b&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=uafa93016-1ec7-4781-8ac3-bf87907ecfb&title=)
+我们可以使用`metalnessMap`and `roughnessMap`，而不是为整个几何体指定  `metalness` and `roughness` 
+
+```javascript
+material.metalnessMap = doorMetalnessTexture
+material.roughnessMap = doorRoughnessTexture
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479691130-c3b5fa0e-cd0d-4a9e-8a63-5bc19edcfbac.png#averageHue=%23160903&clientId=u8048d26c-0295-4&from=paste&id=u97a49a57&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u66b7d796-a5b0-4fac-8620-057786c156e&title=)
+反射看起来很奇怪，因为`metalness`和`roughness`属性仍然分别影响每个贴图。我们应该评论它们或使用它们的原始值：
+
+```javascript
+material.metalness = 0
+material.roughness = 1
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479693812-5ea9087b-a665-42e2-a5cd-b79cc8427383.png#averageHue=%23130803&clientId=u8048d26c-0295-4&from=paste&id=ua81da1a5&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=uf988da27-94c9-4cf5-8634-0f16801169d&title=)
+无论细分如何，`normalMap`都会伪造法线方向并在表面上添加细节：
+
+```javascript
+material.normalMap = doorNormalTexture
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479696421-71e68e3c-47e4-498f-954c-d41058247393.png#averageHue=%23180b04&clientId=u8048d26c-0295-4&from=paste&id=u69b07693&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u647c7455-e172-49ec-98db-e5d3881fed9&title=)
+您可以使用该属性更改法线强度`normalScale`。小心，它是一个[Vector2](https://threejs.org/docs/index.html#api/en/math/Vector2)：
+
+```javascript
+material.normalScale.set(0.5, 0.5)
+```
+最后，您可以使用该`alphaMap`属性控制 `alpha`。不要忘记将`transparent`属性设置为`true`：
+
+```javascript
+material.transparent = true
+material.alphaMap = doorAlphaTexture
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479697396-cf860a61-ea47-4507-a0b7-f88bff7acd25.png#averageHue=%230d0602&clientId=u8048d26c-0295-4&from=paste&id=u5dd67f8d&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u9f327d67-fef5-43f5-a11d-cecc8086df8&title=)
+这是一扇漂亮的门。随意调整属性并尝试一些东西。
+## MeshPhysicalMaterial 网格物理材质
+MeshPhysicalMaterial与[MeshStandardMaterial](https://threejs.org/docs/#api/en/materials/MeshStandardMaterial)相同[，](https://threejs.org/docs/index.html#api/en/materials/MeshPhysicalMaterial)但支持透明涂层效果。[您可以控制透明涂层的属性，甚至可以像Three.js 示例](https://threejs.org/examples/#webgl_materials_physical_clearcoat)中那样使用纹理，但我们不会在这里尝试这个。
+## [PointsMaterial](https://threejs.org/docs/index.html#api/en/materials/PointsMaterial) 点材质
+您可以将[PointsMaterial](https://threejs.org/docs/index.html#api/en/materials/PointsMaterial)与粒子一起使用。我们将在专门的课程中看到更多相关信息。
+## ShaderMaterial 和 RawShaderMaterial
+[ShaderMaterial](https://threejs.org/docs/index.html#api/en/materials/ShaderMaterial)和[RawShaderMaterial](https://threejs.org/docs/index.html#api/en/materials/RawShaderMaterial)都可以用来创建您自己的材质，但我们将在专门的课程中看到更多相关信息。
+## [MeshStandardMaterial ](https://threejs.org/docs/index.html#api/en/materials/MeshStandardMaterial)材质镜面反射出环境图
+环境贴图就像场景周围的图像。您可以使用它为对象添加反射或折射。它还可以用作照明信息。
+我们还没有介绍它，但您可以将它与我们看到的许多材料一起使用。
+首先，让我们像之前一样使用调试 UI设置一个非常简单的[MeshStandardMaterial ：](https://threejs.org/docs/index.html#api/en/materials/MeshStandardMaterial)
+
+```javascript
+const material = new THREE.MeshStandardMaterial()
+material.metalness = 0.7
+material.roughness = 0.2
+gui.add(material, 'metalness').min(0).max(1).step(0.0001)
+gui.add(material, 'roughness').min(0).max(1).step(0.0001)
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479698335-4ac9e5ff-e1c6-44b8-a753-b7d11a6bf9c3.png#averageHue=%230a0a0a&clientId=u8048d26c-0295-4&from=paste&id=u478fc9e1&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ud091fb18-0f34-432e-9ad9-104aab4afb9&title=)
+要将环境贴图添加到我们的材质中，我们必须使用该`envMap`属性。Three.js 只支持立方体环境贴图。立方体环境贴图是 6 张图像，每张图像对应环境的一侧。
+您可以在文件夹中找到多个环境贴图`/static/textures/environmentMap/`。
+要加载立方体纹理，您必须使用 CubeTextureLoader[而](https://threejs.org/docs/index.html#api/en/loaders/CubeTextureLoader)不是[TextureLoader](https://threejs.org/docs/index.html#api/en/loaders/TextureLoader)。
+在实例化和调用其方法之前实例化[CubeTextureLoader](https://threejs.org/docs/index.html#api/en/loaders/CubeTextureLoader)，但使用一组路径而不是一个路径：`load(...)`
+
+```javascript
+const cubeTextureLoader = new THREE.CubeTextureLoader()
+
+const environmentMapTexture = cubeTextureLoader.load([
+    '/textures/environmentMaps/0/px.jpg',
+    '/textures/environmentMaps/0/nx.jpg',
+    '/textures/environmentMaps/0/py.jpg',
+    '/textures/environmentMaps/0/ny.jpg',
+    '/textures/environmentMaps/0/pz.jpg',
+    '/textures/environmentMaps/0/nz.jpg'
+])
+```
+您现在可以在材料的`envMap`属性中使用`environmentMapTexture`：
+
+```javascript
+material.envMap = environmentMapTexture
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684479699978-44b261d4-aa0b-4cb4-85ae-35a5682526af.png#averageHue=%230f0e0d&clientId=u8048d26c-0295-4&from=paste&id=uc910d2ce&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ubefebbbc-237f-48e5-978b-7b08368336f&title=)
+您应该看到周围环境出现在几何体的表面上。尝试调整`metalness`和`roughness`以获得不同的结果。
+您还可以测试文件夹中的其他环境贴图`/static/textures/environmentMap/`。
+### 在哪里可以找到环境贴图
+要找到很酷的环境地图，您可以随时在网络上进行简单的搜索，并确保您有权使用环境地图（如果不是供个人使用）。
+最好的来源之一是[HDRIHaven](https://hdrihaven.com/)。这个网站有数百个很棒的 HDRI。HDRI 代表**高动态范围成像**。它们由一个图像（不是立方体贴图）组成，包含比简单图像更多的数据，从而改善光照信息以获得更真实的结果。[HDRIHaven](https://hdrihaven.com/)图像是免费的，并在[CC0 许可](https://hdrihaven.com/p/license.php)下，这意味着您可以对它们做任何您想做的事，而无需注明作者姓名。但如果您欣赏他们的工作，您可以通过订阅[他们的 Patreon](https://www.patreon.com/hdrihaven/overview)来感谢他们。
+但是我们有一个问题。正如我们所说，Three.js 仅支持立方体贴图。要将 HDRI 转换为立方体贴图，您可以使用此在线工具：[https://matheowis.github.io/HDRI-to-CubeMap/](https://matheowis.github.io/HDRI-to-CubeMap/)
+上传 HDRI，随意旋转，然后下载由 6 张图像组成的立方体贴图版本。默认格式为`.jpg`，如果需要，您必须将它们转换为`.png`。
 
