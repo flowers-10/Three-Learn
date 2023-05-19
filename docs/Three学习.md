@@ -1537,5 +1537,372 @@ gui.add(parameters, 'spin')
 您应该会看到一个spin按钮，单击它会导致您的立方体进行 360 度旋转。
 ## 如何以及何时使用它
 我们将在下一个练习的特定时刻使用我们的调试面板。但您可以随意添加任意数量的调整。这是练习和开始构建一些有创意的东西的绝佳方式。
-我建议您在进步时添加调整。如果您考虑在项目结束时添加所有调整，您最终可能根本不会进行任何调整。
+我建议您在开发过程时就进行微调。如果您考虑在项目结束时添加DebugUI去微调，可能你就不会去调整这个项目了（作者应该想说开发微调这种态度更好，开发完了耦合太高了你就懒得调了）。
+
+# 11.Textures 纹理
+## 介绍
+对你的红色立方体感到厌烦了吗？是时候添加一些纹理了。
+但首先，什么是纹理，我们可以用它们做什么？
+## 什么是纹理？ 
+您可能知道，纹理是覆盖几何体表面的图像。许多类型的纹理会对几何体的外观产生不同的影响。这不仅仅是关于颜色。
+以下是最常见的纹理类型，使用了João Paulo著名的[门纹理。](https://3dtextures.me/2019/04/16/door-wood-001/)如果您喜欢他的作品，请给他买一个[Ko-fi](https://ko-fi.com/katsukagi)或成为[Patreon](https://www.patreon.com/gendo)。
+### 颜色（或反照率）
+反照率纹理是最简单的一种。它只会获取纹理的像素并将它们应用于几何体。
+![](https://cdn.nlark.com/yuque/0/2023/jpeg/35159616/1684468403802-ea562e09-563b-40be-a4b8-ccd7518ec5d1.jpeg#averageHue=%23be521d&clientId=u4ee07317-0b23-4&from=paste&id=u979b486e&originHeight=1024&originWidth=1024&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=uc5079dfa-1365-46aa-a6c9-63fef75de9f&title=)
+### Alpha
+alpha 纹理是灰度图像，其中白色可见，黑色则不可见。
+![](https://cdn.nlark.com/yuque/0/2023/jpeg/35159616/1684468403900-f7c08670-7b51-4cbc-8217-485bd24b9a22.jpeg#averageHue=%23828282&clientId=u4ee07317-0b23-4&from=paste&id=ue8e6c170&originHeight=1024&originWidth=1024&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u17e590c1-fb6d-49fc-bb85-ae94a40ae42&title=)
+### 高度
+高度纹理是一个灰度图像，它将移动顶点以创建一些浮雕。如果你想看到它，你需要添加细分。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684468403879-ef56ea0d-228b-41a4-a52d-5e0c8bda6df4.png#averageHue=%23484848&clientId=u4ee07317-0b23-4&from=paste&id=u73fc9e1b&originHeight=1024&originWidth=1024&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u89ec797f-e70d-43a1-be05-597ed4c63ec&title=)
+### 普通的
+普通纹理会添加小细节。它不会移动顶点，但会引诱光线认为面部的方向不同。法线纹理对于添加具有良好性能的细节非常有用，因为您不需要细分几何体。
+![](https://cdn.nlark.com/yuque/0/2023/jpeg/35159616/1684468404029-e786f42e-898a-4458-9645-f95fca9c5d5d.jpeg#averageHue=%237f7ffe&clientId=u4ee07317-0b23-4&from=paste&id=u90d3f461&originHeight=1024&originWidth=1024&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u1db2d401-1726-49bb-92d7-e537beec7ba&title=)
+### 环境光遮蔽
+环境遮挡纹理是一个灰度图像，可以在表面的缝隙中伪造阴影。虽然它在物理上不准确，但它肯定有助于形成对比。
+![](https://cdn.nlark.com/yuque/0/2023/jpeg/35159616/1684468403818-2e443c59-6538-4eda-a960-c0a12b4c1305.jpeg#averageHue=%23f3f3f3&clientId=u4ee07317-0b23-4&from=paste&id=uc16c321d&originHeight=1024&originWidth=1024&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u987aebc8-91d9-4605-9684-a1661509a56&title=)
+### 金属度
+金属度纹理是一个灰度图像，它将指定哪个部分是金属（白色）和非金属（黑色）。这些信息将有助于产生反思。
+![](https://cdn.nlark.com/yuque/0/2023/jpeg/35159616/1684468405941-430c7cc2-bcb1-4939-9ef4-381f3a27724c.jpeg#averageHue=%23020202&clientId=u4ee07317-0b23-4&from=paste&id=uf8b9f9b2&originHeight=1024&originWidth=1024&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ua18e85a1-1eeb-4ffe-90b2-f6f1a4bae81&title=)
+### 粗糙度
+粗糙度是带有金属感的灰度图像，它将指定哪些部分是粗糙的（白色），哪些部分是光滑的（黑色）。此信息将有助于驱散光。地毯很凹凸不平，看不到反光，而水面很光滑，可以看到反光。在这里，木材是均匀的，因为上面有一层透明涂层。
+![](https://cdn.nlark.com/yuque/0/2023/jpeg/35159616/1684468408041-675fc7b8-288d-4829-86fe-e94af7a4e60d.jpeg#averageHue=%23363636&clientId=u4ee07317-0b23-4&from=paste&id=u7c1a3b77&originHeight=1024&originWidth=1024&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u7a4fbe29-afe3-49d1-a3ce-7961b277833&title=)
+### 光子反应器
+这些纹理（尤其是金属感和粗糙度）遵循我们所说的 PBR 原则。PBR 代表基于物理的渲染。它重新组合了许多倾向于遵循现实生活方向以获得真实结果的技术。
+虽然还有许多其他技术，但 PBR 正在成为真实渲染的标准，许多软件、引擎和库都在使用它。
+现在，我们将只关注如何加载纹理、如何使用它们、我们可以应用哪些转换以及如何优化它们。我们将在后面的课程中看到更多关于 PBR 的信息，但如果您好奇，可以在这里了解更多信息：
+
+- [https://marmoset.co/posts/basic-theory-of-physically-based-rendering/](https://marmoset.co/posts/basic-theory-of-physically-based-rendering/)
+- [https://marmoset.co/posts/physically-based-rendering-and-you-can-too/](https://marmoset.co/posts/physically-based-rendering-and-you-can-too/)
+## 如何加载纹理
+### 获取图片的URL
+要加载纹理，我们需要图像文件的 URL。
+因为我们使用的是构建工具，所以有两种获取方式。
+您可以将图像纹理放在`/src/`文件夹中并像导入 JavaScript 依赖项一样导入它：
+
+```javascript
+import imageSource from './image.png'
+
+console.log(imageSource)
+```
+或者您可以将该图像放在`/static/`文件夹中，只需将图像的路径（不带`/static`）添加到 URL 即可访问它：
+
+```javascript
+const imageSource = '/image.png'
+
+console.log(imageSource)
+```
+注意，这个`/static/`文件夹只是因为 Vite 模板的配置才有效。如果您使用其他类型的脚手架，您可能需要调整您的项目。
+我们将在课程的其余部分使用`/static/`文件夹操作。
+### 加载图像
+您可以在文件夹中找到我们刚刚看到的门纹理`/static/`，并且有多种加载方式。
+#### 使用原生 JavaScript
+使用原生 JavaScript，首先，您必须创建一个`Image`实例，监听`load`事件，然后更改其`src`属性以开始加载图像：
+
+```javascript
+const image = new Image()
+image.onload = () =>
+{
+    console.log('image loaded')
+}
+image.src = '/textures/door/color.jpg'
+```
+您应该会看到`'image loaded'`出现在控制台中。如您所见，我们将图片的src设置为路径`'/textures/door/color.jpg'`，但是文件夹`/static`中没有。
+我们不能直接使用该图像。我们需要先从该图像创建一个[纹理。](https://threejs.org/docs/index.html#api/en/textures/Texture)
+这是因为 WebGL 需要一种非常特殊的格式，可以由 GPU 访问，还因为一些更改将应用于纹理，如 mipmapping，我们稍后会看到更多相关信息。
+[使用Texture](https://threejs.org/docs/#api/en/textures/Texture)类创建纹理：
+```javascript
+const image = new Image()
+image.addEventListener('load', () =>
+{
+    const texture = new THREE.Texture(image)
+})
+image.src = '/textures/door/color.jpg'
+```
+我们现在需要做的是`texture`常量在`material`中使用. 不幸的是，该`texture`变量已在函数中声明，我们**无法在该函数之外访问它**。这是一个 JavaScript 的 作用域 限制。
+我们可以在函数内部创建网格，但有一个更好的解决方案`needsUpdate`，`needsUpdate`可以在函数外部创建纹理，然后通过将纹理属性设置为`true`那么就会在加载图像后更新纹理：
+
+```javascript
+const image = new Image()
+const texture = new THREE.Texture(image)
+image.addEventListener('load', () =>
+{
+    texture.needsUpdate = true
+})
+image.src = '/textures/door/color.jpg'
+```
+执行此操作时，您可以立即立即使用该`texture`变量，图像在加载之前将是透明的。
+要查看立方体上的纹理，请将color属性替换为map并使用textureas 值：
+```javascript
+const material = new THREE.MeshBasicMaterial({ map: texture })
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684468408114-13a853cb-6c49-48ff-bdab-07e3e191b2ce.png#averageHue=%231d0d04&clientId=u4ee07317-0b23-4&from=paste&id=u05dc7b2c&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u1b5a1a27-12a3-4161-bf19-60ff693d6ae&title=)
+您应该在立方体的每一侧都看到门纹理。
+#### 使用 TextureLoader
+[原生 JavaScript 技术并没有那么复杂，但是有一种更直接的方法使用TextureLoader](https://threejs.org/docs/index.html#api/en/loaders/TextureLoader)。
+[使用TextureLoader](https://threejs.org/docs/index.html#api/en/loaders/TextureLoader)类实例化变量并使用其`.load(...)`方法创建纹理：
+
+```javascript
+const textureLoader = new THREE.TextureLoader()
+const texture = textureLoader.load('/textures/door/color.jpg')
+```
+
+在内部，Three.js 将执行操作之前来加载图像并在准备就绪后更新纹理。
+[您可以只使用一个TextureLoader](https://threejs.org/docs/index.html#api/en/loaders/TextureLoader)实例加载任意数量的纹理。
+您可以在路径后发送 3 个函数。他们将被要求参加以下周期：
+
+- load图片加载成功时
+- progress当加载正在进行时
+- error如果出了什么问题
+
+```javascript
+const textureLoader = new THREE.TextureLoader()
+const texture = textureLoader.load(
+    '/textures/door/color.jpg',
+    () =>
+    {
+        console.log('loading finished')
+    },
+    () =>
+    {
+        console.log('loading progressing')
+    },
+    () =>
+    {
+        console.log('loading error')
+    }
+)
+```
+如果纹理不起作用，添加这些回调函数以查看正在发生的情况并发现错误可能会很有用。
+#### 使用加载管理器[LoadingManager](https://threejs.org/docs/index.html#api/en/loaders/managers/LoadingManager)
+最后，如果您有多个图像要加载，并且想要共享事件，例如在加载所有图像时收到通知，您可以使用[LoadingManager](https://threejs.org/docs/index.html#api/en/loaders/managers/LoadingManager)。
+[创建LoadingManager](https://threejs.org/docs/index.html#api/en/loaders/managers/LoadingManager)类的实例并将其传递给[TextureLoader](https://threejs.org/docs/index.html#api/en/loaders/TextureLoader)：
+
+```javascript
+const loadingManager = new THREE.LoadingManager()
+const textureLoader = new THREE.TextureLoader(loadingManager)
+```
+您可以通过将以下属性替换为您自己的函数onStart、onLoad、onProgress和来监听各种事件onError：
+
+```javascript
+const loadingManager = new THREE.LoadingManager()
+loadingManager.onStart = () =>
+{
+    console.log('loading started')
+}
+loadingManager.onLoad = () =>
+{
+    console.log('loading finished')
+}
+loadingManager.onProgress = () =>
+{
+    console.log('loading progressing')
+}
+loadingManager.onError = () =>
+{
+    console.log('loading error')
+}
+
+const textureLoader = new THREE.TextureLoader(loadingManager)
+```
+您现在可以开始加载您需要的所有图像：
+
+```javascript
+// ...
+
+const colorTexture = textureLoader.load('/textures/door/color.jpg')
+const alphaTexture = textureLoader.load('/textures/door/alpha.jpg')
+const heightTexture = textureLoader.load('/textures/door/height.jpg')
+const normalTexture = textureLoader.load('/textures/door/normal.jpg')
+const ambientOcclusionTexture = textureLoader.load('/textures/door/ambientOcclusion.jpg')
+const metalnessTexture = textureLoader.load('/textures/door/metalness.jpg')
+const roughnessTexture = textureLoader.load('/textures/door/roughness.jpg')
+```
+正如您在此处看到的，我们重命名了`texture`变量`colorTexture`，所以不要忘记更改它`material`：
+
+```javascript
+const material = new THREE.MeshBasicMaterial({ map: colorTexture })
+```
+**如果您想要显示一个加载程序并仅在加载所有资产时将其隐藏，则**[**LoadingManager**](https://threejs.org/docs/index.html#api/en/loaders/managers/LoadingManager)**非常有用。正如我们将在以后的课程中看到的，您还可以将它与其他类型的加载器一起使用。**
+## UV unwrapping 紫外线展开 
+虽然如何在立方体上放置纹理是合乎逻辑的，但对于其他几何体来说，事情可能有点棘手。
+尝试用其他几何图形替换您的 BoxGeometry：
+
+```javascript
+const geometry = new THREE.BoxGeometry(1, 1, 1)
+
+// Or
+const geometry = new THREE.SphereGeometry(1, 32, 32)
+
+// Or
+const geometry = new THREE.ConeGeometry(1, 1, 32)
+
+// Or
+const geometry = new THREE.TorusGeometry(1, 0.35, 32, 100)
+```
+如您所见，纹理以不同的方式被拉伸或挤压以覆盖几何体。
+这就是所谓的UV 展开。您可以想象这就像打开折纸或糖果包装纸使其变平一样。每个顶点在平面（通常是正方形）上都有一个二维坐标。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684468408686-37255087-2c51-4dab-944d-b2d7107f8ceb.png#averageHue=%23d8c1ac&clientId=u4ee07317-0b23-4&from=paste&id=ua01c2dcb&originHeight=1080&originWidth=1920&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ub7349251-a42e-49f5-8aaa-9a777f54caf&title=)
+您实际上可以在属性中看到那些 UV 2D 坐标`geometry.attributes.uv`：
+
+```javascript
+console.log(geometry.attributes.uv)
+```
+当您使用图元时，这些 UV 坐标由 Three.js 生成。如果您创建自己的几何体并想对其应用纹理，则必须指定 UV 坐标。
+如果您使用 3D 软件制作几何体，您还必须进行 UV 展开。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684468409500-e55438c0-1a2e-44b1-a268-edc2c500b114.png#averageHue=%23b4bcc3&clientId=u4ee07317-0b23-4&from=paste&id=u2cf1cd3d&originHeight=1080&originWidth=1920&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u9d9640b1-6ad7-48da-8666-359fddab6bd&title=)
+不用担心; 大多数 3D 软件也有自动展开功能，应该可以解决问题。
+## [Transforming the texture](https://threejs-journey.com/lessons/textures#) 变换纹理
+让我们回到具有一个纹理的立方体，看看我们可以对该纹理应用什么样的变换。
+### 重复
+[您可以使用Vector2](https://threejs.org/docs/index.html#api/en/math/Vector2)`repeat`属性重复纹理，这意味着它具有`x`和`y`属性。
+尝试更改这些属性：
+```javascript
+const colorTexture = textureLoader.load('/textures/door/color.jpg')
+colorTexture.repeat.x = 2
+colorTexture.repeat.y = 3
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684468411002-e674ba2f-c8f3-4efa-992b-3c7e90dd9386.png#averageHue=%231e0c04&clientId=u4ee07317-0b23-4&from=paste&id=ud90e1a7e&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u3bc0acab-3c7a-4d36-b6ea-cdf415c1f5c&title=)
+如您所见，纹理没有重复，但更小，最后一个像素似乎被拉伸了。
+这是由于默认情况下未将纹理设置为**重复自身**。要更改它，您必须使用`THREE.RepeatWrapping`常量更新`wrapS`和`wrapT`属性。
+
+- `wrapS`是为`x`轴
+- `wrapT`是为`y`轴
+
+```javascript
+colorTexture.wrapS = THREE.RepeatWrapping
+colorTexture.wrapT = THREE.RepeatWrapping
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684468412617-ed054c33-dd31-4561-9014-45f1c9c8293a.png#averageHue=%231d0d04&clientId=u4ee07317-0b23-4&from=paste&id=u7f188379&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u9ad5152d-34bf-4b68-9d73-a3923a2b22f&title=)
+你也可以改变方向`THREE.MirroredRepeatWrapping`：
+
+```javascript
+colorTexture.wrapS = THREE.MirroredRepeatWrapping
+colorTexture.wrapT = THREE.MirroredRepeatWrapping
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684468412598-77437fac-a6bd-48ee-b08d-a766dbdd9e5a.png#averageHue=%231d0d04&clientId=u4ee07317-0b23-4&from=paste&id=u77366d64&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u164a5ab5-b7e3-4539-b1fb-ac846ba9955&title=)
+### Offset 抵消
+您可以使用属性来偏移纹理，offset该属性也是具有和属性的[Vector2](https://threejs.org/docs/index.html#api/en/math/Vector2)。更改这些将简单地偏移 UV 坐标：`x``y`
+```javascript
+colorTexture.offset.x = 0.5
+colorTexture.offset.y = 0.5
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684468413258-8943b934-2763-4065-bac2-cc66b912c88d.png#averageHue=%231d0d04&clientId=u4ee07317-0b23-4&from=paste&id=u72b30e5d&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u18264004-89d5-4fc9-b2d5-b2504057a27&title=)
+### rotation 回转
+您可以使用`rotation`属性旋转纹理，这是一个简单的数字，对应于以弧度表示的角度：
+
+```javascript
+colorTexture.rotation = Math.PI * 0.25
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684468414814-e7c418a6-338f-4391-8c04-4e030d2abba8.png#averageHue=%231e0d04&clientId=u4ee07317-0b23-4&from=paste&id=u156881ba&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u6c9a7125-5de7-40aa-b55e-c90fceb524c&title=)
+如果删除`offset`和`repeat`属性，您会看到旋转发生在立方体面的左下角：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684468415143-4922b1dd-1b69-4e73-8ba9-4388af653751.png#averageHue=%231d0c04&clientId=u4ee07317-0b23-4&from=paste&id=u0cf22731&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ub610e4d8-6cbb-4f14-b396-377f1a19af6&title=)
+也就是说，实际上UV 坐标是`0, 0`。如果要更改该旋转的轴心，可以使用也是[Vector2](https://threejs.org/docs/index.html#api/en/math/Vector2)的属性`center`来实现：
+
+```javascript
+colorTexture.rotation = Math.PI * 0.25
+colorTexture.center.x = 0.5
+colorTexture.center.y = 0.5
+```
+纹理现在将在其中心旋转。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684468416573-9c4a3e24-cfa0-462f-b101-cedc7d5cc574.png#averageHue=%231d0c04&clientId=u4ee07317-0b23-4&from=paste&id=udb345645&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u262c8520-0684-47fb-a8ce-210d619770e&title=)
+### 过滤和映射 
+如果您查看立方体的顶面，而该面几乎被隐藏，您会看到非常模糊的纹理。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684468416513-d5a9c334-c499-4a72-a24d-8de85cf62406.png#averageHue=%235d280e&clientId=u4ee07317-0b23-4&from=paste&id=uf5d44255&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u86b1d15b-3a06-439e-9b16-a1d402f7d74&title=)
+这是由于过滤和 mipmapping。
+Mipmapping（或带空格的“mip mapping”）是一种技术，包括反复创建纹理的一半较小版本，直到获得 1x1 纹理。所有这些纹理变化都被发送到 GPU，GPU 将选择最合适的纹理版本。
+Three.js 和 GPU 已经处理了所有这些，您只需设置要使用的过滤算法即可。有两种类型的过滤器算法：缩小过滤器和放大过滤器。
+### 缩小过滤器
+当纹理像素小于渲染像素时，会发生缩小过滤器。换句话说，纹理对于表面来说太大了，它覆盖了。
+您可以使用`minFilter`该属性更改纹理的缩小过滤器。
+有 6 个可能的值：
+
+- `THREE.NearestFilter`
+- `THREE.LinearFilter`
+- `THREE.NearestMipmapNearestFilter`
+- `THREE.NearestMipmapLinearFilter`
+- `THREE.LinearMipmapNearestFilter`
+- `THREE.LinearMipmapLinearFilter`
+
+默认值为`THREE.LinearMipmapLinearFilter`。如果您对纹理的外观不满意，您应该尝试其他滤镜。
+我们不会看到每一个，但我们将测试`THREE.NearestFilter`，它有一个非常不同的结果：
+
+```javascript
+colorTexture.minFilter = THREE.NearestFilter
+```
+如果您使用的设备像素比高于 1，则不会有太大差异。如果没有，将相机放在这张脸几乎被隐藏的地方，你应该会得到更多的细节和奇怪的伪像。
+`checkerboard-1024x1024.png`如果您使用文件夹中的纹理进行测试`/static/textures/`，您会更清楚地看到这些人工制品：
+
+```javascript
+const colorTexture = textureLoader.load('/textures/checkerboard-1024x1024.png')
+```
+您看到的人工制品称为[波纹图案](https://en.wikipedia.org/wiki/Moir%C3%A9_pattern)，通常希望你避免使用它们。
+### 放大滤镜 !可以让图像清晰非常重要
+放大滤镜的工作方式与缩小滤镜类似，但纹理像素大于渲染像素。换句话说，纹理对于它覆盖的表面来说太小了。
+`checkerboard-8x8.png`您可以使用同样位于文件夹中的纹理查看结果`static/textures/`：
+
+```javascript
+const colorTexture = textureLoader.load('/textures/checkerboard-8x8.png')
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684468418171-03ec685b-b105-4fee-90a5-28d38c205cd9.png#averageHue=%23131313&clientId=u4ee07317-0b23-4&from=paste&id=u49b1d745&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=uc754b645-632b-4995-881e-852c34aaca3&title=)
+纹理变得模糊，因为它是一个非常大的表面上的非常小的纹理。
+虽然您可能认为这看起来很糟糕，但它可能是最好的。如果效果不是太夸张，用户可能甚至不会注意到它。
+您可以使用属性更改纹理的放大过滤器`magFilter`。
+只有两个可能的值：
+
+- `THREE.NearestFilter`
+- `THREE.LinearFilter`
+
+默认值为`THREE.LinearFilter`。
+如果你测试`THREE.NearestFilter`，你会看到基本图像被保留，你会得到一个像素化的纹理：
+
+```javascript
+colorTexture.magFilter = THREE.NearestFilter
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684468418307-12a03ab2-605a-4e3c-a8cd-d9bf65b9de46.png#averageHue=%23131313&clientId=u4ee07317-0b23-4&from=paste&id=ua8f71d7d&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u54f2a133-03f9-415b-86e7-52957ef3b17&title=)
+如果您想要具有像素化纹理的 Minecraft 风格，这可能是有利的。
+您可以使用位于`static/textures/`文件夹中的`minecraft.png`纹理查看结果：
+
+```javascript
+const colorTexture = textureLoader.load('/textures/minecraft.png')
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684468420076-7afd8369-bffe-47b4-8b84-ca0034f2a176.png#averageHue=%23000000&clientId=u4ee07317-0b23-4&from=paste&id=u61646b2e&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=uce7776ea-30c3-46e6-ab44-41b8ca72514&title=)
+关于所有这些过滤器的最后一句话是，`THREE.NearestFilter`它比其他过滤器方便，而且您在使用它时应该会获得更好的性能。
+仅对mipmap属性使用 `minFilter`。如果您正在使用`THREE.NearestFilter`，则不需要 mipmap，您可以使用以下命令停用它们`colorTexture.generateMipmaps = false`：
+
+```javascript
+colorTexture.generateMipmaps = false
+colorTexture.minFilter = THREE.NearestFilter
+```
+这将稍微卸载 GPU 的负担。
+## 纹理格式和优化
+准备纹理时，必须牢记 3 个关键要素：
+
+- **weight 重量**
+- **size 尺寸（或resolution分辨率）**
+- **data 数据**
+### **weight **重量
+**不要忘记访问您网站的用户必须下载这些纹理**。您可以使用我们在网络上使用的大多数图像类型，例如.jpg（有损压缩但通常较轻）或.png（无损压缩但通常较重）。
+**尝试应用优化的方法来获得用户可接受的图像大小，但尽可能让图片存储体积缩小。您可以使用压缩图片的网站，如**[**TinyPNG**](https://tinypng.com/)**（也适用于 jpg）或任何软件。**
+### size 尺寸
+无论图像的权重如何，您使用的纹理的每个像素都必须存储在 GPU 上。和您的硬盘一样，GPU 也有存储限制。更糟糕的是，自动生成的 mipmapping 增加了必须存储的像素数量。
+**尽量减小图像的大小。**
+如果您还记得我们所说的关于 mipmapping 的内容，Three.js 将重复生成纹理的一半小版本，直到它获得 1x1 纹理。**因此，您的纹理宽度和高度必须是 2 的幂。这是强制性的，以便 Three.js 可以将纹理的大小除以 2。**
+一些例子：512x512,1024x1024或512x2048
+**512,1024并且2048可以除以 2 直到达到 1。**
+**如果您使用的纹理的宽度或高度不同于 2 的幂值，Three.js 将尝试将其拉伸到最接近的 2 的幂数，这可能会导致视觉效果不佳，并且您还会收到警告在控制台中。**
+### data 数据
+**我们还没有测试它，因为我们有其他东西要先看，但是纹理支持透明。您可能知道，jpg 文件没有 alpha 通道，因此您可能更喜欢使用 png（透明）。**
+或者您可以使用 alpha 贴图，我们将在以后的课程中看到。
+**如果您使用的是普通纹理（紫色纹理），您可能希望每个像素的红色、绿色和蓝色通道具有准确的值，否则最终可能会出现视觉故障。为此，您需要使用 png，因为它的无损压缩将保留好像素值。**
+## 在哪里可以找到纹理
+不幸的是，总是很难找到完美的纹理。有很多纹理素材的网站，但纹理并不都是很好用的，您可能还需要付费。
+从网络搜索开始可能是个好主意。以下是我经常访问的一些网站。
+
+- [poliigon.com](http://poliigon.com/)
+- [3dtextures.me](http://3dtextures.me/)
+- [arroway-textures.ch](http://arroway-textures.ch/)
+
+如果不是供个人使用，请始终确保您有权使用该纹理。
+[您还可以使用照片和 2D 软件（如 Photoshop）或什至使用Substance Designer](https://www.adobe.com/products/substance3d-designer.html)等软件创建自己的程序纹理。
 
