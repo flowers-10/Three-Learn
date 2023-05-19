@@ -1358,3 +1358,184 @@ geometry.setAttribute('position', positionsAttribute)
 唯一理解困难的可能是`count * 3 * 3`零件，但解释起来很简单：我们需要`50`三角形。每个三角形由顶点组成，每个顶点由值3（`x`、`y`和`z`）组成。
 #### 指数Index
 [BufferGeometry](https://threejs.org/docs/#api/en/core/BufferGeometry)的一件有趣的事情是您可以使用该`index`属性使顶点相互化，形成成一个立方体。多个面可以使用一些预计的顶点，例如立方体八个角落中的顶点。如果你仔细观察，每个顶点都可以被不同的相邻三角形使用。这将优化出更小的属性数组和性能上的改进。但我们不会在那节课中介绍这部分内容。
+
+# 10.Debug UI 调试界面
+## 介绍 
+每个创意项目的一个重要方面是使调试变得容易并调整您的代码。开发人员（您）和从事该项目的其他参与者（如设计师甚至客户）必须能够更改尽可能多的参数。
+你必须考虑到这一点，以便他们找到完美的**颜色、速度、数量**等，以获得**最佳体验**。您甚至可能会得到看起来很棒的意想不到的结果。
+首先，我们需要一个调试 UI。
+虽然您可以使用 HTML / CSS / JS 创建自己的调试 UI，但已经有多个现成的库：
+
+- [数据.GUI](https://github.com/dataarts/dat.gui)
+- [控制面板](https://github.com/freeman-lab/control-panel)
+- [控制套件](https://github.com/automat/controlkit.js)
+- [乌尔](https://github.com/lo-th/uil)
+- [调整面板](https://cocopon.github.io/tweakpane/)
+- [归化](https://github.com/colejd/guify)
+- [欧伊](https://github.com/wearekuva/oui)
+
+所有这些都可以实现我们想要的UI界面，但我们将使用最流行的一个，即[dat.GUI](https://github.com/dataarts/dat.gui)。你也可以尝试其他的。
+### Dat.GUI漏洞
+Dat.GUI 已经很长时间没有更新了，如果我们将库添加到我们的项目中，可能会出现一些漏洞警告。
+幸运的是，有一个名为[lil-gui 的](https://lil-gui.georgealways.com/)替代库可以用作“dat.gui 的直接替代品”。这意味着我们可以像使用 dat.gui 一样使用它。
+本课程大部分是使用 dat.gui 编写和录制的，文本、屏幕截图和视频将参考 dat.gui，但您应该安装和使用 lil-gui（这就是我们将在下面做的）。
+下一课的入门文件将使用 lil-gui。
+## 例子
+你可以在我的作品集中找到一个很好的调试 UI 示例。`#debug`此 UI 仅在您添加到 URL时显示。
+[https://bruno-simon.com/#debug](https://bruno-simon.com/#debug)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684465818917-bef9f23d-a661-43d9-9042-494544bd0b24.png#averageHue=%232b2521&clientId=u33db8ecb-4072-4&from=paste&id=u44af3b4a&originHeight=640&originWidth=1700&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ub744d1e1-f76e-40f9-a3a3-b4b1c4ad924&title=)
+您可以调整重力、颜色、速度、元素位置等。
+虽然我花了很多时间来创建所有这些调整，但如果没有它，游戏就会显得不那么平衡。
+## 设置
+在启动器中，我们有我们的多维数据集，但依赖项不包括 Dat.GUI。我们将添加它并进行一些调整。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684465818945-a5f6ce70-5f5c-4da0-832e-b33e1ac8563e.png#averageHue=%230c0000&clientId=u33db8ecb-4072-4&from=paste&id=u7db6ab48&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u80f067b6-3330-429d-ae32-2e49d689387&title=)
+## 如何实现Dat.GUI
+要将 Dat.GUI 添加到我们的项目中，我们可以使用 Node.js 提供的依赖管理器，称为 NPM（就像我们在上一课中为 GSAP 所做的一样）。
+在您的终端中（当服务器未运行或在同一文件夹上使用另一个终端窗口时）运行`npm install --save lil-gui`
+如前所述，我们正在安装 lil-gui 而不是 dat.gui，但在本课程的其余部分我们将把它称为 dat.gui。
+Dat.GUI 现在在文件夹中可用`/node_modules/`，我们可以将其导入我们的`script.js`. 不要忘记重新启动服务器：
+
+```javascript
+import './style.css'
+import * as THREE from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import gsap from 'gsap'
+import * as dat from 'lil-gui'
+
+// ...
+```
+
+您现在可以实例化 Dat.GUI：
+
+```javascript
+/**
+ * Debug
+ */
+const gui = new dat.GUI()
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684465819037-66eb50fd-4159-4ea7-a856-627b549fcdfc.png#averageHue=%230c0000&clientId=u33db8ecb-4072-4&from=paste&id=ub0fb658d&originHeight=2240&originWidth=3584&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u9f44c447-7e9f-4518-8949-906787e5ce0&title=)
+这将导致屏幕右上角出现一个空白面板。
+您可以向该面板添加不同类型的元素：
+
+- **Range** — 对于具有最小值和最大值的数字
+- **颜色**— 用于各种格式的颜色
+- **文本**——用于简单文本
+- **复选框**——用于布尔值（true或false）
+- **选择**— 从值列表中进行选择
+- **按钮**——触发功能
+- **文件夹**——如果你有太多元素，用来组织你的面板
+
+让我们看看其中的一些。
+### 添加元素
+要将元素添加到面板，您必须使用`gui.add(...)`. 第一个参数是一个对象，第二个参数是您要调整的对象的属性。您需要在创建相关对象后对其进行设置：
+
+```javascript
+gui.add(mesh.position, 'y')
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684465818981-f75e299e-8981-4cba-9b7b-8a0ddf71a3e1.png#averageHue=%230a0000&clientId=u33db8ecb-4072-4&from=paste&id=ub0d1dcb7&originHeight=2240&originWidth=3584&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u469b7b5f-a384-440c-b9ed-f7ab0ee21ed&title=)
+面板中应出现一个范围。尝试改变它并观察立方体相应地移动。
+**要指定最小值、最大值和精度**，您可以在参数中设置它们：
+
+```javascript
+gui.add(mesh.position, 'y', - 3, 3, 0.01)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684465819020-b5cbdf9e-15d6-4ec9-9ef5-d76cbb737192.png#averageHue=%230a0000&clientId=u33db8ecb-4072-4&from=paste&id=ua558833d&originHeight=2240&originWidth=3584&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u1326e00f-18fe-4074-a5a5-13d5c6b855d&title=)
+或者您可以使用方法`min(...)`，`max(...)`并在方法`step(...)`之后直接链接`add(...)`：
+
+```javascript
+gui.add(mesh.position, 'y').min(- 3).max(3).step(0.01)
+```
+如果你不喜欢在一行中链接太多方法，你可以简单地添加换行符：
+```javascript
+gui
+    .add(mesh.position, 'y')
+    .min(- 3)
+    .max(3)
+    .step(0.01)
+```
+要更改标签，请使用以下方法`name(...)`：
+```javascript
+gui
+    .add(mesh.position, 'y')
+    .min(- 3)
+    .max(3)
+    .step(0.01)
+    .name('elevation')
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684465820514-6d9c1be9-5358-42ca-9cfc-b017967b8995.png#averageHue=%230a0000&clientId=u33db8ecb-4072-4&from=paste&id=u79cedbaa&originHeight=2240&originWidth=3584&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=uf673eb15-f5eb-4871-85da-dc387582882&title=)
+Dat.GUI 将自动检测您想要调整的属性类型并使用相应的元素。一个很好的例子是[Object3D](https://threejs.org/docs/#api/en/core/Object3D.visible) 的`visible`属性。这是一个布尔值，将隐藏对象：`false`
+
+```javascript
+gui.add(mesh, 'visible')
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684465820576-66196a0a-fc81-4d01-a8cf-8a06f06cc6fb.png#averageHue=%230b0000&clientId=u33db8ecb-4072-4&from=paste&id=u13ed0640&originHeight=2240&originWidth=3584&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u3f163452-c8d5-4b1d-83bf-977eded2ca8&title=)
+如您所见，因为该`visible`属性是一个布尔值,所以Dat.GUI 推导选择了一个复选框。
+我们可以对材料的属性`wireframe`做同样的事情：
+```javascript
+gui.add(material, 'wireframe')
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684465820536-8b77fd64-0b26-497b-b6ae-869a4c550201.png#averageHue=%230b0000&clientId=u33db8ecb-4072-4&from=paste&id=uf03029e7&originHeight=2240&originWidth=3584&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ub994d78e-04c3-47c1-9115-e14d058eb85&title=)
+### 颜色
+处理颜色有点困难。
+首先，我们需要使用`addColor(...)`instead of `add(...)`。这是因为 Dat.GUI 无法仅根据属性的类型来判断您是想调整文本、数字还是颜色。
+其次，您必须创建一个在其属性中包含颜色的中间对象，并在您的材质中使用该属性。这是因为 Three.js 材料没有像#ff0000.
+实际上，因为我们使用的是lil-gui而不是Dat.GUI，所以我们可以直接在素材上使用`addColor(...)`。但由于我们将要看到的技术可以用于其他情况，所以我们也实现一遍。
+在该部分之后的代码开头创建一个变量`parameter`：
+
+```javascript
+const parameters = {
+    color: 0xff0000
+}
+```
+然后，在实例化您的`gui`变量后，添加以下调整：
+
+```javascript
+gui.addColor(parameters, 'color')
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684465821579-3777a8fc-447e-467c-8984-328f8e124326.png#averageHue=%230b0000&clientId=u33db8ecb-4072-4&from=paste&id=ud4179c60&originHeight=2240&originWidth=3584&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u4e4bfbdb-b1ab-46c1-a6aa-1b1f6bdaa61&title=)
+您应该在面板中看到一个颜色选择器。问题是改变这种颜色不会影响材质。它确实改变了变量`parameter`的属性`color`，但我们还没有在我们的材料中使用该变量。
+为了解决这个问题，我们需要 Dat.GUI 在值发生变化时提醒我们。我们可以通过链式调用`material.color.set(...).onChange(...)`该方法使用更新材质颜色来做到这一点。这种方法非常有用，因为您可以使用多种格式，例如`'#ff0000'`, `'#f00'`,`0xff0000`甚至`'red'`:
+
+```javascript
+const parameters = {
+    color: 0xff0000
+}
+
+// ...
+
+gui
+    .addColor(parameters, 'color')
+    .onChange(() =>
+    {
+        material.color.set(parameters.color)
+    })
+```
+
+目前，`0xff0000`颜色在两个地方指定：在`parameters`对象中和在`material`.
+虽然这没什么大不了的，但如果我们想改变颜色，我们必须在这两个地方进行。
+让我们简单地通过使用 `parameters.color`材质中的属性来解决这个问题：
+
+```javascript
+const material = new THREE.MeshBasicMaterial({ color: parameters.color })
+```
+### 功能
+要触发一个函数，比如颜色值，我们必须将该函数添加到一个对象中。我们可以使用`parameters`之前创建的对象添加一个 `spin`属性，该属性包含使立方体动画化的函数：
+
+```javascript
+const parameters = {
+    color: 0xff0000,
+    spin: () =>
+    {
+        gsap.to(mesh.rotation, { duration: 1, y: mesh.rotation.y + Math.PI * 2 })
+    }
+}
+```
+再一次，我们可以`gui`在实例化后将调整添加到我们的：
+```javascript
+gui.add(parameters, 'spin')
+```
+您应该会看到一个spin按钮，单击它会导致您的立方体进行 360 度旋转。
+## 如何以及何时使用它
+我们将在下一个练习的特定时刻使用我们的调试面板。但您可以随意添加任意数量的调整。这是练习和开始构建一些有创意的东西的绝佳方式。
+我建议您在进步时添加调整。如果您考虑在项目结束时添加所有调整，您最终可能根本不会进行任何调整。
+
