@@ -4,6 +4,7 @@ import * as dat from "lil-gui";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
 import gsap from "gsap";
+import { BoxGeometry } from "three";
 
 /**
  * Base
@@ -26,9 +27,7 @@ const matcapTexture = textureLoader.load("/textures/matcaps/8.png");
 /**
  * Fonts
  */
-/**
- * Fonts
- */
+const donutArr = []
 const fontLoader = new FontLoader();
 
 fontLoader.load("/fonts/helvetiker_regular.typeface.json", (font) => {
@@ -66,18 +65,30 @@ fontLoader.load("/fonts/helvetiker_regular.typeface.json", (font) => {
 
   // Donuts
   const donutGeometry = new THREE.TorusGeometry(0.3, 0.2, 20, 45);
+  const boxGeometry = new BoxGeometry(0.3,0.3,0.3)
 
   for (let i = 0; i < 100; i++) {
     const donut = new THREE.Mesh(donutGeometry, material);
+    const box = new THREE.Mesh(boxGeometry,material)
+    donutArr.push(donut)
+    donutArr.push(box)
     donut.position.x = (Math.random() - 0.5) * 10;
     donut.position.y = (Math.random() - 0.5) * 10;
     donut.position.z = (Math.random() - 0.5) * 10;
     donut.rotation.x = Math.random() * Math.PI;
     donut.rotation.y = Math.random() * Math.PI;
+
+    box.position.x = (Math.random() - 0.5) * 10;
+    box.position.y = (Math.random() - 0.5) * 10;
+    box.position.z = (Math.random() - 0.5) * 10;
+    box.rotation.x = Math.random() * Math.PI;
+    box.rotation.y = Math.random() * Math.PI;
     const scale = Math.random();
     donut.scale.set(scale, scale, scale);
+    box.scale.set(scale, scale, scale);
     scene.add(donut);
-    gsap.to(donut.position, { duration: 1, delay: 1, x: 2 });
+    scene.add(box);
+    // gsap.to(donut.position, { duration: 1, delay: 1, x: 2 });
   }
 });
 
@@ -151,6 +162,11 @@ const tick = () => {
 
   // Update controls
   controls.update();
+
+  // Update Object
+  for(let item of donutArr) {
+    item.rotation.y = elapsedTime
+  }
 
   // Render
   renderer.render(scene, camera);
