@@ -27,8 +27,10 @@ const matcapTexture = textureLoader.load("/textures/matcaps/8.png");
 /**
  * Fonts
  */
+// 创建一个 Group
+const orbitGroup = new THREE.Group();
 const donutArr = [];
-let textGeometry = null;
+let text = null;
 const fontLoader = new FontLoader();
 
 fontLoader.load("/fonts/helvetiker_regular.typeface.json", (font) => {
@@ -39,7 +41,7 @@ fontLoader.load("/fonts/helvetiker_regular.typeface.json", (font) => {
   const material = new THREE.MeshMatcapMaterial({ matcap: matcapTexture });
 
   // Text
-  textGeometry = new TextGeometry("Hello Michela", {
+  const textGeometry = new TextGeometry("Hello Michela", {
     font: font,
     size: 0.5,
     height: 0.2,
@@ -61,7 +63,7 @@ fontLoader.load("/fonts/helvetiker_regular.typeface.json", (font) => {
   // )
   //  console.log(textGeometry.boundingBox)
 
-  const text = new THREE.Mesh(textGeometry, material);
+  text = new THREE.Mesh(textGeometry, material);
   scene.add(text);
 
   // Donuts
@@ -73,6 +75,10 @@ fontLoader.load("/fonts/helvetiker_regular.typeface.json", (font) => {
     const box = new THREE.Mesh(boxGeometry, material);
     donutArr.push(donut);
     donutArr.push(box);
+
+    // 将甜甜圈和立方体添加到 Group 中
+    orbitGroup.add(donut);
+    orbitGroup.add(box);
     donut.position.x = (Math.random() - 0.5) * 10;
     donut.position.y = (Math.random() - 0.5) * 10;
     donut.position.z = (Math.random() - 0.5) * 10;
@@ -87,11 +93,11 @@ fontLoader.load("/fonts/helvetiker_regular.typeface.json", (font) => {
     const scale = Math.random();
     donut.scale.set(scale, scale, scale);
     box.scale.set(scale, scale, scale);
-    scene.add(donut);
-    scene.add(box);
     // gsap.to(donut.position, { duration: 1, delay: 1, x: 2 });
   }
 });
+
+scene.add(orbitGroup);
 
 /**
  * Object
@@ -128,16 +134,15 @@ window.addEventListener("resize", () => {
 /**
  * Cursor
  */
- const cursor = {
-    x: 0,
-    y: 0
-}
+const cursor = {
+  x: 0,
+  y: 0,
+};
 
-window.addEventListener('mousemove', (event) =>
-{   
-    cursor.x = event.clientX / sizes.width - 0.5
-    cursor.y = - (event.clientY / sizes.height - 0.5)
-})
+window.addEventListener("mousemove", (event) => {
+  cursor.x = event.clientX / sizes.width - 0.5;
+  cursor.y = -(event.clientY / sizes.height - 0.5);
+});
 
 /**
  * Camera
@@ -152,12 +157,7 @@ const camera = new THREE.PerspectiveCamera(
 // camera.position.x = 1;
 // camera.position.y = 1;
 camera.position.z = 3;
-setTimeout(() => {
-    console.log(textGeometry.position);
-    scene.add(camera);
-}, 20);
-// camera.lookAt(textGeometry.position)
-// scene.add(camera);
+  scene.add(camera);
 
 // Controls
 const controls = new OrbitControls(camera, canvas);
@@ -176,7 +176,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
  * Animate
  */
 const clock = new THREE.Clock();
-
+let flag = false;
 const tick = () => {
   const elapsedTime = clock.getElapsedTime();
 
@@ -184,13 +184,23 @@ const tick = () => {
   controls.update();
 
   // Update Object
+  if (orbitGroup.rotation.y >= 4) {
+    flag = false;
+  } else if (orbitGroup.rotation.y <= -4) {
+    flag = true;
+  }
+
+  flag
+    ? (orbitGroup.rotation.y += 0.01)
+    : (orbitGroup.rotation.y -= 0.01);
+
   for (let item of donutArr) {
-    item.rotation.y = elapsedTime;
+    item.rotation.y += 0.001;
   }
 
   // Update camera
-  camera.position.x = cursor.x * 15
-  camera.position.y = cursor.y * 15
+  camera.position.x = cursor.x * 15;
+  camera.position.y = cursor.y * 15;
 
   // Render
   renderer.render(scene, camera);
