@@ -27,7 +27,8 @@ const matcapTexture = textureLoader.load("/textures/matcaps/8.png");
 /**
  * Fonts
  */
-const donutArr = []
+const donutArr = [];
+let textGeometry = null;
 const fontLoader = new FontLoader();
 
 fontLoader.load("/fonts/helvetiker_regular.typeface.json", (font) => {
@@ -38,7 +39,7 @@ fontLoader.load("/fonts/helvetiker_regular.typeface.json", (font) => {
   const material = new THREE.MeshMatcapMaterial({ matcap: matcapTexture });
 
   // Text
-  const textGeometry = new TextGeometry("Hello Michela", {
+  textGeometry = new TextGeometry("Hello Michela", {
     font: font,
     size: 0.5,
     height: 0.2,
@@ -65,13 +66,13 @@ fontLoader.load("/fonts/helvetiker_regular.typeface.json", (font) => {
 
   // Donuts
   const donutGeometry = new THREE.TorusGeometry(0.3, 0.2, 20, 45);
-  const boxGeometry = new BoxGeometry(0.3,0.3,0.3)
+  const boxGeometry = new BoxGeometry(0.3, 0.3, 0.3);
 
   for (let i = 0; i < 100; i++) {
     const donut = new THREE.Mesh(donutGeometry, material);
-    const box = new THREE.Mesh(boxGeometry,material)
-    donutArr.push(donut)
-    donutArr.push(box)
+    const box = new THREE.Mesh(boxGeometry, material);
+    donutArr.push(donut);
+    donutArr.push(box);
     donut.position.x = (Math.random() - 0.5) * 10;
     donut.position.y = (Math.random() - 0.5) * 10;
     donut.position.z = (Math.random() - 0.5) * 10;
@@ -125,6 +126,20 @@ window.addEventListener("resize", () => {
 });
 
 /**
+ * Cursor
+ */
+ const cursor = {
+    x: 0,
+    y: 0
+}
+
+window.addEventListener('mousemove', (event) =>
+{   
+    cursor.x = event.clientX / sizes.width - 0.5
+    cursor.y = - (event.clientY / sizes.height - 0.5)
+})
+
+/**
  * Camera
  */
 // Base camera
@@ -134,10 +149,15 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   100
 );
-camera.position.x = 1;
-camera.position.y = 1;
-camera.position.z = 2;
-scene.add(camera);
+// camera.position.x = 1;
+// camera.position.y = 1;
+camera.position.z = 3;
+setTimeout(() => {
+    console.log(textGeometry.position);
+    scene.add(camera);
+}, 20);
+// camera.lookAt(textGeometry.position)
+// scene.add(camera);
 
 // Controls
 const controls = new OrbitControls(camera, canvas);
@@ -164,9 +184,13 @@ const tick = () => {
   controls.update();
 
   // Update Object
-  for(let item of donutArr) {
-    item.rotation.y = elapsedTime
+  for (let item of donutArr) {
+    item.rotation.y = elapsedTime;
   }
+
+  // Update camera
+  camera.position.x = cursor.x * 15
+  camera.position.y = cursor.y * 15
 
   // Render
   renderer.render(scene, camera);
