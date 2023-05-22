@@ -2379,3 +2379,331 @@ material.envMap = environmentMapTexture
 但是我们有一个问题。正如我们所说，Three.js 仅支持立方体贴图。要将 HDRI 转换为立方体贴图，您可以使用此在线工具：[https://matheowis.github.io/HDRI-to-CubeMap/](https://matheowis.github.io/HDRI-to-CubeMap/)
 上传 HDRI，随意旋转，然后下载由 6 张图像组成的立方体贴图版本。默认格式为`.jpg`，如果需要，您必须将它们转换为`.png`。
 
+# 13. 3D Text 3D文字
+## 介绍 
+我们已经了解足够的基础知识，现在可以创作一些好看的效果了。对于我们第一个正式的项目，我们将复刻一个开发者ilithya的作品（[https://www.ilithya.rocks/](https://www.ilithya.rocks/)），这个作品在场景中间有一个大的 3D 文本，很多几何体漂浮在文字的周围。
+这个作品是学习 Three.js 早期可以实现的一个很好的例子。它简单、高效，而且特效看起来很棒。
+[Three.js 已经通过TextGeometry](https://threejs.org/docs/?q=textge#examples/en/geometries/TextGeometry)类支持 3D 文本几何图形。问题是你必须先指定一种字体，而且这个字体必须是一种叫做 typeface 的特定 json 格式。
+我们不会涉及数字字体版权授权相关的问题，您使用下载字体后，使用字体时必须保证有权使用该字体，或者字体版权是供开发者免费使用的。
+## 如何获得字体
+有很多方法可以获取 typeface 格式的字体。首先，您可以使用如下转换器转换您的字体：[https://gero3.github.io/facetype.js/](http://gero3.github.io/facetype.js/)。您必须提供一个文件并单击转换按钮。
+您还可以在`node_modules`文件夹中的 Three.js 库示例中找到字体。`/node_modules/three/examples/fonts/`你可以把这些字体放在`/static/`文件夹中，或者你可以直接在你的 JavaScript 文件中导入它们，因为它们是 json 并且 Vite 中`.json`文件就像`.js`的文件一样被支持：
+
+```javascript
+import typefaceFont from 'three/examples/fonts/helvetiker_regular.typeface.json'
+```
+我们打开`/node_modules/three/examples/fonts/`，获取`helvetiker_regular.typeface.json`文件和`LICENSE`文件并将它们放入`/static/fonts/`文件夹（您需要创建`fonts`文件夹）来混合使用这两种技术。
+现在只需在基本 URL 的末尾写入即可访问该`/fonts/helvetiker_regular.typeface.json`字体。
+## 加载字体
+要加载字体，我们必须使用一个名为[FontLoader](https://threejs.org/docs/#examples/en/loaders/FontLoader)的新加载器类。
+此类在`THREE`变量中不可用。像在前面课程中我们所做的，像导入`OrbitControls`那样导入它：
+
+```javascript
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
+```
+
+[这个加载器像TextureLoader](https://threejs.org/docs/index.html#api/en/loaders/TextureLoader)一样工作。在该部分之后添加以下代码`textureLoader`（如果您使用的是其他字体，请不要忘记更改路径）：
+
+```javascript
+/**
+ * Fonts
+ */
+const fontLoader = new FontLoader()
+
+fontLoader.load(
+    '/fonts/helvetiker_regular.typeface.json',
+    (font) =>
+    {
+        console.log('loaded')
+    }
+)
+```
+进入你的控制台发现打印了`'loaded'`。如果不是，请检查前面的步骤并在控制台中搜索潜在的错误。
+我们现在可以通过使用函数内的`font`变量来访问字体。[与TextureLoader](https://threejs.org/docs/index.html#api/en/loaders/TextureLoader)不同，我们必须在该函数中的成功回调编写其余代码。
+## 创建几何体 
+正如我们之前所说，我们将使用[TextGeometry](https://threejs.org/docs/?q=textge#examples/en/geometries/TextGeometry)来创建几何体。
+[就像FontLoader](https://threejs.org/docs/#examples/en/loaders/FontLoader)一样，我们需要导入它：
+
+```javascript
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
+```
+
+[请注意文档页面](https://threejs.org/docs/?q=textge#examples/en/geometries/TextGeometry)上的示例代码；这些值比我们场景中的值大得多。
+确保在成功的回调函数中编写代码：
+
+```javascript
+fontLoader.load(
+    '/fonts/helvetiker_regular.typeface.json',
+    (font) =>
+    {
+        const textGeometry = new TextGeometry(
+            'Hello Three.js',
+            {
+                font: font,
+                size: 0.5,
+                height: 0.2,
+                curveSegments: 12,
+                bevelEnabled: true,
+                bevelThickness: 0.03,
+                bevelSize: 0.02,
+                bevelOffset: 0,
+                bevelSegments: 5
+            }
+        )
+        const textMaterial = new THREE.MeshBasicMaterial()
+        const text = new THREE.Mesh(textGeometry, textMaterial)
+        scene.add(text)
+    }
+)
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684642607272-fb96e011-2482-44f0-ae04-9e298d125754.png#averageHue=%23202020&clientId=u59da732f-334a-4&from=paste&id=u8a7559ae&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uaa14f215-db1c-421a-a23d-ba8beb9ea30&title=)
+您应该得到一个需要改进的白色 3D 文本。
+首先，注释掉立方体的代码。其目的是确保一切正常。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684642607235-b2932eae-de43-43df-947d-240f44ea6a73.png#averageHue=%23111111&clientId=u59da732f-334a-4&from=paste&id=uc0397596&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u8c62555d-994a-4835-a79a-04804ef8459&title=)
+如果您想看到一些很酷的网格，请添加`wireframe: true`到您的材料中。
+
+```javascript
+const textMaterial = new THREE.MeshBasicMaterial({ wireframe: true })
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684642607213-266993e5-ae23-43ef-ae93-220cabddc42c.png#averageHue=%23080808&clientId=u59da732f-334a-4&from=paste&id=u7be4b958&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u8ab5d44c-6e76-4756-82c8-8230db2c2c2&title=)
+您现在可以看到几何体是有很多三角形生成的。创建文本几何图形对计算机来说既漫长又困难。`curveSegments`避免这样做太多次，并通过减少多边形和`bevelSegments`属性使几何体尽可能保持低。
+一旦您对几何体渲染详细程度感到满意，请删除`wireframe`。
+## 文本居中
+有几种方法可以使文本居中。一种方法是使用边界。边界是与几何相关联的信息，它告诉该几何占用了哪些空间。它可以是一个盒子或一个球体。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684642607190-aacbcb7a-2241-41f6-ac8e-e82fca732167.png#averageHue=%23e2d7cb&clientId=u59da732f-334a-4&from=paste&id=u306dfc40&originHeight=1080&originWidth=1920&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ucac6de38-1129-4b24-a5b8-b8aa0e3a4cb&title=)
+你实际上看不到这些边界，但它可以帮助 Three.js 轻松计算对象是否在屏幕上，如果不在屏幕上，则对象甚至不会被渲染。这称为视锥体剔除，但这不是本课的主题。
+我们想要的是使用这个边界来了解几何体的大小并使它重新居中。默认情况下，Three.js 使用球体边界。我们想要的是一个盒子边界，更准确地说。为此，我们可以要求 Three.js 通过调用`computeBoundingBox()`几何来计算此框边界：
+
+```javascript
+textGeometry.computeBoundingBox()
+```
+我们可以使用`boundingBox`几何属性选中此框。
+
+```javascript
+console.log(textGeometry.boundingBox)
+```
+结果是一个名为[Box3 的](https://threejs.org/docs/index.html#api/en/math/Box3)对象，它有一个`min`属性和一个`max`属性。该`min`0并不像我们预期的那样。这是由于`bevelThicknessand bevelSize`，但我们现在可以忽略它。
+现在我们有了措施，我们可以移动对象。我们不移动网格，而是移动整个几何体。这样，网格仍将位于场景的中心，文本几何体也将在我们的网格内居中。
+为此，我们可以在方法`translate(...)`之后立即在几何体上使用该方法`computeBoundingBox()`：
+
+```javascript
+textGeometry.translate(
+    - textGeometry.boundingBox.max.x * 0.5,
+    - textGeometry.boundingBox.max.y * 0.5,
+    - textGeometry.boundingBox.max.z * 0.5
+)
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684642607257-ae84266a-b16e-4b89-a174-8df86eb6e4a1.png#averageHue=%230f0f0f&clientId=u59da732f-334a-4&from=paste&id=u6228e4e0&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u6002d5d5-94ed-40b6-a7a2-7743079789f&title=)
+文本居中，但如果你想非常精确，你还应该减去  `bevelSizeis 0.02`：
+
+```javascript
+textGeometry.translate(
+    - (textGeometry.boundingBox.max.x - 0.02) * 0.5, // Subtract bevel size
+    - (textGeometry.boundingBox.max.y - 0.02) * 0.5, // Subtract bevel size
+    - (textGeometry.boundingBox.max.z - 0.03) * 0.5  // Subtract bevel thickness
+)
+```
+
+我们在这里所做的实际上可以通过调用几何上的方法`center()`更快地完成：
+
+```glsl
+textGeometry.center()
+```
+容易多了，不是吗？我们手写居中做的目的是了解**边界和截锥体剔除**。
+## 添加matcap材质 
+是时候为我们的文本添加一个很酷的材料了。我们将使用 `MeshMatcapMaterial` 替换 [MeshBasicMaterial，](https://threejs.org/docs/index.html#api/en/materials/MeshMatcapMaterial)因为它看起来很酷，而且性能更好。
+首先，让我们选择一个 `matcap` 纹理。我们将使用位于`/static/textures/matcaps/`文件夹中的 `matcaps`，但您可以随意使用您自己的 `matcaps`。
+您也可以从此存储库[https://github.com/nidorx/matcaps](https://github.com/nidorx/matcaps)下载一个。不要花太多时间去选择它！如果不是供个人使用，请确保您有版权使用它。您不需要高分辨率的纹理，`256x256`应该绰绰有余。
+我们现在可以使用代码中已有的[TextureLoader](https://threejs.org/docs/index.html#api/en/loaders/TextureLoader)来加载纹理：
+
+```javascript
+const matcapTexture = textureLoader.load('/textures/matcaps/1.png')
+```
+我们现在可以用漂亮的[MeshMatcapMaterial替换丑陋的](https://threejs.org/docs/index.html#api/en/materials/MeshBasicMaterial)[MeshBasicMaterial](https://threejs.org/docs/index.html#api/en/materials/MeshMatcapMaterial)并将我们的`matcapTexture`变量与`matcap`属性一起使用：
+
+```javascript
+const textMaterial = new THREE.MeshMatcapMaterial({ matcap: matcapTexture })
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684642614916-2766777a-4c96-4a8c-808a-366179deb6cb.png#averageHue=%23140f0c&clientId=u59da732f-334a-4&from=paste&id=uccc63cc5&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uaa07c04f-1a95-4624-a23e-78d8064d183&title=)
+你应该可以渲染出一个可爱的文字，上面有一个很酷的材料。
+## 添加对象 
+让我们添加漂浮的对象。为此，我们将在循环函数内创建一个甜甜圈。
+在成功函数中，紧跟在该`text`部分之后，添加循环函数：
+
+```javascript
+for(let i = 0; i < 100; i++)
+{
+    
+}
+```
+我们可以在 success 函数之外完成此操作，但我们需要将文本和对象一起创建，这是有充分理由的，您稍后会看到。
+在此循环中，创建一个[TorusGeometry](https://threejs.org/docs/#api/en/geometries/TorusGeometry)（例如甜甜圈的技术名称），其材质与文本和[Mesh](https://threejs.org/docs/#api/en/objects/Mesh)相同：
+
+```javascript
+for(let i = 0; i < 100; i++)
+{
+    const donutGeometry = new THREE.TorusGeometry(0.3, 0.2, 20, 45)
+    const donutMaterial = new THREE.MeshMatcapMaterial({ matcap: matcapTexture })
+    const donut = new THREE.Mesh(donutGeometry, donutMaterial)
+    scene.add(donut)
+}
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684642617009-b4534f25-3189-4b35-9414-c3edc4c31c72.png#averageHue=%23100c09&clientId=u59da732f-334a-4&from=paste&id=ud0dadba2&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u92e48f1d-a068-4e2a-8540-68d5cd6ad39&title=)
+你应该在同一个地方得到 100 个甜甜圈。
+让我们为他们的位置添加一些随机性：
+```javascript
+donut.position.x = (Math.random() - 0.5) * 10
+donut.position.y = (Math.random() - 0.5) * 10
+donut.position.z = (Math.random() - 0.5) * 10
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684642620224-61468e49-9a4a-4e98-b09c-2ec4a9d12d89.png#averageHue=%232d2119&clientId=u59da732f-334a-4&from=paste&id=uc8ca27cc&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u32ad7c21-8249-4188-9b47-0e2305ebb22&title=)
+你应该把 100 个甜甜圈分散在现场。
+为旋转添加随机性。无需旋转所有 3 个轴，并且由于甜甜圈是对称的，旋转半圈就足够了：
+
+```javascript
+donut.rotation.x = Math.random() * Math.PI
+donut.rotation.y = Math.random() * Math.PI
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684642623631-92f983f2-dc68-4117-bdbf-371ead26662e.png#averageHue=%233d2e24&clientId=u59da732f-334a-4&from=paste&id=udf75ba65&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uaf172d08-cc5b-4553-88bf-63ffde40ef6&title=)
+甜甜圈应该向各个方向旋转。
+最后，我们可以为比例添加随机性。不过要小心；我们需要对所有 3 个轴（` x, y, z`）使用相同的值：
+
+```javascript
+const scale = Math.random()
+donut.scale.set(scale, scale, scale)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684642636925-08faf338-f2b8-45eb-b803-8220671a9a9d.png#averageHue=%231f1712&clientId=u59da732f-334a-4&from=paste&id=u5b87ea40&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ub37b800c-166f-4dc2-b2b5-5997ca4b3bb&title=)
+## 优化
+我们的代码不是最优的。正如我们在上一课中看到的，我们可以在多个[网格](https://threejs.org/docs/#api/en/objects/Mesh)上使用相同的材质，但我们也可以使用相同的几何体来节省性能。
+将 `thedonutGeometry`和 `thedonutMaterial`移出循环：
+
+```javascript
+const donutGeometry = new THREE.TorusGeometry(0.3, 0.2, 20, 45)
+const donutMaterial = new THREE.MeshMatcapMaterial({ matcap: matcapTexture })
+
+for(let i = 0; i < 100; i++)
+{
+    // ...
+}
+```
+你应该得到相同的结果，但我们可以走得更远。`text`的材料与`donut` 的相同。
+让我们删除`donutMaterial`，重命名`textMaterialbymaterial`并将其用于 `thetext`和`donut`：
+
+```javascript
+const material = new THREE.MeshMatcapMaterial({ matcap: matcapTexture })
+                
+// ...
+
+const text = new THREE.Mesh(textGeometry, material)
+
+// ...
+
+for(let i = 0; i < 100; i++)
+{
+    const donut = new THREE.Mesh(donutGeometry, material)
+    
+    // ...
+}
+```
+我们可以继续优化，但是有一个关于优化的专门课程，所以先按下不表。
+## 更多优化
+如果需要，您可以添加更多形状，为它们设置动画，甚至可以尝试其他 `matcaps`。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684642642995-ff567ab0-56a9-4c38-8218-0954dae04adf.png#averageHue=%230e0b08&clientId=u59da732f-334a-4&from=paste&id=u4c0e8399&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u4087d9c2-5480-42ea-9673-ab231380f86&title=)
+
+
+# 14. Go Live 上线
+## 介绍
+在您像旅程式学习的这个阶段，您可能想要分享您所构建的内容。屏幕截图或视频是一个好的开始，但您的朋友和家人会更喜欢互动版本。是时候让那些 WebGL 体验上线到互联网了。
+## 解决方案 
+多年前，我们没有那么多解决方案来让网站上线。现在，它变得有点复杂，但我们也可以使用许多方便的解决方案。
+## 传统方案
+在下一节中，我们将使用一种解决方案，它不需要您订阅“传统”解决方案，例如 OVH、1and1 或 Gandhi，您必须使用 FTP 客户端手动上传文件。然而，你们中的一些人可能已经拥有像其中一个这样的云服务器主机，而您只想获取您应该上传的那些文件。
+你不能简单地将整个项目连同`node_modules/`文件夹和 Vite 配置放在主机上。首先，您需要在该 webpack 配置中“build”您的项目，以便创建浏览器可以解释的 HTML、CSS、JS 和static文件。
+要构建您的项目，请`npm run build`在终端中运行。
+`/package.json`此命令将运行位于属性文件中的脚本`scripts > build`。
+等待几秒钟，文件应该在执行`/dist/`时创建的文件夹中可用`build`。然后，您可以使用您最喜欢的 FTP 客户端将这些文件放到网上。
+每当您想上传新版本时，`npm run build`即使该`/dist/`文件夹已经存在，也要再次运行而且覆盖掉。
+我们不会介绍这些“传统”托管解决方案之一的设置，因为我们将在下一节中使用更合适的解决方案。
+## [Vercel](https://vercel.com/)
+[Vercel](https://vercel.com/)是那些“现代”托管解决方案之一，具有持续集成（测试、部署和其他类似开发步骤的自动化）。它对开发人员非常友好且易于设置。
+您可以将它用于复杂的项目，也可以用于非常简单的“单页”网站，例如我们在本课程中创建的网站。
+在继续之前，请注意我 和 Vercel 之间没有合作关系（没给我打钱）。我只是喜欢将它用于我的小创意体验。
+此外，我们还应该提及其他不错的替代方案，例如[Netlify](https://www.netlify.com/)和[GitHub Pages](https://pages.github.com/)。
+另请注意，您可能会发现本课程的其余部分与您自己使用 Vercel 的体验之间存在细微差别。这是一个全新的解决方案，开发人员不断改进服务。
+### 创建一个帐户
+首先，转到[vercel.com](https://vercel.com/)并创建一个帐户。
+您可以选择不同的登录方法，例如GitHub连接、GitLab连接、Bitbucket连接或经典电子邮件访问。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684655844561-79255c31-246a-4612-9db1-9efd4a2ca737.png#averageHue=%23f8f8f8&clientId=u815992b1-3e00-4&from=paste&id=ue3b52217&originHeight=1110&originWidth=1448&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=udb2a1b70-8055-46fe-8ccf-3797e4065ac&title=)
+“连接”选项可能是不错的选择，因为 Vercel 的一个重要特性是它允许持续集成作为版本控制解决方案。如果您不知道[GitHub](https://github.com/)、[GitLab](https://about.gitlab.com/)和[Bitbucket](https://bitbucket.org/)是什么，它们是您的 Git 存储库的托管解决方案。换句话说，这是大多数开发人员保存代码的地方。
+如果你熟悉他们，你完全可以去做。这将简化流程，Vercel 将自动获取您的存储库，帮助您设置实时版本并在您将新版本推送到存储库时自动更新它。您甚至可以选择一个特定的分支。
+对于那些不熟悉 Git 托管解决方案的人，请不要担心，我们将让大多数学生都能访问这节课，并选择电子邮件解决方案。即使您当前正在使用 Git，此解决方案仍然可以正常工作。单击电子邮件链接：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684655844672-944417ef-d005-4cb3-8155-55c9921195c6.png#averageHue=%23fefefe&clientId=u815992b1-3e00-4&from=paste&id=u767082e2&originHeight=194&originWidth=932&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u1666b9ca-5d1f-48ec-8ef8-36a3ab6cf8e&title=)
+然后输入您的电子邮件地址并按照以下步骤创建您的帐户：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684655844533-2a621b56-71d5-480e-a2e0-d5bf56d2102b.png#averageHue=%23bbd7f9&clientId=u815992b1-3e00-4&from=paste&id=ubae8a294&originHeight=300&originWidth=872&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u00bcb654-d3bf-4b0f-9222-a8b921271b5&title=)
+Vercel 将向您发送一封带有链接的确认电子邮件，以便您可以登录。单击该链接后，您应该已连接。
+### 将 Vercel 添加到您的项目
+Vercel 可作为[NPM 模块](https://www.npmjs.com/package/vercel)使用，您可以将其全局安装在您的计算机上或作为项目的依赖项。我们将把它添加到项目中，这样，如果我们想在另一台计算机上设置项目或者我们想与其他开发人员共享它，我们就不必在那台计算机上安装任何东西。
+在项目的终端中，运行`npm install vercel.` 片刻之后，安装将完成，但您可能会注意到存在一些漏洞。终端将指示您运行审核以修复它们。您通常可以忽略这些警告，因为它们可能是误报。
+尽管我们将 Vercel 添加为项目依赖项，而不是全局依赖项，但它在终端中仍然不可用。您的 NPM 脚本可以访问它，但您首先需要进行以下更改。
+在 中`package.json`，在`"scripts"`属性中，添加一个名为的新脚本`"deploy"`并写`"vercel --prod"`为值（不要忘记在脚本,之后`"dev"`）：
+
+```javascript
+{
+  "scripts": {
+    // ...
+    "deploy": "vercel --prod"
+  },
+}
+```
+如果您使用`"vercel"`不带 的命令`—-prod`，代码将发布在预览 URL 上，以便您可以在投入生产之前对其进行测试。虽然这是一个有趣的功能，但我们不需要预览版。
+从现在开始，如果你想在线部署你的项目，你只需`npm run deploy`在终端中运行即可。
+### 首次部署
+第一次部署项目时，Vercel 会要求您提供一些信息，以便连接到您的帐户并设置项目。
+在终端中，运行`npm run deploy`
+如果之前，您选择使用电子邮件连接，请使用向上和向下箭头选择`Continue with Email`并按`Enter`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684655844456-67de9497-07f7-4410-bfc6-8d333ac26f1b.png#averageHue=%232d3242&clientId=u815992b1-3e00-4&from=paste&id=u48828f5d&originHeight=616&originWidth=1084&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ua94fb7de-efd6-4f8c-ae1d-cb08fbf5fab&title=)
+然后写你的电子邮件：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684655844489-d999caae-1ad3-4115-9182-1858a5e2cee8.png#averageHue=%232e3243&clientId=u815992b1-3e00-4&from=paste&id=u1cc9e91d&originHeight=236&originWidth=1200&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u82936eda-4907-45e5-a24a-f0d769d4b06&title=)
+Vercel 会像之前一样向您发送电子邮件。单击该电子邮件中的可用链接，终端应自动继续下一步：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684655847104-2e44777e-1597-4855-ab47-9f6a341acccc.png#averageHue=%23323747&clientId=u815992b1-3e00-4&from=paste&id=u4488c756&originHeight=128&originWidth=1902&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u48275867-5c74-4384-98cc-f68e60a9cee&title=)
+此时，系统会提示您确认设置和部署当前文件夹。选择`Y`并按下`Enter`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684655847133-b909e6d9-6338-47a8-87c2-5117bbc66ab9.png#averageHue=%23394458&clientId=u815992b1-3e00-4&from=paste&id=ub73b18aa&originHeight=56&originWidth=1400&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uf1537fd6-4f8c-4706-959f-70303969039&title=)
+您的账户可以关联多个范围和团队。如果您刚刚创建帐户，则应该只有一个。按下选择它`Enter`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684655848739-d92b3c44-6a70-466d-9765-c51b267f922f.png#averageHue=%23333c4e&clientId=u815992b1-3e00-4&from=paste&id=u54932bb8&originHeight=90&originWidth=818&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u0fc5595e-885c-48cd-ba5a-bcb4f450b35&title=)
+在我们的例子中，我们正在创建一个新项目，我们不想将我们的代码与现有项目相关联。写下`n`并按下`Enter`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684655848714-ac44816e-d40c-41f9-869f-533e48f8cad8.png#averageHue=%232f3344&clientId=u815992b1-3e00-4&from=paste&id=ue7698da6&originHeight=46&originWidth=780&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u4266ff35-3027-460b-bf11-06b71550ddb&title=)
+Vercel 将尝试猜测项目名称，但您可以将其更改为任何您想要的名称。您可以使用小写字母、数字和破折号。按`Enter`:
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684655848692-c4fa7d8f-50b5-4bb2-90ea-73bcb3b73368.png#averageHue=%23323646&clientId=u815992b1-3e00-4&from=paste&id=ue161cc4d&originHeight=42&originWidth=1156&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u2576400e-ac2e-467a-9cbd-5078f7d5074&title=)
+如果您在项目文件夹的根目录下执行该代码，您可以保留`./`并按下`Enter`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684655849825-dced2528-9a05-4698-9892-ab0268d9d82e.png#averageHue=%23323646&clientId=u815992b1-3e00-4&from=paste&id=u72ade627&originHeight=42&originWidth=942&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u9c6c90bb-8a50-4d6f-8bf9-cdc34b5617a&title=)
+Vercel 对构建命令或捆绑目标文件夹等内容具有默认设置。我们需要覆盖那些。写下`y`并按下`Enter`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684655850112-e7d6b8d3-2075-4888-86cc-a2f20dc8e52b.png#averageHue=%23323646&clientId=u815992b1-3e00-4&from=paste&id=u9f380535&originHeight=214&originWidth=1230&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u1e5a68f4-3c59-4545-93d1-802ff062c7f&title=)
+Vercel默认`Build Command`是`npm run build`，我们也一样。但是 Vercel 的默认值`Output Directory`是，`public`而我们的是`dist`.
+使用向上和向下箭头移动光标`Output Directory`并按下`Space`以检查它。然后，按`Enter`进入下一步：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684655851657-d88b10f1-4f7a-4ad9-a755-3287a4755786.png#averageHue=%232f3648&clientId=u815992b1-3e00-4&from=paste&id=u6e2e8211&originHeight=170&originWidth=1304&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uaff8c6ea-72e5-43d9-8321-1994aed4917&title=)
+写下`dist`并按下`Enter`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684655851609-26c5fcc3-ebb9-46ad-8c4f-9c66da67492f.png#averageHue=%23303444&clientId=u815992b1-3e00-4&from=paste&id=uad41123a&originHeight=54&originWidth=770&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ubdf497f0-ae97-40b8-8601-f3b51d94e89&title=)
+就是这样，您的网站应该开始在 Vercel 上部署。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684655851627-e15337e7-b731-4c63-9fc7-59f931f00d29.png#averageHue=%232f3344&clientId=u815992b1-3e00-4&from=paste&id=u66b60f14&originHeight=168&originWidth=1874&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ucaa557f4-7bc8-4f0a-b6fd-e709fac54fa&title=)
+等一两分钟，Vercel 会提示您提供实时版本的 URL。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684655853225-8b04d8db-a50e-4f80-985f-8dbd56d55c68.png#averageHue=%233a3f53&clientId=u815992b1-3e00-4&from=paste&id=ue18665cf&originHeight=38&originWidth=1756&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u09192767-d379-40d6-9798-4eb63edbda6&title=)
+Vercel 应该会自动将该 URL 复制到您的剪贴板。您可以将其粘贴到您最喜欢的浏览器中并测试实时版本。
+## 进一步设置 
+前往[vercel.com](https://vercel.com/)并确保您已登录。
+您应该有权访问[仪表板](https://vercel.com/dashboard)并查看您的项目：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684655853186-30a9ac4b-294c-4398-8cca-dc8a7ed68325.png#averageHue=%23f8f8f8&clientId=u815992b1-3e00-4&from=paste&id=ub53bf90a&originHeight=842&originWidth=1112&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=udefa4ed3-fb95-47dd-acc2-da31ec5a753&title=)
+单击您的项目。这是您接下来应该看到的屏幕：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684655854879-959b3f0c-849a-4352-97a2-999b3418d750.png#averageHue=%23d5d4d4&clientId=u815992b1-3e00-4&from=paste&id=ua2dcafeb&originHeight=1668&originWidth=2106&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u02a0b573-fabe-454d-8243-6e434c12c2c&title=)
+在这里，您可以查看项目预览、获取有关最新构建的信息、更改部署首选项、查看潜在错误等。
+您甚至可以添加自定义域，但我们不会在本课中介绍。
+## 价钱
+但是等等，一切都是免费的吗？
+是和不是。如果你只是想与世界分享你正在构建的那些很酷的 WebGL 体验而没有商业意图，那么免费计划（名为Hobby）应该绰绰有余。您可以使用我们刚刚看到的所有功能创建任意数量的项目。
+但是，如果您有商业意图，或者想要使用特定功能，例如团队、预览密码保护、防火墙等，您可能需要使用付费计划。
+此外，Hobby计划有带宽和构建时间限制。这意味着如果您的网站受到很多关注或者您部署了太多次，您将不得不切换到付费计划。
+计划和定价可在此处找到：[vercel.com/pricing](https://vercel.com/pricing)
+## 分享！
+现在没有借口了。与全世界分享您的作品，不要忘记`#threejsJourney`在 Twitter 上使用主题标签。
+
