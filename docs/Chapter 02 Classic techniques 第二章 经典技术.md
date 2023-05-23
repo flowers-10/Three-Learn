@@ -517,3 +517,434 @@ tick()
 ## 使用哪种技术
 找到处理阴影的正确解决方案取决于您。这取决于项目、表现和您掌握的技术。您也可以将它们组合起来。
 
+# 17. Haunted Hous 项目实战鬼屋
+## 介绍 
+让我们用我们所学的来创造一个鬼屋。我们将只使用 Three.js 基元作为几何体、文件夹中的纹理`/static/textures/`以及一两个新功能。
+我们将创建一个由墙壁、屋顶、门和一些灌木组成的基本房屋。我们还将在花园里建造坟墓。我们将简单地使用四处漂浮并穿过墙壁和地板的多色灯来模拟幽灵，而不是由床单制成的可见幽灵。
+## 测量技巧
+在使用基元创建东西时，我们经常犯的一个初学者错误是使用随机度量。Three.js 中的一个单元可以表示任何你想要的。
+假设您正在创造一个相当大的景观以在上面使用相机飞行浏览。在这种情况下，您可能会将作品中的单位视为一公里。如果您正在盖房子，您可能会将作品中的单位视为一米，如果您正在制作弹珠游戏，您可能会将作品中的单位视为一厘米。
+具有特定的单位比率将帮助您创建几何图形。假设您想制作门。你知道一扇门比你略高，所以它应该达到 2 米左右。
+如果用户使用印制单位，您必须进行转换对于那些英制单位。
+## 设置 
+启动器仅由地板、球体、一些灯光（对于鬼屋来说太强烈了）组成，阴影甚至都不起作用。
+我们将不得不自己建造房子，调整当前的灯光以获得更好的氛围，添加阴影，等等。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684804337617-461cdcda-0592-4eec-920c-b6c17c85e87b.png#averageHue=%2394ab78&clientId=u776a7404-82c7-4&from=paste&id=ua24b0b6c&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u63dabc18-d69b-4722-9157-765886161fd&title=)
+## 房子 
+首先，让我们移除球体并创建一个小房子。我们可以离开了。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684804337633-81436b27-1c99-42fd-88d4-88e4e2438e45.png#averageHue=%2394ab77&clientId=u776a7404-82c7-4&from=paste&id=u3ac149d9&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u42b010b6-af72-4b25-b31b-e56c21e7427&title=)
+我们将首先创建一个容器，而不是将构成该房屋的每个对象都放在场景中，以防万一我们想要移动或缩放整个事物：
+
+```javascript
+// House container
+const house = new THREE.Group()
+scene.add(house)
+```
+然后我们可以用一个简单的立方体创建墙并将其添加到`house`. 不要忘记在`y`轴上向上移动墙壁；否则它将有一半在地板内：
+
+```javascript
+const walls = new THREE.Mesh(
+    new THREE.BoxGeometry(4, 2.5, 4),
+    new THREE.MeshStandardMaterial({ color: '#ac8e82' })
+)
+walls.position.y = 1.25
+house.add(walls)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684804337592-9a2b3a73-2da6-4704-822a-63672d1ede37.png#averageHue=%238c9b71&clientId=u776a7404-82c7-4&from=paste&id=u0a898ccd&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ub575911a-45be-4e7f-9ae8-322d93a729a&title=)
+我们的立方体选择的高度是`2.5`，因为它看起来像是天花板应该有的正常高度。我们也选择土黄色的颜色`'#ac8e82'`，但这是暂时的，我们稍后会用纹理替换这些原本的材质颜色。
+对于屋顶，我们想做一个金字塔的形状。问题是 Three.js 没有这种几何形状。但是，我们可以从一个圆锥体开始渲染，并将其边数减少到`4`，您将得到一个金字塔。有时你只需要基本功能熟悉，了解其渲染的网格特质就能实现：
+
+```javascript
+// Roof
+const roof = new THREE.Mesh(
+    new THREE.ConeGeometry(3.5, 1, 4),
+    new THREE.MeshStandardMaterial({ color: '#b35f45' })
+)
+roof.rotation.y = Math.PI * 0.25
+roof.position.y = 2.5 + 0.5
+house.add(roof)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684804337813-39f84192-4852-42b3-a140-03226a2cb3af.png#averageHue=%238c996f&clientId=u776a7404-82c7-4&from=paste&id=ua3a44e99&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u9ae922c9-72ef-4601-9255-98dd3294189&title=)
+找到正确的位置和正确的旋转可能有点困难。慢慢来，试着找出价值背后的逻辑，不要忘记那`Math.PI`是你调试的工具。
+如您所见，我们的屋顶离开了地面`2.5 + 0.5`的距离。我们本可以编写成离地`3`，但有时最好将值背后的逻辑可视化。`2.5`，因为屋顶墙是`2.5`单位高的，`0.5`因为锥体是`1`单位高的（我们需要将它移动到其高度的一半）。
+我们将使用一个简单的平面作为门，因为我们将使用我们在之前课程中使用过的漂亮的门纹理。
+
+```javascript
+// Door
+const door = new THREE.Mesh(
+    new THREE.PlaneGeometry(2, 2),
+    new THREE.MeshStandardMaterial({ color: '#aa7b7b' })
+)
+door.position.y = 1
+door.position.z = 2 + 0.01
+house.add(door)
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684804337926-4c26cb9c-2c08-4296-bb9f-e0de54ea5c6d.png#averageHue=%238e9f71&clientId=u776a7404-82c7-4&from=paste&id=ua0b28fc3&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u7767ecfe-77d1-4d38-aed4-0ceba66c80e&title=)
+我们还不知道新渲染的门模型的大小尺寸是否合适，但我们可以稍后在纹理正常工作时修复它。
+如您所见，我们在`z`轴上移动门以将其粘在墙上，但我们还在原先的基础上添加了`0.01`单元。如果您不添加这个值，您将遇到我们在上一课中看到的称为 z-fighting 的错误。当您有两张脸在同一位置（或非常接近）时，就会发生 Z-fighting。**GPU 不知道哪一个比另一个更近，你会看到一些奇怪的视觉像素点缠绕和花条**。
+让我们添加一些灌木。我们不会为每个灌木创建一个几何体，而是只创建一个，所有网格都将共享它。结果在视觉上是一样的，但是我们会得到性能上的提升。我们可以对材料做同样的事情。
+
+```javascript
+// Bushes
+const bushGeometry = new THREE.SphereGeometry(1, 16, 16)
+const bushMaterial = new THREE.MeshStandardMaterial({ color: '#89c854' })
+
+const bush1 = new THREE.Mesh(bushGeometry, bushMaterial)
+bush1.scale.set(0.5, 0.5, 0.5)
+bush1.position.set(0.8, 0.2, 2.2)
+
+const bush2 = new THREE.Mesh(bushGeometry, bushMaterial)
+bush2.scale.set(0.25, 0.25, 0.25)
+bush2.position.set(1.4, 0.1, 2.1)
+
+const bush3 = new THREE.Mesh(bushGeometry, bushMaterial)
+bush3.scale.set(0.4, 0.4, 0.4)
+bush3.position.set(- 0.8, 0.1, 2.2)
+
+const bush4 = new THREE.Mesh(bushGeometry, bushMaterial)
+bush4.scale.set(0.15, 0.15, 0.15)
+bush4.position.set(- 1, 0.05, 2.6)
+
+house.add(bush1, bush2, bush3, bush4)
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684804340779-e4725c49-db54-4bed-9ebe-149991120dd1.png#averageHue=%238e9f70&clientId=u776a7404-82c7-4&from=paste&id=u0e615e3b&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u47c7a32b-3879-4566-b0ca-f659f3db1a6&title=)
+直接在代码中放置和缩放所有这些对象确实需要很长时间。在后面的课程中，我们将学习如何使用 3D 软件来创建所有这些。
+我们不会向房子添加太多细节，因为我们必须继续前进，但您可以随时暂停并添加您想要的任何东西，例如矮墙、小巷、窗户、烟囱、岩石等。
+## 坟墓
+我们不是手动放置每个坟墓，而是按程序创建和放置它们。
+这个想法是将坟墓随机放置在房子周围的一个圆圈上。
+首先，让我们创建一个容器以防万一：
+
+```javascript
+// Graves
+const graves = new THREE.Group()
+scene.add(graves)
+```
+就像在3D 文本课中我们用一种几何体和一种材质创建多个甜甜圈一样，我们将创建一个[BoxGeometry](https://threejs.org/docs/index.html#api/en/geometries/BoxGeometry)和一个[MeshStandardMaterial](https://threejs.org/docs/index.html#api/en/materials/MeshStandardMaterial)，它们将在每个坟墓之间共享：
+
+```javascript
+const graveGeometry = new THREE.BoxGeometry(0.6, 0.8, 0.2)
+const graveMaterial = new THREE.MeshStandardMaterial({ color: '#b2b6b1' })
+```
+最后，让我们循环并做一些数学运算，在房子周围放置一堆坟墓。
+**我们将在圆上求出一个随机弧度**`**angle**`**。请记住，一整圈的弧度是 2 倍 π（换算成角度=360度）。然后我们将在 **`**Math.sin(...)**`**和**`**Math.cos(...) **`**上使用该随机的弧度求出正弦（sin）和余弦（cos)的值，然后这个正弦和余弦的值再乘以一个随机半径就可以得到我们墓碑的随机**`**x**`**,**`**z**`**坐标，因为我们不希望坟墓围绕于一个完美的圆上，他们应该在不同大小的圆上环绕分布。**
+![b4910f331377ad65c238f69e0fdb2b37.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684829307084-50922d41-f296-48ed-95e6-d8af7b51b968.png#averageHue=%23fdf9f0&clientId=ue2b3b210-6998-4&from=paste&height=172&id=u46385282&originHeight=343&originWidth=286&originalType=binary&ratio=2&rotation=0&showTitle=false&size=41133&status=done&style=none&taskId=u154568eb-7633-49c2-9500-4d4e425130a&title=&width=143)
+
+```javascript
+for(let i = 0; i < 50; i++)
+{
+    const angle = Math.random() * Math.PI * 2 // Random angle
+    const radius = 3 + Math.random() * 6      // Random radius
+    const x = Math.cos(angle) * radius        // Get the x position using cosinus
+    const z = Math.sin(angle) * radius        // Get the z position using sinus
+
+    // Create the mesh
+    const grave = new THREE.Mesh(graveGeometry, graveMaterial)
+
+    // Position
+    grave.position.set(x, 0.3, z)                              
+
+    // Rotation
+    grave.rotation.z = (Math.random() - 0.5) * 0.4
+    grave.rotation.y = (Math.random() - 0.5) * 0.4
+
+    // Add to the graves container
+    graves.add(grave)
+}
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684804341165-93418df5-7ecb-43f7-88ac-ed1f5cdd9d9b.png#averageHue=%2389996e&clientId=u776a7404-82c7-4&from=paste&id=u585dffc7&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u6f6b9f91-553c-485f-a5e2-f53a94c8900&title=)
+## 灯 
+我们有一个非常酷的场景，但还没有那么可怕。
+首先，让我们调暗环境光和月光并赋予它们更偏蓝的颜色：
+
+```javascript
+const ambientLight = new THREE.AmbientLight('#b9d5ff', 0.12)
+
+// ...
+
+const moonLight = new THREE.DirectionalLight('#b9d5ff', 0.12)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684804341711-b9e09a84-5d9c-4430-90ab-b2180126f913.png#averageHue=%2319211c&clientId=u776a7404-82c7-4&from=paste&id=u62f4dc3a&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u43aec07d-9c37-4de3-888c-22ef11b09d7&title=)
+我们现在看不到太多。我们还可以在门上方添加一个暖色的[PointLight 。](https://threejs.org/docs/index.html#api/en/lights/PointLight)我们可以将它添加到房子中，而不是将此灯添加到场景中：
+
+```javascript
+// Door light
+const doorLight = new THREE.PointLight('#ff7d46', 1, 7)
+doorLight.position.set(0, 2.2, 2.7)
+house.add(doorLight)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684804341146-f95647d7-10f5-4f68-a6e4-d3a67368a7f8.png#averageHue=%234b3925&clientId=u776a7404-82c7-4&from=paste&id=u30d28ea9&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u148e9237-5858-4085-9dd3-41d6ec7e300&title=)
+## 多雾
+在恐怖电影中，他们总是使用雾。好消息是 Three.js 已经支持[Fog](https://threejs.org/docs/#api/en/scenes/Fog)类。
+第一个参数是`color`，第二个参数是`near`（雾开始离相机多远），第三个参数是`far`（雾从相机多远开始完全不透明）。
+要激活雾，请将 `fog`属性添加到`scene`：
+
+```javascript
+/**
+ * Fog
+ */
+const fog = new THREE.Fog('#262837', 1, 15)
+scene.fog = fog
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684804344520-d3273b27-eaea-41bf-918b-3a88722ba6bd.png#averageHue=%234a3d28&clientId=u776a7404-82c7-4&from=paste&id=uc8bd54a1&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u6d3bc741-7c51-4825-b9ed-5ab2966faa1&title=)
+不错，但我们可以看到坟墓和黑色背景之间有一条清晰的切口。
+要解决这个问题，我们必须更改 `renderer` 的清晰颜色并使用与雾相同的颜色。在实例化之后执行此操作`renderer`：
+
+```javascript
+renderer.setClearColor('#262837')
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684804343971-63e8d0a3-9b60-4a8f-82ba-2c0c8e197357.png#averageHue=%231e241f&clientId=u776a7404-82c7-4&from=paste&id=u7e7b4e23&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ue336453b-2cf3-41a7-ac15-43c716066ab&title=)
+这是一个稍微可怕的场景。
+## 纹理
+为了更加真实，我们可以添加纹理。`textureLoader`已经在代码中了。
+### 大门
+让我们从我们已经知道的东西开始并加载所有门纹理：
+
+```javascript
+const doorColorTexture = textureLoader.load('/textures/door/color.jpg')
+const doorAlphaTexture = textureLoader.load('/textures/door/alpha.jpg')
+const doorAmbientOcclusionTexture = textureLoader.load('/textures/door/ambientOcclusion.jpg')
+const doorHeightTexture = textureLoader.load('/textures/door/height.jpg')
+const doorNormalTexture = textureLoader.load('/textures/door/normal.jpg')
+const doorMetalnessTexture = textureLoader.load('/textures/door/metalness.jpg')
+const doorRoughnessTexture = textureLoader.load('/textures/door/roughness.jpg')
+```
+
+然后我们可以将所有这些纹理应用到门材质上。不要忘记向 PlaneGeometry 添加更多细分[，](https://threejs.org/docs/index.html#api/en/geometries/PlaneGeometry)以便`displacementMap`移动一些顶点。此外，像我们在材料uv2课程中所做的那样，将属性`aoMap`添加到几何体中。
+您可以使用以下方法访问门的几何图形`mesh.geometry`：
+
+```javascript
+const door = new THREE.Mesh(
+    new THREE.PlaneGeometry(2, 2, 100, 100),
+    new THREE.MeshStandardMaterial({
+        map: doorColorTexture,
+        transparent: true,
+        alphaMap: doorAlphaTexture,
+        aoMap: doorAmbientOcclusionTexture,
+        displacementMap: doorHeightTexture,
+        displacementScale: 0.1,
+        normalMap: doorNormalTexture,
+        metalnessMap: doorMetalnessTexture,
+        roughnessMap: doorRoughnessTexture
+    })
+)
+door.geometry.setAttribute('uv2', new THREE.Float32BufferAttribute(door.geometry.attributes.uv.array, 2))
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684804345563-3b51fab9-f32e-4c4f-a2a8-15d9e598d3c4.png#averageHue=%231e2420&clientId=u776a7404-82c7-4&from=paste&id=u821f80fc&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u677875c6-1bd7-403c-a2bb-28d3c96d4ab&title=)
+给你！那是一扇更现实的门。
+现在我们有了纹理，您会意识到门有点太小了。您可以简单地增加[PlaneGeometry 的](https://threejs.org/docs/index.html#api/en/geometries/PlaneGeometry)大小：
+
+```javascript
+// ...
+    new THREE.PlaneGeometry(2.2, 2.2, 100, 100),
+// ...
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684804348041-547f9add-d5d5-4ccf-9c89-a1af735752ff.png#averageHue=%231f2520&clientId=u776a7404-82c7-4&from=paste&id=uef558c67&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u7737ca07-09f2-4df4-b09c-c69be38a876&title=)
+### 墙壁
+让我们使用`/static/textures/bricks/`文件夹上的纹理对墙壁做同样的事情。我们没有像门那样多的纹理，但这不是问题。我们不需要 `alpha` 纹理，而且墙里面没有金属，所以我们也不需要金属纹理。
+加载纹理：
+
+```javascript
+const bricksColorTexture = textureLoader.load('/textures/bricks/color.jpg')
+const bricksAmbientOcclusionTexture = textureLoader.load('/textures/bricks/ambientOcclusion.jpg')
+const bricksNormalTexture = textureLoader.load('/textures/bricks/normal.jpg')
+const bricksRoughnessTexture = textureLoader.load('/textures/bricks/roughness.jpg')
+```
+
+然后我们可以更新墙的[MeshStandardMaterial 。](https://threejs.org/docs/index.html#api/en/materials/MeshStandardMaterial)不要忘记删除`color`并`添加`uv2环境遮挡的属性。
+
+```javascript
+const walls = new THREE.Mesh(
+    new THREE.BoxGeometry(4, 2.5, 4),
+    new THREE.MeshStandardMaterial({
+        map: bricksColorTexture,
+        aoMap: bricksAmbientOcclusionTexture,
+        normalMap: bricksNormalTexture,
+        roughnessMap: bricksRoughnessTexture
+    })
+)
+walls.geometry.setAttribute('uv2', new THREE.Float32BufferAttribute(walls.geometry.attributes.uv.array, 2))
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684804348777-0beeef34-a866-4fce-a0c2-7ca52b6255b7.png#averageHue=%231b221e&clientId=u776a7404-82c7-4&from=paste&id=ue9384aab&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u3735fc24-71a9-41b7-9ab0-73ec98cb5fb&title=)
+### 地上
+与墙壁相同。草纹理位于`/static/textures/grass/`文件夹中。
+加载纹理：
+
+```javascript
+const grassColorTexture = textureLoader.load('/textures/grass/color.jpg')
+const grassAmbientOcclusionTexture = textureLoader.load('/textures/grass/ambientOcclusion.jpg')
+const grassNormalTexture = textureLoader.load('/textures/grass/normal.jpg')
+const grassRoughnessTexture = textureLoader.load('/textures/grass/roughness.jpg')
+```
+
+更新地板的[MeshStandardMaterial](https://threejs.org/docs/index.html#api/en/materials/MeshStandardMaterial)并且不要忘记删除`color`并添加`uv2`环境遮挡的属性：
+
+```javascript
+const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(20, 20),
+    new THREE.MeshStandardMaterial({
+        map: grassColorTexture,
+        aoMap: grassAmbientOcclusionTexture,
+        normalMap: grassNormalTexture,
+        roughnessMap: grassRoughnessTexture
+    })
+)
+floor.geometry.setAttribute('uv2', new THREE.Float32BufferAttribute(floor.geometry.attributes.uv.array, 2))
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684804351016-927dc3a9-9d0b-47dd-86e7-308016a6c9d9.png#averageHue=%23191e18&clientId=u776a7404-82c7-4&from=paste&id=ue2f094fd&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=uc886e453-16b7-42d3-bbac-1eef9d43dea&title=)
+纹理太大。为了解决这个问题，我们可以简单地用属性重复每个草纹理`repeat`：
+
+```javascript
+grassColorTexture.repeat.set(8, 8)
+grassAmbientOcclusionTexture.repeat.set(8, 8)
+grassNormalTexture.repeat.set(8, 8)
+grassRoughnessTexture.repeat.set(8, 8)
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684804351892-72b469b6-0816-44b1-bf17-7b345630f214.png#averageHue=%23131d13&clientId=u776a7404-82c7-4&from=paste&id=u610e24c5&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u4a820e6e-c67a-40c4-aba6-f53167b108c&title=)
+并且不要忘记更改`wrapS`和`wrapT`属性以激活重复：
+
+```javascript
+grassColorTexture.wrapS = THREE.RepeatWrapping
+grassAmbientOcclusionTexture.wrapS = THREE.RepeatWrapping
+grassNormalTexture.wrapS = THREE.RepeatWrapping
+grassRoughnessTexture.wrapS = THREE.RepeatWrapping
+
+grassColorTexture.wrapT = THREE.RepeatWrapping
+grassAmbientOcclusionTexture.wrapT = THREE.RepeatWrapping
+grassNormalTexture.wrapT = THREE.RepeatWrapping
+grassRoughnessTexture.wrapT = THREE.RepeatWrapping
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684804356001-b3ca162b-d534-449f-8f1d-cbccbdbee8b2.png#averageHue=%23121611&clientId=u776a7404-82c7-4&from=paste&id=u52754ffc&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u1bdbb90f-0ac3-4b74-9405-591b5d34a69&title=)
+## 幽灵 
+对于幽灵，让我们保持简单方法实现，用我们所知道的去做。
+我们将使用漂浮在房子周围并穿过地面和坟墓的简单灯光。
+
+```javascript
+/**
+ * Ghosts
+ */
+const ghost1 = new THREE.PointLight('#ff00ff', 2, 3)
+scene.add(ghost1)
+
+const ghost2 = new THREE.PointLight('#00ffff', 2, 3)
+scene.add(ghost2)
+
+const ghost3 = new THREE.PointLight('#ffff00', 2, 3)
+scene.add(ghost3)
+```
+现在我们可以使用一些带有大量三角函数的数学来为它们制作动画：
+
+```javascript
+const clock = new THREE.Clock()
+
+const tick = () =>
+{
+    const elapsedTime = clock.getElapsedTime()
+
+    // Ghosts
+    const ghost1Angle = elapsedTime * 0.5
+    ghost1.position.x = Math.cos(ghost1Angle) * 4
+    ghost1.position.z = Math.sin(ghost1Angle) * 4
+    ghost1.position.y = Math.sin(elapsedTime * 3)
+
+    const ghost2Angle = - elapsedTime * 0.32
+    ghost2.position.x = Math.cos(ghost2Angle) * 5
+    ghost2.position.z = Math.sin(ghost2Angle) * 5
+    ghost2.position.y = Math.sin(elapsedTime * 4) + Math.sin(elapsedTime * 2.5)
+
+    const ghost3Angle = - elapsedTime * 0.18
+    ghost3.position.x = Math.cos(ghost3Angle) * (7 + Math.sin(elapsedTime * 0.32))
+    ghost3.position.z = Math.sin(ghost3Angle) * (7 + Math.sin(elapsedTime * 0.5))
+    ghost3.position.y = Math.sin(elapsedTime * 4) + Math.sin(elapsedTime * 2.5)
+
+    // ...
+}
+```
+## 阴影 
+最后，为了增加真实感，让我们添加阴影。
+在渲染器上激活阴影贴图：
+
+```javascript
+renderer.shadowMap.enabled = true
+```
+
+激活您认为应该投射阴影的灯上的阴影：
+
+```javascript
+moonLight.castShadow = true
+doorLight.castShadow = true
+ghost1.castShadow = true
+ghost2.castShadow = true
+ghost3.castShadow = true
+```
+
+遍历场景中的每个对象并确定该对象是否可以投射和/或接收阴影：
+
+```javascript
+walls.castShadow = true
+bush1.castShadow = true
+bush2.castShadow = true
+bush3.castShadow = true
+bush4.castShadow = true
+
+for(let i = 0; i < 50; i++)
+{
+    // ...
+    grave.castShadow = true
+    // ...
+}
+
+floor.receiveShadow = true
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684804366930-6a384291-6770-4a68-90c8-6088f776faef.png#averageHue=%23242633&clientId=u776a7404-82c7-4&from=paste&id=ub15c8547&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=uffffa3ed-4e47-436e-adc0-414cae997a2&title=)
+有了这些阴影，场景看起来好多了，但无论如何我们都应该优化它们。
+一件好事是通过每盏灯，在 上创建相机助手`light.shadowMap.camera`，并确保`near`、`far`、`amplitude`或`fov`适合。但是，让我们使用以下应该恰到好处的值。
+我们还可以减少阴影贴图渲染大小以提高性能：
+
+```javascript
+moonLight.shadow.mapSize.width = 256
+moonLight.shadow.mapSize.height = 256
+moonLight.shadow.camera.far = 15
+
+// ...
+
+doorLight.shadow.mapSize.width = 256
+doorLight.shadow.mapSize.height = 256
+doorLight.shadow.camera.far = 7
+
+// ...
+
+ghost1.shadow.mapSize.width = 256
+ghost1.shadow.mapSize.height = 256
+ghost1.shadow.camera.far = 7
+
+// ...
+
+ghost2.shadow.mapSize.width = 256
+ghost2.shadow.mapSize.height = 256
+ghost2.shadow.camera.far = 7
+
+// ...
+
+ghost3.shadow.mapSize.width = 256
+ghost3.shadow.mapSize.height = 256
+ghost3.shadow.camera.far = 7
+
+// ...
+
+renderer.shadowMap.type = THREE.PCFSoftShadowMap
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684804377700-d45a49c9-1cbe-4125-8995-890e9b5c92ea.png#averageHue=%231b1e23&clientId=u776a7404-82c7-4&from=paste&id=u14e5bcad&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u7bca29ab-d896-4065-a7f8-236062d132e&title=)
+这个过程很长，但必不可少。我们已经在最好的优化性能限制，鬼屋甚至可能无法在移动设备上以 60fps 运行。我们将在以后的课程中看到更多优化技巧。
+## 走得更远
+这就是本课的内容，但您可以尝试改进我们所做的。您可以在场景中添加新元素，使用 Three.js 基元将鬼魂替换为真实的 3D 鬼魂，在坟墓上添加名字等。
