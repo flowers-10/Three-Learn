@@ -948,3 +948,325 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap
 这个过程很长，但必不可少。我们已经在最好的优化性能限制，鬼屋甚至可能无法在移动设备上以 60fps 运行。我们将在以后的课程中看到更多优化技巧。
 ## 走得更远
 这就是本课的内容，但您可以尝试改进我们所做的。您可以在场景中添加新元素，使用 Three.js 基元将鬼魂替换为真实的 3D 鬼魂，在坟墓上添加名字等。
+
+# 18. Particles 粒子
+## 介绍
+粒子。它们非常受欢迎，可用于实现各种效果，如星星、烟、雨、灰尘、火和许多其他东西。
+粒子的好处是您可以在屏幕上以合理的帧速率显示数十万个粒子。缺点是每个粒子都由一个始终面向相机的平面（两个三角形）组成。
+创建粒子就像制作[网格](https://threejs.org/docs/#api/en/objects/Mesh)一样简单。我们需要一个[BufferGeometry](https://threejs.org/docs/#api/en/core/BufferGeometry)，一种可以处理粒子的材质 ( [PointsMaterial](https://threejs.org/docs/#api/en/materials/PointsMaterial) )，而不是生成一个[Mesh](https://threejs.org/docs/#api/en/objects/Mesh)，我们需要创建一个[Points](https://threejs.org/docs/#api/en/objects/Points)。
+## 设置
+启动器仅由场景中间的一个立方体组成。该多维数据集确保一切正常。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684835014330-b9315736-f4ad-433a-bd1d-f79ae5b438a2.png#averageHue=%23040404&clientId=uff7fc281-131f-4&from=paste&id=ua30bfb98&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u3bdc648d-3b7e-4d0a-a19d-495bc400982&title=)
+## 第一粒子
+让我们摆脱我们的立方体并开始创建一个由粒子组成的球体。
+### 几何学
+您可以使用任何基本的 Three.js 几何图形。出于与网格相同的原因，最好使用[BufferGeometries](https://threejs.org/docs/#api/en/core/BufferGeometry)。几何体的每个顶点都将成为一个粒子：
+
+```javascript
+/**
+ * Particles
+ */
+// Geometry
+const particlesGeometry = new THREE.SphereGeometry(1, 32, 32)
+```
+### 点材质
+我们需要一种特殊类型的材质，称为[PointsMaterial](https://threejs.org/docs/#api/en/materials/PointsMaterial)。这种材料已经可以做很多事情，但我们将在以后的课程中探索如何创建我们自己的粒子材料以更进一步深入。
+PointsMaterial具有多个特定于粒子的属性，例如用于控制所有粒子大小的`size` 和用于指定远距离粒子是否应小于近距离粒子的`sizeAttenuation`[：](https://threejs.org/docs/#api/en/materials/PointsMaterial)
+
+```javascript
+// Material
+const particlesMaterial = new THREE.PointsMaterial({
+    size: 0.02,
+    sizeAttenuation: true
+})
+```
+与往常一样，我们还可以在创建材质后更改这些属性：
+
+```javascript
+const particlesMaterial = new THREE.PointsMaterial()
+particlesMaterial.size = 0.02
+particlesMaterial.sizeAttenuation = true
+```
+### 积分
+最后，我们可以像创建[Mesh](https://threejs.org/docs/#api/en/objects/Mesh)一样创建最终粒子，但这次是使用[Points](https://threejs.org/docs/#api/en/objects/Points)类（不是[Mesh](https://threejs.org/docs/#api/en/objects/Mesh)类了）。不要忘记将它添加到场景中：
+
+```javascript
+// Points
+const particles = new THREE.Points(particlesGeometry, particlesMaterial)
+scene.add(particles)
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684835035806-9ae84f9d-3959-4486-9473-7e7444c41834.png#averageHue=%23020202&clientId=uff7fc281-131f-4&from=paste&id=u55c79bfa&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=uc446fee1-026e-4c5b-a961-9b4d3970eb0&title=)
+那很简单。让我们自定义这些粒子。
+## 自定义几何 
+要创建自定义几何图形，我们可以从[BufferGeometry](https://threejs.org/docs/#api/en/core/BufferGeometry)开始，并像我们在几何课程中所做的那样添加一个`position`属性。[将SphereGeometry](https://threejs.org/docs/#api/en/geometries/SphereGeometry)替换为自定义几何体并像之前一样添加属性`'position'`：
+
+```javascript
+// Geometry
+const particlesGeometry = new THREE.BufferGeometry()
+const count = 500
+
+const positions = new Float32Array(count * 3) // Multiply by 3 because each position is composed of 3 values (x, y, z)
+
+for(let i = 0; i < count * 3; i++) // Multiply by 3 for same reason
+{
+    positions[i] = (Math.random() - 0.5) * 10 // Math.random() - 0.5 to have a random value between -0.5 and +0.5
+}
+
+particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3)) // Create the Three.js BufferAttribute and specify that each information is composed of 3 values
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684835036094-3f32d81d-61ce-49b5-9cb9-6b3e521bddad.png#averageHue=%23000000&clientId=uff7fc281-131f-4&from=paste&id=u82539855&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u959d0b3f-7503-46b2-9d54-1d730b0deaa&title=)
+如果您不能自己提取此代码，请不要感到沮丧。它有点复杂，变量使用奇怪的格式。
+你应该在场景周围得到一堆粒子。现在是享受乐趣和测试计算机极限的绝佳时机。尝试`5000`，`50000`也许`500000`。您可以拥有数百万个粒子，但仍具有合理的帧速率。
+你可以想象性能上的限制。在劣质计算机或智能手机上，您将无法拥有数百万粒子还能保持 60fps 的体验。我们继续添加粒子会大大降低帧速率的效果。但是，这仍然令人印象深刻。
+现在，让我们保持计数`5000`并将大小更改为`0.1`：
+
+```javascript
+const count = 5000
+
+// ...
+
+particlesMaterial.size = 0.1
+
+// ...
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684835036709-932d9bbe-8975-4d06-a322-865bd50a6efe.png#averageHue=%232d2d2d&clientId=uff7fc281-131f-4&from=paste&id=udf8c5888&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u8b64acd6-e461-4a87-a076-2a593a78442&title=)
+## 颜色、贴图和 alpha 贴图 [16:10](https://threejs-journey.com/lessons/particles#)
+[我们可以使用PointsMaterial](https://threejs.org/docs/#api/en/materials/PointsMaterial)`.color`上的属性更改所有粒子的颜色。如果在实例化材质后更改此属性，请不要忘记需要使用[Color类：](https://threejs.org/docs/#api/en/math/Color)
+
+```javascript
+particlesMaterial.color = new THREE.Color('#ff88cc')
+```
+我们还可以使用该`map`属性在这些粒子上放置纹理。使用代码中已有的[TextureLoader](https://threejs.org/docs/#api/en/loaders/TextureLoader)加载位于`/static/textures/particles/`以下位置的纹理之一：
+
+```javascript
+/**
+ * Textures
+ */
+const textureLoader = new THREE.TextureLoader()
+const particleTexture = textureLoader.load('/textures/particles/2.png')
+
+// ...
+
+particlesMaterial.map = particleTexture
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684835036496-029ad582-965d-49a5-974d-78ee2c382316.png#averageHue=%23000000&clientId=uff7fc281-131f-4&from=paste&id=uc04095c3&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ucb139762-8b3d-4bc4-992d-60da5e56907&title=)
+[这些纹理是Kenney](https://twitter.com/KenneyNL)提供的包的调整大小版本，您可以在此处找到完整包：[//www.kenney.nl/assets/particle-pack](https://www.kenney.nl/assets/particle-pack)。但您也可以创建自己的包。
+如您所见，`color`属性正在改变贴图，就像其他材质一样。
+如果仔细观察，您会发现前面的粒子隐藏了后面的粒子。
+我们需要激活`transparent`透明度并使用属性上的纹理`alphaMap`而不是`map`：
+
+```javascript
+// particlesMaterial.map = particleTexture
+particlesMaterial.transparent = true
+particlesMaterial.alphaMap = particleTexture
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684835036949-6c1eb03e-5b34-4ea0-80fe-3b3b94a3f68f.png#averageHue=%23000000&clientId=uff7fc281-131f-4&from=paste&id=ue18fc916&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ud83205f0-1467-46ca-a0d5-198effd7dd9&title=)
+现在好多了，但我们仍然可以随机看到粒子的一些边缘。
+这是因为粒子的绘制顺序与它们创建时的顺序相同，WebGL 并不知道哪个在另一个前面。
+有多种方法可以解决这个问题。
+### 使用 alphaTest
+`alphaTest`是一个介于`0`和`100`之间的值，它使 WebGL 知道何时不根据像素的透明度渲染像素。默认情况下，该值表示无论如何都会渲染像素。如果我们使用较小的值，例如，如果 `alpha` 为 `0.001` ，则不会渲染像素：
+
+```javascript
+particlesMaterial.alphaTest = 0.001
+```
+
+这个解决方案并不完美，如果你仔细观察，你仍然可以看到小故障，但它已经更令人满意了。
+### 使用深度测试
+绘制时，WebGL 会测试正在绘制的内容是否比已经绘制的内容更接近。这称为深度测试，可以停用（您可以对比`alphaTest`）：
+
+```javascript
+// particlesMaterial.alphaTest = 0.001
+particlesMaterial.depthTest = false
+```
+
+虽然此解决方案似乎完全解决了我们的问题，**但如果您的场景中有其他对象或具有不同颜色的粒子，则停用深度测试可能会产生错误**。粒子可能被绘制为好像它们在场景的其余部分之上。
+在场景中添加一个立方体以查看效果：
+
+```javascript
+const cube = new THREE.Mesh(
+    new THREE.BoxGeometry(),
+    new THREE.MeshBasicMaterial()
+)
+scene.add(cube)
+```
+### 使用深度写入
+正如我们所说，WebGL 正在测试绘制的内容是否比已经绘制的内容更接近。所绘制内容的深度存储在我们所说的深度缓冲区中。我们可以告诉 WebGL 不要在该深度缓冲区中写入粒子（您可以注释），而不是不测试粒子是否比深度缓冲区中的粒子更近：
+
+```javascript
+// particlesMaterial.alphaTest = 0.001
+// particlesMaterial.depthTest = false
+particlesMaterial.depthWrite = false
+```
+
+在我们的例子中，这个解决方案几乎可以毫无缺点地解决问题。有时，其他对象可能会绘制在粒子的后面或前面，这取决于许多因素，例如透明度、您将对象添加到场景的顺序等。
+我们看到了多种技术，并没有完美的解决方案。您必须根据项目进行调整并找到最佳组合。
+## 混合
+当前，WebGL 绘制一个像素在另一个之上。
+通过更改`blending`属性，我们可以告诉 WebGL 不仅要绘制像素，还要将该像素的颜色添加到已绘制像素的颜色中。这将具有看起来惊人的饱和效果。
+这样做粒子就不会再出现在立方体上了
+要对此进行测试，只需将`blending`属性更改为`THREE.AdditiveBlending`（保留`depthWrite`属性）：
+
+```javascript
+// particlesMaterial.alphaTest = 0.001
+// particlesMaterial.depthTest = false
+particlesMaterial.depthWrite = false
+particlesMaterial.blending = THREE.AdditiveBlending
+```
+
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684835058654-7166486a-2c3a-4816-8476-5916997117ad.png#averageHue=%230b0b0b&clientId=uff7fc281-131f-4&from=paste&id=u7d8d9ae0&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u3ae771c7-3eed-40d0-885b-5ec8ad327f1&title=)
+添加更多粒子（比方说`20000`）以更好地享受这种效果。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684835059688-711582ba-442a-4872-9e59-f12a544ba0f0.png#averageHue=%2323171e&clientId=uff7fc281-131f-4&from=paste&id=u905227a2&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u2dd64b73-455f-4f48-a6e3-c953946091d&title=)
+但要小心，这种效果会影响性能，并且在 60fps 时您将无法拥有像以前那样多的粒子。
+现在，我们可以删除`cube`.
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684835059728-d3507bec-c2e8-4e34-b8e2-6677e7cc690f.png#averageHue=%23000f04&clientId=uff7fc281-131f-4&from=paste&id=u3122c642&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=udaca49e1-b016-4140-9012-6a916a52081&title=)
+## 不同的颜色
+我们可以为每个粒子设置不同的颜色。我们首先需要添加一个新属性，其名称`color`与我们为该职位所做的一样。一个颜色由红、绿、蓝（3个值）组成，所以代码会和`position`属性很相似。我们实际上可以对这两个属性使用相同的循环：
+
+```javascript
+const positions = new Float32Array(count * 3)
+const colors = new Float32Array(count * 3)
+
+for(let i = 0; i < count * 3; i++)
+{
+    positions[i] = (Math.random() - 0.5) * 10
+    colors[i] = Math.random()
+}
+
+particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+```
+小心单数和复数。
+要激活这些顶点颜色，只需将`vertexColors`属性更改为`true`：
+
+```javascript
+particlesMaterial.vertexColors = true
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684835059916-173ad95f-8190-45f6-a4d0-7b91f17020fc.png#averageHue=%234c3518&clientId=uff7fc281-131f-4&from=paste&id=u7018b7b5&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u4ec8ed13-9ec7-4be2-8c1f-c3f06b1a725&title=)
+材质的主要颜色仍然影响这些顶点颜色。随意更改该颜色甚至对其进行对比。
+
+```javascript
+// particlesMaterial.color = new THREE.Color('#ff88cc')
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684835039007-b9053fe9-317f-48bc-acbb-ec73ca4b8119.png#averageHue=%23050402&clientId=uff7fc281-131f-4&from=paste&id=u5b542c44&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u186f46b8-2508-441c-a51d-3c003a1e9cf&title=)
+## 动画
+有多种动画粒子的方法。
+### 通过使用点作为对象
+因为[Points](https://threejs.org/docs/#api/en/objects/Points)类继承自[Object3D](https://threejs.org/docs/#api/en/core/Object3D)类，所以您可以根据需要移动、旋转和缩放点。
+在函数中旋转粒子`tick`：
+
+```javascript
+const tick = () =>
+{
+    const elapsedTime = clock.getElapsedTime()
+
+    // Update particles
+    particles.rotation.y = elapsedTime * 0.2
+
+    // ...
+}
+```
+虽然这已经很酷了，但我们希望更好地控制每个粒子。
+### 通过改变属性
+另一种解决方案是分别更新每个顶点位置。这样，顶点可以有不同的轨迹。我们将为粒子设置动画，就好像它们漂浮在波浪上一样，但首先，让我们看看如何更新顶点。
+首先对比我们之前所做的`particles`整体轮换：
+
+```javascript
+const tick = () =>
+{
+    // ...
+
+    // particles.rotation.y = elapsedTime * 0.2
+
+    // ...
+}
+```
+
+要更新每个顶点，我们必须更新属性中的右侧部分，因为所有顶点都存储在这个一维数组中，其中`position`前 3 个值对应于第一个顶点的`x``y``z`坐标，然后接下来的 3 个值对应于第二个顶点的`x``y``z`，等等。
+我们只希望顶点上下移动，这意味着我们将y只更新轴。因为`position`属性是一维数组，所以我们必须 3 乘 3 地遍历它，并且只更新第二个值，即坐标`y`。
+让我们从遍历每个顶点开始：
+
+```javascript
+const tick = () =>
+{
+		// ...
+
+    for(let i = 0; i < count; i++)
+    {
+        const i3 = i * 3
+    }
+
+    // ...
+}
+```
+
+在这里，我们选择了一个`for`从`0`到`count` 的简单循环，我们在内部创建了一个变量`i3`，只需`i`乘以 3 就可以获得`0，3，6，9......`的数组下标  。
+模拟波浪运动的最简单方法是使用简单的正弦曲线。首先，我们将更新所有顶点以相同的频率上下移动。
+可以在`i3 + 1`索引处的数组中访问坐标`y`：
+
+```javascript
+const tick = () =>
+{
+    // ...
+
+    for(let i = 0; i < count; i++)
+    {
+        const i3 = i * 3
+
+        particlesGeometry.attributes.position.array[i3 + 1] = Math.sin(elapsedTime)
+    }
+
+    // ...
+}
+```
+
+不幸的是，没有任何东西在移动。问题是必须通知 Three.js 几何形状发生了变化。为此，我们必须在`position`完成更新顶点后将属性`needsUpdate`设置为`true`：
+
+```javascript
+const tick = () =>
+{
+    // ...
+
+    for(let i = 0; i < count; i++)
+    {
+        const i3 = i * 3
+
+        particlesGeometry.attributes.position.array[i3 + 1] = Math.sin(elapsedTime)
+    }
+    particlesGeometry.attributes.position.needsUpdate = true 
+
+    // ...
+}
+```
+
+所有的粒子都应该像飞机一样上下移动。
+这是一个好的开始，我们快做到了。我们现在需要做的就是对粒子之间的正弦曲线应用偏移量，以便我们获得该波形。
+为此，我们可以使用`x`坐标。为了获得这个值，我们可以使用我们用于`y`坐标的相同技术，但不是`i3 + 1`，`x`坐标它只是`i3`：
+
+```javascript
+const tick = () =>
+{
+    // ...
+
+    for(let i = 0; i < count; i++)
+    {
+        let i3 = i * 3
+
+        const x = particlesGeometry.attributes.position.array[i3]
+        particlesGeometry.attributes.position.array[i3 + 1] = Math.sin(elapsedTime + x)
+    }
+    particlesGeometry.attributes.position.needsUpdate = true
+
+    // ...
+}
+```
+你应该得到美丽的粒子波。不幸的是，您应该避免这种技术。如果我们有`20000`个粒子，我们将遍历每个粒子，计算一个新位置，并更新每一帧的整个属性。这可以处理少量粒子，但我们需要数百万个粒子。
+### 通过使用自定义着色器
+要以良好的帧率更新每一帧上的数百万个粒子，我们需要使用自己的着色器创建自己的材质。但是着色器是为以后的课程准备的。
