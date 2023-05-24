@@ -1032,7 +1032,7 @@ particlesMaterial.size = 0.1
 ```
 
 ![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684835036709-932d9bbe-8975-4d06-a322-865bd50a6efe.png#averageHue=%232d2d2d&clientId=uff7fc281-131f-4&from=paste&id=udf8c5888&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u8b64acd6-e461-4a87-a076-2a593a78442&title=)
-## 颜色、贴图和 alpha 贴图 [16:10](https://threejs-journey.com/lessons/particles#)
+## 颜色、贴图和 alpha 贴图 
 [我们可以使用PointsMaterial](https://threejs.org/docs/#api/en/materials/PointsMaterial)`.color`上的属性更改所有粒子的颜色。如果在实例化材质后更改此属性，请不要忘记需要使用[Color类：](https://threejs.org/docs/#api/en/math/Color)
 
 ```javascript
@@ -1270,3 +1270,405 @@ const tick = () =>
 你应该得到美丽的粒子波。不幸的是，您应该避免这种技术。如果我们有`20000`个粒子，我们将遍历每个粒子，计算一个新位置，并更新每一帧的整个属性。这可以处理少量粒子，但我们需要数百万个粒子。
 ### 通过使用自定义着色器
 要以良好的帧率更新每一帧上的数百万个粒子，我们需要使用自己的着色器创建自己的材质。但是着色器是为以后的课程准备的。
+
+# 19. Galaxy Generator 银河（生成器）
+## 介绍 
+既然我们知道如何使用粒子，我们就可以创造出像银河这样很酷的东西了。但是，我们不要只生成一个星系，而是生成一个星系生成器。
+为此，我们将使用Dat.GUI让用户调整参数并在每次更改时生成一个新的星系。
+## 设置
+启动器仅由场景中间的一个立方体组成。它确保一切正常。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684892958791-6efe1f78-c8f7-40d2-a07f-d98b80ebc79a.png#averageHue=%23040404&clientId=u9b176c82-dd88-4&from=paste&id=u2f86c1ca&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u5817fe64-c6d2-4df9-9a39-b8ef5591520&title=)
+## 基础粒子
+首先，移除立方体并创建一个`generateGalaxy`函数。每次调用该函数时，我们都会删除以前的星系（如果有的话）并创建一个新星系。
+我们可以立即调用该函数：
+
+```javascript
+/**
+ * Galaxy
+ */
+const generateGalaxy = () =>
+{
+    
+}
+
+generateGalaxy()
+```
+
+我们可以创建一个包含我们银河系所有参数的对象。在函数之前创建此对象`generateGalaxy`。我们将逐步填充它并将每个参数添加到Dat.GUI：
+
+```javascript
+const parameters = {}
+```
+
+在我们的`generateGalaxy`函数中，我们将创建一些粒子以确保一切正常。我们可以从几何开始并将粒子数添加到参数中：
+
+```javascript
+const parameters = {}
+parameters.count = 1000
+
+const generateGalaxy = () =>
+{
+    /**
+     * Geometry
+     */
+    const geometry = new THREE.BufferGeometry()
+
+    const positions = new Float32Array(parameters.count * 3)
+
+    for(let i = 0; i < parameters.count; i++)
+    {
+        const i3 = i * 3
+
+        positions[i3    ] = (Math.random() - 0.5) * 3
+        positions[i3 + 1] = (Math.random() - 0.5) * 3
+        positions[i3 + 2] = (Math.random() - 0.5) * 3
+    }
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+}
+generateGalaxy()
+```
+
+这与之前的代码相同，但我们处理循环的方式略有不同。
+[我们现在可以使用PointsMaterial](https://threejs.org/docs/#api/en/materials/PointsMaterial)类创建材质。这一次，我们可以对`parameters`对象进行调整：
+
+```javascript
+parameters.size = 0.02
+
+const generateGalaxy = () =>
+{
+    // ...
+
+    /**
+     * Material
+     */
+    const material = new THREE.PointsMaterial({
+        size: parameters.size,
+        sizeAttenuation: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+    })
+}
+```
+
+[最后，我们可以使用Points](https://threejs.org/docs/#api/en/objects/Points)类创建点并将其添加到场景中：
+
+```javascript
+const generateGalaxy = () =>
+{
+    // ...
+
+    /**
+     * Points
+     */
+    const points = new THREE.Points(geometry, material)
+    scene.add(points)
+}
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684892958826-96a65fbc-d993-40eb-907a-936e2ac7c10a.png#averageHue=%23010101&clientId=u9b176c82-dd88-4&from=paste&id=u93763361&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u731be9d1-1c07-4a52-9fc6-35ef8fb6837&title=)
+你应该看到一些漂浮的点。
+## 微调
+我们已经有两个参数，`count`和`size`。让我们将它们添加到我们已经在代码开头创建的**Dat.GUI实例中**。可以想象，我们必须在创建参数后添加这些调整：
+
+```javascript
+parameters.count = 1000
+parameters.size = 0.02
+
+gui.add(parameters, 'count').min(100).max(1000000).step(100)
+gui.add(parameters, 'size').min(0.001).max(0.1).step(0.001)
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684892958756-9b639d7f-d432-4c4d-ac39-5a7559c9bf3f.png#averageHue=%23010101&clientId=u9b176c82-dd88-4&from=paste&id=uf97362f2&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=uc9593dc6-d118-4f68-980f-34e54301715&title=)
+你应该在调整中有两个新的范围，但改变它们不会产生一个新的星系。要生成一个新的星系，您必须监听 change 事件。更准确地说，是`finishChange`为了防止在拖放范围值时生成星系：
+
+```javascript
+gui.add(parameters, 'count').min(100).max(1000000).step(100).onFinishChange(generateGalaxy)
+gui.add(parameters, 'size').min(0.001).max(0.1).step(0.001).onFinishChange(generateGalaxy)
+```
+此代码将不起作用，因为generateGalaxy尚不存在。您必须在函数之后移动这些调整`generateGalaxy`。
+小心，我们还有一个问题，如果你对这些调整玩得太多，你的电脑就会开始发热。这是因为我们没有摧毁先前创建的星系。我们正在创造一个位于另一个之上的星系。
+为了使事情正确，我们必须首先将`geometry`,`material`和`points`变量移到`generateGalaxy`函数之外.
+
+```javascript
+let geometry = null
+let material = null
+let points = null
+
+const generateGalaxy = () =>
+{
+    // ...
+
+    geometry = new THREE.BufferGeometry()
+    
+    // ...
+
+    material = new THREE.PointsMaterial({
+        size: parameters.size,
+        sizeAttenuation: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+    })
+
+    // ...
+
+    points = new THREE.Points(geometry, material)
+    
+    // ...
+}
+```
+
+然后，在分配这些变量之前，我们可以测试它们是否已经存在。如果是这样，我们可以调用dispose()几何体和材质上的方法。然后使用以下方法`remove()`从场景中删除点：
+
+```javascript
+const generateGalaxy = () =>
+{
+    // Destroy old galaxy
+    if(points !== null)
+    {
+        geometry.dispose()
+        material.dispose()
+        scene.remove(points)
+    }
+
+    // ...
+}
+```
+
+我们不会像在上一课看到的那样使用会产生深度和 `alpha` 问题的纹理，而是使用默认的方形渲染。不用担心; 会有很多棱角，因为太小了，我们不会注意到它们是正方形的。
+现在我们可以估计我们可以拥有多少粒子及其大小，让我们更新参数：
+
+```javascript
+parameters.count = 100000
+parameters.size = 0.01
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684892958743-c1e0894d-239a-4400-8785-97ea3d819e5a.png#averageHue=%23111111&clientId=u9b176c82-dd88-4&from=paste&id=u66dc5f44&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u5cabd07f-03de-4f7d-ba2b-89a77459403&title=)
+## 形状 
+渲染出星系可以有几种不同的形状。我们将把目标专注于螺旋线形状的星系。有许多方法可以定位粒子以创建星系。在测试课程方式之前，请随意尝试您的方式。
+### 半径
+首先，让我们创建一个`radius`参数：
+
+```javascript
+parameters.radius = 5
+
+// ...
+
+gui.add(parameters, 'radius').min(0.01).max(20).step(0.01).onFinishChange(generateGalaxy)
+```
+
+每颗星都将根据该半径定位。如果半径为`5`，星星将位于从`0`到`5` 的距离处。现在，让我们将所有粒子放在一条直线上：
+
+```javascript
+for(let i = 0; i < parameters.count; i++)
+{
+    const i3 = i * 3
+
+    const radius = Math.random() * parameters.radius
+
+    positions[i3    ] = radius
+    positions[i3 + 1] = 0
+    positions[i3 + 2] = 0
+}
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684892958773-8b7ab304-8307-4cbd-aafb-1d2147fb1404.png#averageHue=%23000000&clientId=u9b176c82-dd88-4&from=paste&id=ubb95c6d4&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u3d30d77f-9d31-446f-8b31-ccf7d7b9630&title=)
+### 分支机构
+自旋星系似乎总是至少有两个分支，但它可以有更多。
+创建一个`branches`参数：
+
+```javascript
+parameters.branches = 3
+
+// ...
+
+gui.add(parameters, 'branches').min(2).max(20).step(1).onFinishChange(generateGalaxy)
+```
+
+我们可以使用`Math.cos(...)`和`Math.sin(...)`将粒子定位在这些分支上。我们首先用模数 ( `%`) 计算一个角度，将结果除以分支计数参数得到 `0`和`1` 之间的角度，然后将该值乘以`Math.PI * 2`得到0 到360度之间的角度的一个完整的圆弧。然后我们将该角度与`Math.cos(...)`和和轴`Math.sin(...)`一起使用，最后乘以半径：
+
+```javascript
+for(let i = 0; i < parameters.count; i++)
+{
+    const i3 = i * 3
+
+    const radius = Math.random() * parameters.radius
+    const branchAngle = (i % parameters.branches) / parameters.branches * Math.PI * 2
+
+    positions[i3    ] = Math.cos(branchAngle) * radius
+    positions[i3 + 1] = 0
+    positions[i3 + 2] = Math.sin(branchAngle) * radius
+}
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684892959382-97f53650-b8ea-44af-bed9-b28025b283ef.png#averageHue=%23010101&clientId=u9b176c82-dd88-4&from=paste&id=u769bd492&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u53e589c9-c7ce-47e7-9262-904518fbee5&title=)
+### 旋转
+让我们添加旋转效果。
+创建一个`spin`参数：
+
+```javascript
+parameters.spin = 1
+
+// ...
+
+gui.add(parameters, 'spin').min(- 5).max(5).step(0.001).onFinishChange(generateGalaxy)
+```
+
+然后我们可以用半径乘以`spin`得到`spinAngle`参数。换句话说，粒子离中心越远，它承受的自旋就越大：
+
+```javascript
+for(let i = 0; i < parameters.count; i++)
+{
+    const i3 = i * 3
+
+    const radius = Math.random() * parameters.radius
+    const spinAngle = radius * parameters.spin
+    const branchAngle = (i % parameters.branches) / parameters.branches * Math.PI * 2
+
+    positions[i3    ] = Math.cos(branchAngle + spinAngle) * radius
+    positions[i3 + 1] = 0
+    positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius
+}
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684892959732-85c1384a-1ff2-499f-99ab-86a3da8ed1a7.png#averageHue=%23010101&clientId=u9b176c82-dd88-4&from=paste&id=u43a6d4b4&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u3ed79e19-890a-47f5-ba00-ad319dc4a34&title=)
+## 随机性
+这些粒子完全对齐。我们需要随机性。但我们真正需要的是外散星，内凝星。
+创建一个`randomness`参数：
+
+```javascript
+parameters.randomness = 0.2
+
+// ...
+
+gui.add(parameters, 'randomness').min(0).max(2).step(0.001).onFinishChange(generateGalaxy)
+```
+
+现在使用`Math.random()` 为每个轴创建一个随机值，将其乘以`radius`，然后将这些值添加到`positions`：
+
+```javascript
+for(let i = 0; i < parameters.count; i++)
+{
+    const i3 = i * 3
+
+    const radius = Math.random() * parameters.radius
+
+    const spinAngle = radius * parameters.spin
+    const branchAngle = (i % parameters.branches) / parameters.branches * Math.PI * 2
+    
+    const randomX = (Math.random() - 0.5) * parameters.randomness * radius
+    const randomY = (Math.random() - 0.5) * parameters.randomness * radius
+    const randomZ = (Math.random() - 0.5) * parameters.randomness * radius
+
+    positions[i3    ] = Math.cos(branchAngle + spinAngle) * radius + randomX
+    positions[i3 + 1] = randomY
+    positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius + randomZ
+}
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684892959753-f526605e-819a-4cc6-92be-d3ba82df20f4.png#averageHue=%23151515&clientId=u9b176c82-dd88-4&from=paste&id=u3354a5ac&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ue217a837-a36a-4a0b-b291-0778fe76ef6&title=)
+它有效，但不是很有说服力，对吧？我们仍然可以看到这种模式。为了解决这个问题，我们可以使用`Math.pow()`crush 值。您施加的功率越大，就会获得最接近`0`的功率。问题是您不能将负值与`Math.pow()`. 我们要做的是计算功率，然后-1随机乘以它。
+首先创建电源参数：
+
+```javascript
+parameters.randomnessPower = 3
+
+// ...
+
+gui.add(parameters, 'randomnessPower').min(1).max(10).step(0.001).onFinishChange(generateGalaxy)
+```
+
+然后应用`Math.pow()`功率并随机乘以它-1：
+
+```javascript
+const randomX = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : - 1) * parameters.randomness * radius
+const randomY = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : - 1) * parameters.randomness * radius
+const randomZ = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : - 1) * parameters.randomness * radius
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684892960051-e52d6ff3-290c-4938-8a19-eeb55c667e03.png#averageHue=%23161616&clientId=u9b176c82-dd88-4&from=paste&id=uf6ce68c1&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u1d06b80d-c810-4422-8310-2e5900eed64&title=)
+## 颜色 
+为了获得更好的效果，我们需要为我们的创作添加一些颜色。一个很酷的事情是在星系内部和边缘有不同的颜色。
+首先，添加颜色参数：
+
+```javascript
+parameters.insideColor = '#ff6030'
+parameters.outsideColor = '#1b3984'
+
+// ...
+
+gui.addColor(parameters, 'insideColor').onFinishChange(generateGalaxy)
+gui.addColor(parameters, 'outsideColor').onFinishChange(generateGalaxy)
+```
+
+我们将为每个顶点提供一种颜色。我们必须激活`vertexColors`材料上的：
+
+```javascript
+material = new THREE.PointsMaterial({
+    size: parameters.size,
+    sizeAttenuation: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    vertexColors: true
+})
+```
+
+然后在我们的几何体上添加一个`color`属性，就像我们添加`position`属性一样。现在，我们不使用`insideColorandoutsideColor`参数：
+
+```javascript
+geometry = new THREE.BufferGeometry()
+
+const positions = new Float32Array(parameters.count * 3)
+const colors = new Float32Array(parameters.count * 3)
+
+for(let i = 0; i < parameters.count; i++)
+{
+    // ...
+
+    colors[i3    ] = 1
+    colors[i3 + 1] = 0
+    colors[i3 + 2] = 0
+}
+
+geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+```
+
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684892960189-66f3426c-f420-492e-adaf-3dd2412f1053.png#averageHue=%23160100&clientId=u9b176c82-dd88-4&from=paste&id=uf648203d&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ufc8924a3-5071-4c9e-b03a-0277a0caf83&title=)
+你应该得到一个红色的星系。
+要使用参数中的颜色，我们首先需要为每个参数创建一个[Color实例。](https://threejs.org/docs/index.html#api/en/math/Color)我们必须在`generateGalaxy`函数内部执行此操作，原因您稍后就会明白：
+
+```javascript
+const generateGalaxy = () =>
+{
+    // ...
+
+    const colorInside = new THREE.Color(parameters.insideColor)
+    const colorOutside = new THREE.Color(parameters.outsideColor)
+
+    // ...
+}
+```
+
+在循环函数内部，我们希望将这些颜色混合成第三种颜色。这种混合取决于距星系中心的距离。如果粒子位于星系的中心，它将具有 ，`insideColor`并且它离中心越远，它与 `outsideColor`的混合就越多。
+我们不会创建第三种[Color](https://threejs.org/docs/index.html#api/en/math/Color)，而是要克隆`colorInside`，然后使用该`lerp(...)`方法将颜色从该基色插入到另一个基色。`lerp(...)`的第一个参数是另一种颜色，第二个参数是`0`和`1`之间的一个值。如果是0，颜色将保持其基值，如果是，1结果颜色将是提供的颜色。我们可以使用`radius`除以半径参数：
+
+```javascript
+const mixedColor = colorInside.clone()
+mixedColor.lerp(colorOutside, radius / parameters.radius)
+```
+
+然后我们可以在数组中的`colors`使用`r,``g`和`b`属性：
+
+```javascript
+colors[i3    ] = mixedColor.r
+colors[i3 + 1] = mixedColor.g
+colors[i3 + 2] = mixedColor.b
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684892960358-8c07fccd-60c6-4019-a02f-2167d4e88410.png#averageHue=%23050303&clientId=u9b176c82-dd88-4&from=paste&id=u7f6554cc&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u5d55c25e-662b-4de7-bee6-6905872c5e0&title=)
+在这里你有一个美丽的星系发生器。您可以尝试调整并继续添加参数并改进星系的样式。
+尽量不要烧毁你的电脑。
+## 走得更远
+为了更进一步，您可以尝试添加更多调整或测试其他星系形状。在以后的课程中，我们将学习如何在很酷的旋转动画中为所有粒子设置动画。
