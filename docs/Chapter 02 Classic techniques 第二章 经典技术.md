@@ -1672,3 +1672,756 @@ colors[i3 + 2] = mixedColor.b
 尽量不要烧毁你的电脑。
 ## 走得更远
 为了更进一步，您可以尝试添加更多调整或测试其他星系形状。在以后的课程中，我们将学习如何在很酷的旋转动画中为所有粒子设置动画。
+# 20. Scroll based animation 基于滚动的动画
+## 介绍 
+拥有仅由 WebGL技术制作的网站体验很棒，但有时，您会希望体验经典网站的创作。
+体验可以在后台为页面增添一些美感，但是随后，您会希望该体验与 HTML 内容正确集成。
+在本课中，我们将学习如何使用 Three.js 作为经典 HTML 页面的背景。我们将使相机平移以跟随滚动。我们会发现一些使用技巧，让这个页面滚动像卷轴一样更加身临其境。我们将根据光标位置添加一个很酷的视差动画。最后，我们将在到达相应部分时触发一些动画。
+## 设置 
+本课是练习我们已经学过的许多技巧的好机会。我们将自己完成大部分工作，而不是已经配置好的代码。
+`OrbitControls`已被删除，因为我们希望相机根据滚动条移动，而不是像之前的课程那样让相机旋转。
+Dat.GUI 已经可用，并且创建了一种颜色选择器供以后使用：
+
+```javascript
+/**
+ * Debug
+ */
+const gui = new dat.GUI()
+
+const parameters = {
+    materialColor: '#ffeded'
+}
+
+gui.addColor(parameters, 'materialColor')
+```
+
+已经设置了一些非常简单的 HTML 内容。目前，您只能看到一个标题，但下方有两个部分。我们看不到它们，因为被屏幕挡住了。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684900599647-efec8645-c6be-4094-a6bb-6785db6c9862.png#averageHue=%230e0404&clientId=uc037550a-e633-4&from=paste&id=uafcb2aea&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ue566478b-8862-46a3-ba7e-33daccb6c4e&title=)
+## HTML 滚动
+### 启动卷轴
+在课程的早些时候，我们使用这个 CSS 停用了滚动条：
+
+```css
+html,
+body
+{
+    overflow: hidden;
+}
+```
+
+要重新激活它，请删除`/src/style.css`中的行`overflow`。
+您应该能够滚动并查看下面的其他两个部分。
+### 固定弹性卷轴
+在某些环境中，您可能会注意到，如果滚动得太远，当页面超出限制时，您会看到一种弹性动画。
+虽然这是一个很酷的功能，但默认情况下，页面背面是白色的，与我们的体验不符。
+要解决这个问题，我们可以将页面的背景颜色`background-color` 设置为与`clearColor`的颜色相同。相反，我们将`clearColor`透明化，并仅在页面`background-color`上设置颜色。
+为此，在 `/src/script.js`中，您需要将`WebGLRenderer`属性`alpha`设置为`true`：
+
+```javascript
+const renderer = new THREE.WebGLRenderer({
+    canvas: canvas,
+    alpha: true
+})
+```
+默认情况下，清晰的 `alpha` 值是`0`我们不必自己设置的原因。告诉渲染器处理 `alpha` 就足够了。但是如果你想改变那个值，你可以这样做`setClearAlpha`：
+
+```javascript
+renderer.setClearAlpha(0)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684900599871-55530b4e-81e8-4848-bc26-a2b2910a48d1.png#averageHue=%23fdf4f4&clientId=uc037550a-e633-4&from=paste&id=u19ed89c9&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u3f2f3662-069c-4d22-b871-8c5dbf83ca6&title=)
+我们现在可以看到页面的背面是白色的。
+在`CSS中/src/style.css`添加一个：html`background-color`
+
+```css
+html
+{
+    background: #1e1a20;
+}
+```
+我们得到了一个很好的统一背景颜色，弹性滚动不再是问题。
+## 对象
+我们将为每个标题部分创建一个对象。
+为了简单起见，我们将使用 Three.js 原语，但您可以创建任何您想要的东西。在课程的后面，您将学习如何将自定义模型导入场景。
+在 `/src/script.js` 中，删除多维数据集的代码。取而代之，使用[TorusGeometry](https://threejs.org/docs/index.html?q=torus#api/en/geometries/TorusGeometry)、[ConeGeometry](https://threejs.org/docs/index.html?q=ConeGeometry#api/en/geometries/ConeGeometry)和[TorusKnotGeometry创建三个](https://threejs.org/docs/index.html?q=torusk#api/en/geometries/TorusKnotGeometry)[网格](https://threejs.org/docs/index.html?q=mesh#api/en/objects/Mesh)：
+
+```javascript
+/**
+ * Objects
+ */
+// Meshes
+const mesh1 = new THREE.Mesh(
+    new THREE.TorusGeometry(1, 0.4, 16, 60),
+    new THREE.MeshBasicMaterial({ color: '#ff0000' })
+)
+const mesh2 = new THREE.Mesh(
+    new THREE.ConeGeometry(1, 2, 32),
+    new THREE.MeshBasicMaterial({ color: '#ff0000' })
+)
+const mesh3 = new THREE.Mesh(
+    new THREE.TorusKnotGeometry(0.8, 0.35, 100, 16),
+    new THREE.MeshBasicMaterial({ color: '#ff0000' })
+)
+
+scene.add(mesh1, mesh2, mesh3)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684900600151-c7d2de11-9360-49d4-b9b8-2b89b5281904.png#averageHue=%2302161e&clientId=uc037550a-e633-4&from=paste&id=u432eeec7&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u00f87ff1-add0-43dc-a6b3-8ed96b1c3e7&title=)
+当然，所有对象都在彼此之上。我们稍后会解决这个问题。
+同样，为了简单起见，我们的代码会有些冗余。但是，如果您有更多部分，请毫不犹豫地使用数组或其他代码结构解决方案。
+### 材料
+#### 基材
+我们将在所有三个[Meshes上使用](https://threejs.org/docs/index.html?q=mesh#api/en/objects/Mesh)[MeshToonMaterial](https://threejs.org/docs/index.html?q=toon#api/en/materials/MeshToonMaterial)。
+正如在材料课程中一样，我们将创建一个材料实例并将其用于所有三个[网格](https://threejs.org/docs/index.html?q=mesh#api/en/objects/Mesh)。
+创建[MeshToonMaterial](https://threejs.org/docs/index.html?q=toon#api/en/materials/MeshToonMaterial)时，使用`parameters.materialColor`属性`color`并将其应用于所有 3 个[网格](https://threejs.org/docs/index.html?q=mesh#api/en/objects/Mesh)：
+
+```javascript
+// Material
+const material = new THREE.MeshToonMaterial({ color: parameters.materialColor })
+
+// Meshes
+const mesh1 = new THREE.Mesh(
+    new THREE.TorusGeometry(1, 0.4, 16, 60),
+    material
+)
+const mesh2 = new THREE.Mesh(
+    new THREE.ConeGeometry(1, 2, 32),
+    material
+)
+const mesh3 = new THREE.Mesh(
+    new THREE.TorusKnotGeometry(0.8, 0.35, 100, 16),
+    material
+)
+
+scene.add(mesh1, mesh2, mesh3)
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684900600444-21487863-1ed4-4395-adc5-4f3242f9ae6d.png#averageHue=%23020105&clientId=uc037550a-e633-4&from=paste&id=ue4ee623f&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ub0909887-1d8e-4c4e-ba64-8948183890f&title=)
+不幸的是，这些对象现在似乎是黑色的。
+原因是 MeshToonMaterial[是](https://threejs.org/docs/index.html?q=toon#api/en/materials/MeshToonMaterial)Three.js 材质之一，只有在有光时才会出现。
+#### 光
+向场景中添加一个[DirectionalLight ：](https://threejs.org/docs/index.html?q=Direc#api/en/lights/DirectionalLight)
+
+```javascript
+/**
+ * Lights
+ */
+const directionalLight = new THREE.DirectionalLight('#ffffff', 1)
+directionalLight.position.set(1, 1, 0)
+scene.add(directionalLight)
+```
+
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684900600465-83278167-fae6-4b8a-90f4-2756db580689.png#averageHue=%230c0a14&clientId=uc037550a-e633-4&from=paste&id=uc59f72f1&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u1aa31312-ea7f-4ef2-8d9d-a6036e30eec&title=)
+您现在应该可以看到您的对象。
+我们使用存储在`parameters`对象中的颜色，但使用 Tweaker 更改此值不会更改材质本身。
+为了解决这个问题，我们可以监听已经存在的调整的变化事件并相应地更新材料：
+
+```javascript
+gui
+    .addColor(parameters, 'materialColor')
+    .onChange(() =>
+    {
+        material.color.set(parameters.materialColor)
+    })
+```
+#### 渐变纹理
+正如我们在材料课程中看到的，默认情况下，[MeshToonMaterial](https://threejs.org/docs/index.html?q=toon#api/en/materials/MeshToonMaterial)将为浅色部分提供一种颜色，为阴影部分提供一种较深的颜色。
+我们可以通过提供渐变纹理来改进它。
+文件夹中提供了两个渐变图像`/static/textures/gradients/`。
+在[实例](https://threejs.org/docs/#api/en/loaders/TextureLoader)化material. 然后加载`textures/gradients/3.jpg`纹理：
+
+```javascript
+// Texture
+const textureLoader = new THREE.TextureLoader()
+const gradientTexture = textureLoader.load('textures/gradients/3.jpg')
+```
+
+`gradientMap`在材料的属性中使用它：
+
+```javascript
+// Material
+const material = new THREE.MeshToonMaterial({
+    color: parameters.materialColor,
+    gradientMap: gradientTexture
+})
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684900601579-5a7aba41-5571-4de3-a138-5e307364d113.png#averageHue=%230e0c15&clientId=uc037550a-e633-4&from=paste&id=uc61424cb&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u274e72d4-e36f-4d7c-b4c7-cb47c97e6e7&title=)
+不是我们期待的卡通效果。
+原因是纹理是一个非常小的图像，由 3 个像素组成，从暗到亮。默认情况下，WebGL 不会选择纹理上最近的像素，而是尝试对像素进行插值。对于我们的体验外观而言，这通常是个好主意，但在这种情况下，它会创建渐变而不是卡通效果。
+为了解决这个问题，我们需要将`magFilter`纹理的 设置为`THREE.NearestFilter`以便使用最近的像素而不用相邻像素对它进行插值：
+
+```javascript
+const gradientTexture = textureLoader.load('textures/gradients/3.jpg')
+gradientTexture.magFilter = THREE.NearestFilter
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684900601628-ccc56ab0-d71b-4319-97cc-4fd6a64f3bdb.png#averageHue=%231d1920&clientId=uc037550a-e633-4&from=paste&id=u9b804dae&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u8f3f398f-a6ce-4926-8679-677ec64a06d&title=)
+好多了，但我们仍然需要正确定位网格。
+### 位置
+默认情况下，在 Three.js 中，视野是垂直的。这意味着如果您将一个对象放在渲染的顶部，将一个对象放在渲染的底部，然后调整窗口大小，您会注意到对象保持在顶部和底部。
+为了说明这一点，暂时添加这段代码：
+
+```javascript
+mesh1.position.y = 2
+mesh1.scale.set(0.5, 0.5, 0.5)
+
+mesh2.visible = false
+
+mesh3.position.y = - 2
+mesh3.scale.set(0.5, 0.5, 0.5)
+```
+
+圆环保持在顶部，圆环结保持在底部。完成后，删除上面的代码。
+这很好，因为这意味着我们只需要确保每个对象在`y`轴上离另一个对象足够远，这样我们就不会看到它们在一起。
+创建一个`objectsDistance`变量并选择一个随机值，例如`2`：
+
+```javascript
+const objectsDistance = 2
+```
+使用该变量将网格定位在`y`轴上。这些值必须为负，以便对象下降：
+
+```javascript
+mesh1.position.y = - objectsDistance * 0
+mesh2.position.y = - objectsDistance * 1
+mesh3.position.y = - objectsDistance * 2
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684900601889-8a6d8cec-0221-4365-bfa9-a962ada91d26.png#averageHue=%23000006&clientId=uc037550a-e633-4&from=paste&id=ub4c8c130&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u447923b5-0e18-4bd5-86db-9160df10e94&title=)
+增加objectsDistance直到对象之间的距离足够远。一个很好的数量应该是`4`，但您可以稍后返回更改该值。
+
+```javascript
+const objectsDistance = 4
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684900602047-a1bf471d-17a5-4b90-b356-f7dd2423914f.png#averageHue=%230b0913&clientId=uc037550a-e633-4&from=paste&id=u75aa7b2e&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ub3a1867c-0a37-4c24-b07e-ff640566b74&title=)
+现在，我们只能看到第一个对象。其他两个将在下面。一旦我们用滚轮移动相机，它们会在滚动到下面时再次出现，我们将水平放置它们。
+`objectsDistance`稍后会派上用场，这就是我们将值保存在变量中的原因。
+### 永久轮换
+为了给体验带来更多活力，我们将为对象添加永久旋转。
+首先，将对象添加到`sectionMeshes`数组中：
+
+```javascript
+const sectionMeshes = [ mesh1, mesh2, mesh3 ]
+```
+
+然后，在`tick`函数中，循环遍历`sectionMeshes`数组并使用`elapsedTime`让已经在数组内可用的元素进行慢速旋转：
+
+```javascript
+const tick = () =>
+{
+    const elapsedTime = clock.getElapsedTime()
+
+    // Animate meshes
+    for(const mesh of sectionMeshes)
+    {
+        mesh.rotation.x = elapsedTime * 0.1
+        mesh.rotation.y = elapsedTime * 0.12
+    }
+
+    // ...
+}
+```
+所有的网格（虽然我们在这里只能看到其中一个）应该缓慢旋转。
+## 相机
+### 滚动
+是时候让相机随着卷轴移动了。
+首先，我们需要检索滚动值。这可以通过`window.scrollY`属性来完成。
+创建一个`scrollY`变量并分配它`window.scrollY`：
+
+```javascript
+/**
+ * Scroll
+ */
+let scrollY = window.scrollY
+```
+
+但是，我们需要在用户滚动时更新该值。为此，请收听`window`的以下事件`'scroll'`：
+
+```javascript
+window.addEventListener('scroll', () =>
+{
+    scrollY = window.scrollY
+
+    console.log(scrollY)
+})
+```
+
+您应该在日志中看到滚动值。删除`console.log`
+在`tick`函数中，`scrollY`用于使相机移动（在进行渲染之前）：
+
+```javascript
+const tick = () =>
+{
+    // ...
+
+    // Animate camera
+    camera.position.y = scrollY
+
+    // ...
+}
+```
+还不太对。相机太敏感了，而且方向错误。我们需要在该值上做一些工作。
+`scrollY`向下滚动时数值为正，但相机应在`y`轴上向下滚动才对。让我们反转该值：
+
+```javascript
+camera.position.y = - scrollY
+```
+
+好多了，但还是太敏感了。
+`scrollY`中包含已滚动的像素数量。如果我们滚动到 `1000` 个像素（实际不是那么多），相机将在场景中向下叠加1000次单位（1，2，3，4，5,...,1000 很多）。
+每个部分的大小与视口完全相同。这意味着当我们滚动一个视口高度的距离时，相机应该到达下一个对象。
+为此，我们需要`scrollY`除以视口的高度，即`sizes.height`：
+
+```javascript
+camera.position.y = - scrollY / sizes.height
+```
+对于滚动的每个部分，相机现在正在下降`1`。但是对象目前由`objectsDistance`变量单位为`4`分隔：
+我们需要将该值乘以`objectsDistance`（这样就能滚动一个页面的距离时，相机也跟着滚动直到照射到下个网格）：
+
+```javascript
+camera.position.y = - scrollY / sizes.height * objectsDistance
+```
+
+简而言之，如果用户向下滚动一个部分，那么相机将向下移动到下一个对象。
+### 水平放置对象
+现在是左右放置对象以匹配标题的好时机：
+
+```javascript
+mesh1.position.x = 2
+mesh2.position.x = - 2
+mesh3.position.x = 2
+```
+
+### 视差
+我们称视差为通过不同观察点看到一个物体的动作。这是我们的眼睛自然完成的，也是我们感受事物深度的方式。
+为了让我们的体验更加身临其境，我们将通过使相机根据鼠标移动水平和垂直移动来应用这种视差效果。它将创建一种自然的交互，并帮助用户感受深度。
+#### 光标
+首先，我们需要检索光标位置。
+为此，创建一个具有`x`和`y`属性的对象`cursor`：
+
+```javascript
+/**
+ * Cursor
+ */
+const cursor = {}
+cursor.x = 0
+cursor.y = 0
+```
+
+然后，在`window`上监听`mousemove`事件并更新这些值：
+
+```javascript
+window.addEventListener('mousemove', (event) =>
+{
+    cursor.x = event.clientX
+    cursor.y = event.clientY
+
+    console.log(cursor)
+})
+```
+
+您应该在控制台中获得光标的像素位置。
+虽然我们可以直接使用这些值，但最好让它们适应上下文。
+**首先，振幅取决于视口的大小，不同屏幕分辨率的用户会有不同的结果。我们可以通过将它们除以视口的大小来规范化值（从**`**0**`**到**`**1**`**）：**
+
+```javascript
+window.addEventListener('mousemove', (event) =>
+{
+    cursor.x = event.clientX / sizes.width
+    cursor.y = event.clientY / sizes.height
+
+    console.log(cursor)
+})
+```
+
+虽然这已经更好了，但我们可以做得更多。
+我们知道相机将能够在左侧和右侧移动一样多的距离。与其让一个值从 `0`到 `1`不如让一个值从`-0.5` 到`0.5`更好。
+为此，减去`0.5`：
+
+```javascript
+window.addEventListener('mousemove', (event) =>
+{
+    cursor.x = event.clientX / sizes.width - 0.5
+    cursor.y = event.clientY / sizes.height - 0.5
+
+    console.log(cursor)
+})
+```
+
+这是一个适合上下文的干净值。
+删除`console.log`
+我们现在可以在`tick`函数中使用游标值。创建一个`parallaxX`、`andparallaxY`变量并`cursor.x`、`cursor.y`将放入其中：
+
+```javascript
+const tick = () =>
+{
+    // ...
+
+    // Animate camera
+    camera.position.y = - scrollY / sizes.height * objectsDistance
+
+    const parallaxX = cursor.x
+    const parallaxY = cursor.y
+    camera.position.x = parallaxX
+    camera.position.y = parallaxY
+
+    // ...
+}
+```
+
+不幸的是，我们有两个问题。x轴和y轴在方向上似乎不同步。而且，相机卷轴不再工作了。
+让我们解决第一个问题。当我们将光标向左移动时，相机似乎向左移动。右边也一样。但是当我们向上移动光标时，相机似乎向下移动，而当向下移动光标时则相反。
+要解决这种奇怪的感觉，请反转`cursor.y`：
+
+```javascript
+const parallaxX = cursor.x
+    const parallaxY = - cursor.y
+    camera.position.x = parallaxX
+    camera.position.y = parallaxY
+```
+![tutieshi_640x364_5s.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1685079581415-979a287d-ce10-45c5-95a5-02a37139177f.gif#averageHue=%231a171c&clientId=u44cb3fbe-72e7-4&from=drop&id=ubed6f270&originHeight=364&originWidth=640&originalType=binary&ratio=2&rotation=0&showTitle=false&size=626124&status=done&style=none&taskId=u4e3c1325-5191-452a-a65a-f9dacedca8a&title=)
+
+对于第二个问题，问题是我们更新了`camera.position.y`两次，第二个将取代第一个。
+![tutieshi_640x278_4s.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1685079622351-657c51a8-17f5-49c6-a76e-a97d1eb9eaad.gif#averageHue=%231a171d&clientId=u44cb3fbe-72e7-4&from=drop&id=e0fVk&originHeight=278&originWidth=640&originalType=binary&ratio=2&rotation=0&showTitle=false&size=385807&status=done&style=none&taskId=u6d02d5de-9339-49a8-8902-70d7714d7b4&title=)
+为了解决这个问题，我们将把相机放在一个[组](https://threejs.org/docs/index.html?q=group#api/en/objects/Group)中，并将视差应用于组而不是相机本身。
+在`camera`实例化之前，创建[组](https://threejs.org/docs/index.html?q=group#api/en/objects/Group)，将组添加到场景,并将`camera`添加到[组](https://threejs.org/docs/index.html?q=group#api/en/objects/Group)：
+
+```javascript
+/**
+ * Camera
+ */
+// Group
+const cameraGroup = new THREE.Group()
+scene.add(cameraGroup)
+
+// Base camera
+const camera = new THREE.PerspectiveCamera(35, sizes.width / sizes.height, 0.1, 100)
+camera.position.z = 6
+cameraGroup.add(camera)
+```
+
+这不应该改变结果，但现在，相机在一个组内。
+在`tick`函数中，不是在相机上应用视差，而是在`cameraGroup`:
+
+```javascript
+const tick = () =>
+{
+    // ...
+
+    // Animate camera
+    camera.position.y = - scrollY / sizes.height * objectsDistance
+
+    const parallaxX = cursor.x
+    const parallaxY = - cursor.y
+    
+    cameraGroup.position.x = parallaxX
+    cameraGroup.position.y = parallaxY
+
+    // ...
+}
+```
+
+
+滚动动画和视差动画现在很好地混合在一起。但我们可以做得更好。
+#### 宽松
+![tutieshi_640x283_9s.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1685079828102-a7d57ae3-eedd-4528-aeb9-6fc63f99fda9.gif#averageHue=%231a171d&clientId=u44cb3fbe-72e7-4&from=drop&id=u0bf03a60&originHeight=283&originWidth=640&originalType=binary&ratio=2&rotation=0&showTitle=false&size=388448&status=done&style=none&taskId=uf0ed9839-ccb9-4ad4-8ace-741bf8ba050&title=)
+视差动画是一个好的开始，但感觉有点太机械了。由于多种原因，在现实生活中不可能有这样僵硬的线性动画：相机有重量，与空气和表面有摩擦，肌肉不能做这样的线性运动，等等。这就是为什么感觉运动有点不自然。我们将添加一些“缓动”（也称为“平滑”或“倾斜”），并且我们将使用众所周知的公式去实现它。
+公式背后的想法是，在每一帧上，我们不是将相机直接移动到目标，而是将它移动（比方说）距离目标更近 10 分之一。然后，在下一帧中，又接近了十分之一。然后，在下一帧中，又接近了十分之一。
+在每一帧上，相机都会离目的地更近一点。但是，它离得越近，移动的速度就越慢，因为它总是向目标位置移动实际位置的十分之一。
+首先，我们需要把 `=` 更改 `+=`，因为我们要把相机添加到实际位置：
+
+```javascript
+cameraGroup.position.x += parallaxX
+    cameraGroup.position.y += parallaxY
+```
+
+然后，我们需要计算实际位置到目的地的距离：
+
+```javascript
+cameraGroup.position.x += (parallaxX - cameraGroup.position.x)
+    cameraGroup.position.y += (parallaxY - cameraGroup.position.y)
+```
+
+最后，我们只想要该距离的十分之一：
+
+```javascript
+cameraGroup.position.x += (parallaxX - cameraGroup.position.x) * 0.1
+    cameraGroup.position.y += (parallaxY - cameraGroup.position.y) * 0.1
+```
+
+动画感觉顺畅多了，但有些人可能已经注意到了一个问题。
+如果您在高频屏幕上测试体验，该tick函数将被更频繁地调用，并且相机将更快地移向目标。虽然这不是什么大问题，但它并不准确，最好在不同设备上尽可能获得相同的结果。
+为了解决这个问题，我们需要使用每帧之间花费的时间。
+[在实例化Clock](https://threejs.org/docs/index.html?q=clock#api/en/core/Clock)之后，立即创建一个previousTime变量：
+
+```javascript
+const clock = new THREE.Clock()
+let previousTime = 0
+```
+
+在`tick`函数的开头，在设置 `elapsedTime`之后，通过从 `elapsedTime`中减去`previousTime`来计算`deltaTime`： 
+
+```javascript
+const tick = () =>
+{
+    const elapsedTime = clock.getElapsedTime()
+    const deltaTime = elapsedTime - previousTime
+
+    // ...
+}
+```
+
+然后，更新要在下一帧中使用的`previousTime`：
+
+```javascript
+const tick = () =>
+{
+    const elapsedTime = clock.getElapsedTime()
+    const deltaTime = elapsedTime - previousTime
+    previousTime = elapsedTime
+
+    console.log(deltaTime)
+
+    // ...
+}
+```
+
+您现在有当前帧和前一帧之间花费的时间（以秒为单位）。对于高频屏幕，该值会更小，因为需要的时间更少。
+我们现在可以在视差上使用它，但是，因为`deltaTime`它以秒为单位，所以该值将非常小（`0.016`对于大多数以 60fps 运行的常见屏幕而言）。因此，效果将非常缓慢。
+要解决这个问题，我们可以更改`0.1`为`5`：
+
+```javascript
+cameraGroup.position.x += (parallaxX - cameraGroup.position.x) * 5 * deltaTime
+    cameraGroup.position.y += (parallaxY - cameraGroup.position.y) * 5 * deltaTime
+```
+
+我们现在有一个很好的缓动，在不同的屏幕频率下感觉都一样。
+最后，我们现在已经设置了正确的动画，我们可以降低效果的幅度：
+
+```javascript
+const parallaxX = cursor.x * 0.5
+    const parallaxY = - cursor.y * 0.5
+```
+
+![tutieshi_640x285_5s.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1685079885030-2a7ba70f-6a9b-4d9f-9078-ece16196db7b.gif#averageHue=%231a171c&clientId=u44cb3fbe-72e7-4&from=drop&id=u695a18ed&originHeight=285&originWidth=640&originalType=binary&ratio=2&rotation=0&showTitle=false&size=553411&status=done&style=none&taskId=u7cf45068-1d84-447a-9bd9-eae433d347e&title=)
+## 粒子
+使体验更加身临其境，并帮助用户深度感受的一个好方法是在页面添加粒子。
+我们将创建非常简单的方形粒子并将它们散布在场景中。
+因为我们需要自己定位粒子，所以我们将创建一个自定义[BufferGeometry](https://threejs.org/docs/index.html?q=bufferG#api/en/core/BufferGeometry)，就像我们在粒子和星系生成器课程中所做的那样。
+使用`Float32Array`创建一个`particlesCount`变量和一个`positions`变量：
+
+```javascript
+/**
+ * Particles
+ */
+// Geometry
+const particlesCount = 200
+const positions = new Float32Array(particlesCount * 3)
+```
+
+创建一个循环并将随机坐标添加到`positions`数组：
+
+```javascript
+for(let i = 0; i < particlesCount; i++)
+{
+    positions[i * 3 + 0] = Math.random()
+    positions[i * 3 + 1] = Math.random()
+    positions[i * 3 + 2] = Math.random()
+}
+```
+我们稍后会更改更酷的位置，但现在，让我们使用简单的代码，确保我们的几何结构正常工作。
+实例化[BufferGeometry](https://threejs.org/docs/index.html?q=bufferG#api/en/core/BufferGeometry)并设置`position`属性：
+
+```javascript
+const particlesGeometry = new THREE.BufferGeometry()
+particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+```
+
+[使用PointsMaterial](https://threejs.org/docs/index.html?q=PointsMaterial#api/en/materials/PointsMaterial)创建材质：
+
+```javascript
+// Material
+const particlesMaterial = new THREE.PointsMaterial({
+    color: parameters.materialColor,
+    sizeAttenuation: true,
+    size: 0.03
+})
+```
+
+[使用Points](https://threejs.org/docs/index.html?q=points#api/en/objects/Points)创建粒子：
+
+```javascript
+// Points
+const particles = new THREE.Points(particlesGeometry, particlesMaterial)
+scene.add(particles)
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1684900602077-b9d6bb11-eef1-44c5-b041-d6450ac56a31.png#averageHue=%231d1920&clientId=uc037550a-e633-4&from=paste&id=u4019ac51&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u7f0d0cc3-00bf-4c22-936d-ca5d8f548e9&title=)
+你应该得到一堆散布在立方体中的粒子。
+我们快速完成了这部分，因为我们已经在前面的课程中学习了如何制作粒子。如果你觉得不好实现，那是正常的。因为实现还是有点难，而且容易出错。
+我们现在可以将粒子定位在三个轴上。
+对于`x`（水平）和`z`（深度），我们可以使用随机值，它们可以是正数，也可以是负数：
+
+```javascript
+for(let i = 0; i < particlesCount; i++)
+{
+    positions[i * 3 + 0] = (Math.random() - 0.5) * 10
+    positions[i * 3 + 1] = Math.random()
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 10
+}
+```
+
+对于`y`（垂直）它有点棘手。我们需要让粒子从足够高的地方开始，然后在下面扩散得足够远，这样我们才能到达卷轴的尽头。
+为此，我们可以使用`sectionMeshes.length`变量并乘以`objectsDistance`：
+
+```javascript
+for(let i = 0; i < particlesCount; i++)
+{
+    positions[i * 3 + 0] = (Math.random() - 0.5) * 10
+    positions[i * 3 + 1] = objectsDistance * 0.5 - Math.random() * objectsDistance * sectionMeshes.length
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 10
+}
+```
+与对象材质一样，我们可以在事件中更新粒子的颜色：
+
+```javascript
+gui
+    .addColor(parameters, 'materialColor')
+    .onChange(() =>
+    {
+        material.color.set(parameters.materialColor)
+        particlesMaterial.color.set(parameters.materialColor)
+    })
+```
+
+这就是粒子的全部内容，但是您显然可以像我们在之前的课程中使用随机大小和随机 `alpha` 那样改进它们。而且，我们甚至可以为它们制作动画。
+## 触发旋转 
+作为最后一个特征，为了让练习更难一点，我们将在到达相应部分时让对象在永久旋转之外做一点额外的旋转。
+### 知道何时触发动画
+首先，我们需要一种方法来知道何时到达某个部分。有很多方法可以做到这一点，我们甚至可以使用一个库，但在我们的例子中，我们可以使用该`scrollY`值并做一些数学运算来找到当前部分。
+创建`scrollY`变量后，创建一个`currentSection`变量并将其设置为`0`：
+
+```javascript
+let scrollY = window.scrollY
+let currentSection = 0
+```
+
+在`'scroll'`事件回调函数中，通过`scrollY`除以`sizes.height`计算当前部分：
+
+```javascript
+window.addEventListener('scroll', () =>
+{
+    scrollY = window.scrollY
+
+    const newSection = scrollY / sizes.height
+    
+    console.log(newSection)
+})
+```
+
+这是可行的，因为每个部分恰好是视口的一个高度。
+要获取确切的部分而不是浮点值，我们可以使用`Math.round()`取到整数：
+
+```javascript
+window.addEventListener('scroll', () =>
+{
+    scrollY = window.scrollY
+
+    const newSection = Math.round(scrollY / sizes.height)
+    
+    console.log(newSection)
+})
+```
+
+我们现在可以测试`newSection`是否不同于`currentSection`。如果是这样，那意味着我们更改了该部分，我们可以更新`currentSection`以制作我们的动画：
+
+```javascript
+window.addEventListener('scroll', () =>
+{
+    scrollY = window.scrollY
+    const newSection = Math.round(scrollY / sizes.height)
+
+    if(newSection != currentSection)
+    {
+        currentSection = newSection
+
+        console.log('changed', currentSection)
+    }
+})
+```
+
+### 动画网格
+我们将使用[GSAP](https://greensock.com/gsap/)为网格设置动画。
+通过在终端中运行`npm install gsap@3.5.1`将 `GSAP` 添加到依赖项中。我们正在使用一个非常具体的 `GSAP` 版本，来确保案例和您编写时代码是相同的。如果您想使用最新版本，请运行`npm install gsap`，但您可能因为使用新版本而导致案例和使用语法的不同。
+如果您收到编译器发出的漏洞警告，请不要在意。这并不影响编程。
+添加依赖项后，在代码开头导入 `GSAP`：
+```javascript
+import gsap from 'gsap'
+```
+
+然后，在我们`if`之前所做的声明中，我们可以使用`gsap.to()`方式制作动画：
+
+```javascript
+window.addEventListener('scroll', () =>
+{
+    // ...
+    
+    if(newSection != currentSection)
+    {
+        // ...
+
+        gsap.to(
+            sectionMeshes[currentSection].rotation,
+            {
+                duration: 1.5,
+                ease: 'power2.inOut',
+                x: '+=6',
+                y: '+=3'
+            }
+        )
+    }
+})
+```
+虽然此代码有效，但不幸的是它不起作用。原因是重复修改了旋转角度，在每一帧上，我们已经用`elapsedTime` 更新了每个网格的`rotation.x`和`rotation.y`。
+为了解决这个问题，在 `tick` 函数中，我们不要根据`elapsedTime` 设置非常具体的旋转，而是将 `deltaTime`添加到当前旋转：
+
+```javascript
+const tick = () =>
+{
+    // ...
+
+    for(const mesh of sectionMeshes)
+    {
+        mesh.rotation.x += deltaTime * 0.1
+        mesh.rotation.y += deltaTime * 0.12
+    }
+
+    // ...
+}
+```
+
+为了给动画添加更多的随机性，尤其是对于圆锥体，我们还可以为z轴也设置动画：
+
+```javascript
+gsap.to(
+            sectionMeshes[currentSection].rotation,
+            {
+                duration: 1.5,
+                ease: 'power2.inOut',
+                x: '+=6',
+                y: '+=3',
+                z: '+=1.5'
+            }
+        )
+```
+## 进一步深入拓展
+我们让事情变得非常简单，但您可以走得更远。
+
+- 向 HTML 添加更多内容
+- 为材质等其他属性设置动画
+- 动画化 HTML 文本
+- 改善颗粒
+- 向调试 UI 添加更多调整
+- 测试其他颜色
+- ETC。
+
+
+
