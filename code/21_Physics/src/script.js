@@ -51,13 +51,29 @@ const environmentMapTexture = cubeTextureLoader.load([
 ]);
 
 /**
+ * Sounds
+ */
+const hitSound = new Audio('/sounds/hit.mp3')
+
+const playHitSound = (collision) => {
+  // console.log(collision.contact.getImpactVelocityAlongNormal())
+  const impactStrength = collision.contact.getImpactVelocityAlongNormal()
+  if(impactStrength > 1.5) {
+    hitSound.volume = Math.random()
+    hitSound.currentTime = 0
+    hitSound.play()
+  }
+}
+
+/**
  * Physics
  */
 const world = new CANNON.World();
-world.broadphase = new CANNON.SAPBroadphase(world)
-world.allowSleep = true
+world.broadphase = new CANNON.SAPBroadphase(world);
+world.allowSleep = true;
+world.gravity.set(0, -9.82, 0);
 
-// Material
+// Default material
 const defaultMaterial = new CANNON.Material("default");
 
 const defaultContactMaterial = new CANNON.ContactMaterial(
@@ -72,7 +88,6 @@ world.addContactMaterial(defaultContactMaterial);
 world.defaultContactMaterial = defaultContactMaterial;
 
 // sphere
-world.gravity.set(0, -9.82, 0);
 // const sphereShape = new CANNON.Sphere(0.5);
 // const sphereBody = new CANNON.Body({
 //   mass: 1, //质量
@@ -96,11 +111,14 @@ world.addBody(floorBody);
 
 floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(-1, 0, 0), Math.PI * 0.5);
 
+
+
 /**
  * Utils
  */
-// create sphere
 const objectsToUpdate = [];
+
+// create sphere
 const sphereGeometry = new THREE.SphereGeometry(1, 20, 20);
 const sphereMaterial = new THREE.MeshStandardMaterial({
   metalness: 0.3,
@@ -127,6 +145,7 @@ const createSphere = (radius, position) => {
   });
 
   body.position.copy(position);
+  body.addEventListener('collide', playHitSound)
   world.addBody(body);
 
   // Save in objects to update
@@ -139,7 +158,7 @@ const createSphere = (radius, position) => {
 // createSphere(0.5, { x: 0, y: 3, z: 0 });
 
 // Create box
-const boxGeomerty = new THREE.BoxGeometry(1,1,1);
+const boxGeomerty = new THREE.BoxGeometry(1, 1, 1);
 const boxMertail = new THREE.MeshStandardMaterial({
   metalness: 0.3,
   roughness: 0.4,
@@ -165,6 +184,8 @@ const createBox = (width, hegiht, depth, position) => {
     material: defaultMaterial,
   });
   body.position.copy(position);
+
+  body.addEventListener('collide',playHitSound)
   world.addBody(body);
 
   // Save in objects
@@ -274,7 +295,7 @@ const tick = () => {
   // sphere.position.copy(sphereBody.position);
   for (const object of objectsToUpdate) {
     object.mesh.position.copy(object.body.position);
-    object.mesh.quaternion.copy(object.body.quaternion)
+    object.mesh.quaternion.copy(object.body.quaternion);
   }
 
   // Update controls
