@@ -386,7 +386,7 @@ const createSphere = (radius, position) =>
 ```javascript
 createSphere(0.5, { x: 0, y: 3, z: 0 })
 ```
-![tutieshi_640x400_4s.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1685502455468-6203ef9a-ff8b-4863-ad98-0834dd2a5fe3.gif#clientId=u05a8914d-8ced-4&from=drop&id=ud3526a45&originHeight=400&originWidth=640&originalType=binary&ratio=2&rotation=0&showTitle=false&size=1124545&status=done&style=none&taskId=uac47ff23-08d1-4c69-b250-a116a03f554&title=)
+![tutieshi_640x400_4s.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1685502455468-6203ef9a-ff8b-4863-ad98-0834dd2a5fe3.gif#averageHue=%232f2f2d&clientId=u05a8914d-8ced-4&from=drop&id=ud3526a45&originHeight=400&originWidth=640&originalType=binary&ratio=2&rotation=0&showTitle=false&size=1124545&status=done&style=none&taskId=uac47ff23-08d1-4c69-b250-a116a03f554&title=)
 如您所见，位置不必是 Three.js [Vector3](https://threejs.org/docs/#api/en/math/Vector3)或 Cannon.js [Vec3](http://schteppe.github.io/cannon.js/docs/classes/Vec3.html) 两个标准中心点 ，我们可以简单地使用具有`x``,y`和`z`属性的对象（对我们来说很幸运）。
 您应该看到球体漂浮在地板上方，但不幸的是，它不再移动了。[这是完全正常的，因为我们刚才注释或者删除了将 Cannon.js Body](http://schteppe.github.io/cannon.js/docs/classes/Body.html) 的`position`属性应用于 Three.js [Mesh 的](https://threejs.org/docs/#api/en/objects/Mesh) `position` 属性的代码。
 ### 使用对象数组
@@ -819,3 +819,391 @@ scene.add(box)
 Physijs 会处理剩下的事情。
 虽然它很吸引人，尤其是对于初学者来说，但当您尝试做该库不支持的事情时，事情就会变得复杂。查找错误的来源也可能很麻烦，因为封装过头了。
 就像 Ammo.js 一样，花点时间想想用哪个物理库是您项目的最佳解决方案。
+
+# 22. Imported Models导入模型
+## 介绍
+Three.js 可以让你创建很多原始几何体，但是当涉及到更复杂的形状时，我们最好使用专用的 3D 软件建模。
+在本课中，我们将使用已经制作好的模型，但我们将在以后的课程中学习如何完全在 3D 软件中创建模型。
+## 格式
+随着时间的推移，已经出现了许多 3D 模型格式。每个3D格式都在给予大家解决方案，比如模型中嵌入了什么数据、权重、压缩、兼容性、版权等。
+这就是为什么今天我们可以访问数百种模型格式：[https://en.wikipedia.org/wiki/List_of_file_formats#3D_graphics](https://en.wikipedia.org/wiki/List_of_file_formats#3D_graphics)。
+有些3D格式专用于一种软件。一些已知非常轻，但有时缺乏具体数据。众所周知，有些存储库几乎包含您可能需要的所有数据，但它们很重。有些格式是开源的，有些格式不是，有些是二进制的，有些是 ASCII，等等。
+如果您需要精确的数据并且找不到您的软件支持的适当格式，您甚至可以很容易地创建自己的格式。
+以下是您可能会遇到的流行格式列表：
+
+- OBJ
+- FBX
+- STL
+- PLY
+- COLLADA
+- 3DS
+- GLTF
+
+我们不会涵盖所有这些格式。这会很无聊，我们不需要这样做，因为已经有一种格式正在成为一种标准，应该可以满足您的大部分需求。
+## GLTF
+GLTF 代表 GL 传输格式。它由 Khronos Group（OpenGL、WebGL、Vulkan、Collada 背后的人以及许多成员，如 AMD / ATI、Nvidia、Apple、id Software、Google、Nintendo 等）制作。
+GLTF 在过去几年变得非常流行。
+它支持不同的数据集。它可以包括几何体和材质等数据，也可以包括相机、灯光、场景图、动画、骨架、变形甚至多场景等数据。
+它还支持各种文件格式，如 json、binary、embed textures。
+GLTF 已成为实时标准。由于它正在成为一种标准，大多数 3D 软件、游戏引擎和库都要支持它。这意味着您可以在不同的环境中轻松获得相似的结果。
+这并不意味着您必须在所有情况下都使用 GLTF。如果您只需要一个几何图形，您最好使用其他格式，如 OBJ、FBX、STL 或 PLY。你应该在每个项目上测试不同的格式，看看你是否拥有你需要的所有数据，文件是否太大，如果信息被压缩需要多长时间才能解压等等。
+## 查找模型
+首先，我们需要一个模型。正如我们之前所说，稍后我们将学习如何在 3D 软件中创建我们自己的模型，但现在，让我们使用预制模型。
+GLTF 团队还提供各种模型，从简单的三角形到逼真的模型以及动画、变形、透明涂层材料等。
+您可以在此存储库中找到它们：[https://github.com/KhronosGroup/glTF-Sample-Models](https://github.com/KhronosGroup/glTF-Sample-Models)
+如果你想测试这些模型，你必须下载或克隆整个存储库并获取你需要的文件。[但我们将从一只简单的鸭子](https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/Duck)开始，您可以在`/static/models/`启动器的文件夹中找到它。
+## GLTF格式
+虽然 GLTF 本身是一种格式，但它也可以有不同的文件格式。这有点复杂，但有充分的理由。
+如果您打开该`/static/models/Duck/`文件夹，您将看到 4 个不同的文件夹。每个都包含鸭子，但 GLTF 格式不同：
+
+- glTF
+- glTF-Binary
+- glTF-Draco
+- glTF-Embedded
+
+你甚至可以找到其他格式，但这 4 种是最重要的，涵盖了我们需要学习的内容。
+当心; 您的操作系统可能会隐藏其中一些文件的扩展名。请参考代码编辑器中应显示扩展名的文件名。
+### glTF
+这种格式是一种默认格式。该`Duck.gltf`文件是一个 JSON格式，您可以在编辑器中打开它。它包含各种信息，如相机、灯光、场景、材质、对象转换，但既不包含几何体也不包含纹理。该`Duck0.bin`文件是二进制文件，您无法打开阅读。它通常包含几何数据和与顶点相关的所有信息，如 UV 坐标、法线、顶点颜色等。`DuckCM.png`文件只是鸭子的纹理。
+当我们加载这种格式时，我们只要加载`Duck.gltf`包含对其他文件的引用的文件，这些文件将被自动加载。
+### glTF-Binary
+这种格式仅由一个文件组成。它包含我们在 glTF 默认格式中讨论的所有数据。那是一个二进制文件，您不能只在代码编辑器中打开它来查看里面的内容。
+由于只有一个文件，因此这种格式可以更轻便且加载起来更舒适，但您将无法轻松更改其数据。例如，如果你想调整纹理大小或压缩纹理，你不能因为它在那个二进制文件中而与其他文件合并。
+### glTF-Draco
+这种格式类似于**glTF 默认**格式，但缓冲区数据（通常是几何图形）是使用[Draco 算法](https://github.com/google/draco)压缩的。如果比较`.bin`文件大小，您会发现它要轻得多。
+虽然此格式有一个单独的文件夹，但您可以将 Draco 压缩应用于其他格式。
+这个先放一边，以后再说。
+### glTF-Embedded
+这种格式类似于**glTF-Binary**格式，因为它只有一个文件，但这个文件实际上是一个 JSON，您可以在编辑器中打开它。
+这种格式的唯一好处是只有一个易于编辑的文件。
+### 选择
+选择正确的格式取决于您希望如何处理资源。
+如果你想在导出后能够改变纹理或灯光的坐标，你最好选择`glTF-default`。它还具有分别加载不同文件的优势，从而提高了加载速度。
+如果每个模型只需要一个文件并且不关心要不要修改资源，则最好选择`glTF-Binary`。
+在这两种情况下，您都必须决定是否要使用`Draco`压缩，但我们稍后会介绍这一部分。
+## 设置
+启动器由一个空平面组成。
+因为 GLTF 是一个标准，它显然支持灯光。通常，当您将 GLTF 导入 Three.js 项目时，您最终会得到具有[MeshStandardMaterial的](https://threejs.org/docs/#api/en/materials/MeshStandardMaterial)[网格](https://threejs.org/docs/#api/en/objects/Mesh)，您可能还记得，如果您的场景中没有灯光，您将看不到太多这些材料。
+启动器中已经有一个[AmbientLight](https://threejs.org/docs/#api/en/lights/AmbientLight)和一个[DirectionalLight 。](https://threejs.org/docs/#api/en/lights/DirectionalLight)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685518859987-74e7db8c-a4d6-450f-ac30-638089ccf6f4.png#averageHue=%23353535&clientId=u27185b89-d41c-4&from=paste&id=uad311af9&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ubed126cf-1b70-4e9f-badf-5f29b901d66&title=)
+## 在 Three.js 中加载模型
+要在 Three.js 中加载 GLTF 文件，我们必须使用[GLTFLoader](https://threejs.org/docs/#examples/en/loaders/GLTFLoader)。此类在`THREE`变量中默认不可用。我们需要从`three`位于`examples/`依赖项中的文件夹中导入它：
+
+```javascript
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+```
+
+然后我们可以像为 TextureLoader 一样实例化[它](https://threejs.org/docs/index.html#api/en/loaders/TextureLoader)：
+
+```javascript
+/**
+ * Models
+ */
+const gltfLoader = new GLTFLoader()
+```
+
+如果需要，我们也可以像在纹理课程中那样使用[LoadingManager](https://threejs.org/docs/#api/en/loaders/managers/LoadingManager)。
+要加载模型，好消息，它几乎和加载纹理一样简单。我们调用该`load(...)`方法并使用正确的参数：
+
+- 文件的路径
+- 成功回调函数
+- 进度回调函数
+- 错误回调函数
+
+```javascript
+gltfLoader.load(
+    '/models/Duck/glTF/Duck.gltf',
+    (gltf) =>
+    {
+        console.log('success')
+        console.log(gltf)
+    },
+    (progress) =>
+    {
+        console.log('progress')
+        console.log(progress)
+    },
+    (error) =>
+    {
+        console.log('error')
+        console.log(error)
+    }
+)
+```
+
+您应该看到进度和正在调用的成功函数。如果无法加载文件，可能会调用错误函数。检查路径，不要忘记我们不能添加路径是`/static`的部分。
+
+```javascript
+gltfLoader.load(
+    '/models/Duck/glTF/Duck.gltf',
+    (gltf) =>
+    {
+        console.log(gltf)
+    }
+)
+```
+
+## 将加载的模型添加到我们的场景中
+如果查看控制台中记录的对象，您会发现很多元素。最重要的部分是`scene`属性，因为我们在导出的模型中只有一个场景。
+这`scene`包含了我们需要的一切。但它还包括更多。始终从研究其中可用的内容开始，并观察不同[Groups](https://threejs.org/docs/#api/en/objects/Group)、[Object3D](https://threejs.org/docs/#api/en/core/Object3D)和[Mesh](https://threejs.org/docs/#api/en/objects/Mesh)的`scale`缩放属性。
+我们得到这样的东西：
+
+```javascript
+THREE.Group: scene
+└───Array: children
+    └───THREE.Object3D
+        └───Array: children
+            ├───THREE.PerspectiveCamera
+            └───THREE.Mesh
+```
+
+`mesh`网格应该是我们的鸭子。我们并不真正关心[PerspectiveCamera](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera)。相机和鸭子似乎都在场景的子数组中的第一个也是唯一一个[Object3D中。](https://threejs.org/docs/#api/en/core/Object3D)更糟糕的是，[Object3D](https://threejs.org/docs/#api/en/core/Object3D)已将`scale`设置为最小值。
+正如您所看到的，即使是获取我们的鸭子也有点复杂，这是大多数初学者迷路的地方。
+我们想要的只是让我们的鸭子出现在场景中。我们有多种方法可以做到这一点：
+
+- 将整体添加到我们的`scene`场景中。我们可以这样做，因为即使它的名字是`scene`，它实际上是一个[Group](https://threejs.org/docs/#api/en/objects/Group)。
+- 将 `scene`的子项添加到我们的场景中并忽略未使用的[PerspectiveCamera](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera)。
+- 在添加到场景之前过滤子项以删除不需要的对象，如[PerspectiveCamera](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera)。
+- 仅添加[网格](https://threejs.org/docs/#api/en/objects/Mesh)，但最终得到的鸭子可能会被错误地缩放、定位或旋转。
+- 在 3D 软件中打开文件并删除[PerspectiveCamera](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera)，然后再次导出GITF文件。
+
+因为我们的模型结构简单，我们将Object3D添加[到](https://threejs.org/docs/#api/en/core/Object3D)我们的场景中，而忽略里面未使用的[PerspectiveCamera](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera)。在以后的课程中，我们会将整个场景添加为一个对象：
+
+```javascript
+gltfLoader.load(
+    '/models/Duck/glTF/Duck.gltf',
+    (gltf) =>
+    {
+        scene.add(gltf.scene.children[0])
+    }
+)
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685518860071-158e7d6a-2c6a-4db0-9088-362a903ae1d6.png#averageHue=%233c3831&clientId=u27185b89-d41c-4&from=paste&id=ub1c72004&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u059b1931-68a6-442d-aa41-6c808bb07df&title=)
+你应该看到渲染了一只鸭子。
+您可以尝试其他格式，但不能尝试尚不能使用的 `Draco`：
+
+```javascript
+gltfLoader.load(
+    '/models/Duck/glTF/Duck.gltf', // Default glTF
+
+// Or
+gltfLoader.load(
+    '/models/Duck/glTF-Binary/Duck.glb', // glTF-Binary
+
+// Or
+gltfLoader.load(
+    '/models/Duck/glTF-Embedded/Duck.gltf', // glTF-Embedded
+```
+
+文件夹中提供了另一个名为`FlightHelmet`（也取自[glTF 模型示例](https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0)/static/models/）的模型。该模型只有一种格式，即默认的 glTF。
+尝试加载此模型：
+
+```javascript
+gltfLoader.load(
+    '/models/FlightHelmet/glTF/FlightHelmet.gltf',
+    (gltf) =>
+    {
+        scene.add(gltf.scene.children[0])
+    }
+)
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685518860046-f8e0badd-5406-44de-b13e-671b05ac0cc4.png#averageHue=%23353535&clientId=u27185b89-d41c-4&from=paste&id=udcaa17c6&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ubdd2280e-aa2d-4a67-b658-2d963dd57a3&title=)
+我们没有得到漂亮的头盔，只渲染了几个零件。
+问题是我们只将 loaded 的第一个child添加到我们的`scene`场景中。
+我们可以尝试的是循环孩子并将他们添加到场景中：
+
+```javascript
+for(const child of gltf.scene.children)
+{
+    scene.add(child)
+}
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685518860031-5d777adb-1632-4dca-a5c7-8987c81f2a04.png#averageHue=%23353535&clientId=u27185b89-d41c-4&from=paste&id=ud9e0ee49&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u9f02fcee-e256-4e6e-a18e-30e92dca9a4&title=)
+这将产生更多元素，但不是全部。更糟糕的是，刷新时，您可能会得到不同的部分。
+问题是当我们将一个child从一个场景添加到另一个场景时，它会自动从第一个场景中删除。这意味着现在第一个场景中的child更少了。
+当我们添加第一个对象时，它会从第一个场景中移除，而第二个元素只是移动到第一个位置。但是您的循环现在采用数组的第二个元素。您将始终在`children`数组中保留元素。
+这个问题有多种解决方案。第一个解决方案是获取已加载场景的第一个子节点并将其添加到我们的场景中，直到没有剩余为止：
+
+```javascript
+while(gltf.scene.children.length)
+{
+    scene.add(gltf.scene.children[0])
+}
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685518860008-1cca9a7c-13ca-4789-a09d-d7bcb5d7bacc.png#averageHue=%23353535&clientId=u27185b89-d41c-4&from=paste&id=u364e1b65&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u9d22fa20-96de-47c3-a088-085cb581dd4&title=)
+我们现在得到了整个头盔。
+另一种解决方案是复制`children`数组以获得一个未更改的独立数组。为此，我们可以使用扩展运算符`...`并将结果放入一个全新的数组中[]：
+
+```javascript
+const children = [...gltf.scene.children]
+for(const child of children)
+{
+    scene.add(child)
+}
+```
+
+这是一种原生 JavaScript 技术，可以在不触及原始数组的情况下复制数组。
+最后，我们之前提到的一个简单好用的解决方案是添加属性`scene`：
+
+```javascript
+scene.add(gltf.scene)
+```
+
+我们的头盔太小了，我们只能增加比例，但我们会回到我们的 Duck 并尝试使用 Draco 压缩版本。
+## Draco compression 压缩
+让我们回到我们的鸭子，但这一次，我们将使用 Draco 版本：
+
+```javascript
+gltfLoader.load(
+    '/models/Duck/glTF-Draco/Duck.gltf',
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685518861844-0aae90fb-413a-4e58-8cf6-8df85db9ec51.png#averageHue=%23353535&clientId=u27185b89-d41c-4&from=paste&id=uc9b23851&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u519b03de-1de7-4250-ac04-6b7c11c63e2&title=)
+可悲的是，我们没有得到任何鸭子。如果您查看日志，您应该会看到如下所示的警告`No DRACOLoader instance provided`。我们需要为我们的[GLTFLoader提供一个](https://threejs.org/docs/#examples/en/loaders/GLTFLoader)[DRACOLoader](https://threejs.org/docs/#examples/en/loaders/DRACOLoader)实例，以便它可以加载压缩文件。
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685523180963-68f20f52-e792-43a8-a118-dca3aee308d5.png#averageHue=%23e7ba2a&clientId=u4621e0b7-5761-4&from=paste&height=137&id=u146c760d&originHeight=273&originWidth=841&originalType=binary&ratio=2&rotation=0&showTitle=false&size=51531&status=done&style=none&taskId=u51ab8d67-ac71-456e-8200-219fca9c999&title=&width=420.5)
+正如我们在浏览文件时看到的，Draco 版本比默认版本要轻得多。压缩应用于缓冲区数据（通常是几何图形）。使用默认的 glTF、二进制 glTF或嵌入式 glTF并不重要。
+它甚至不是 glTF 独有的，您可以将它与其他格式一起使用。但是 glTF 和 Draco 同时流行起来，所以 glTF 导出器的实现速度更快。
+谷歌在开源 Apache 许可下开发算法：
+
+- 网站： https: [//google.github.io/draco/](https://google.github.io/draco/)
+- Git 存储库： https: [//github.com/google/draco](https://github.com/google/draco)
+### 添加 DRACOLoader
+Three.js 已经支持 Draco。我们必须从[DRACOLoader](https://threejs.org/docs/#examples/en/loaders/DRACOLoader)导入开始：
+
+```javascript
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
+```
+
+然后我们可以实例化加载器（在 `gltfLoader` 之前）：
+
+```javascript
+const dracoLoader = new DRACOLoader()
+```
+
+解码器在原生 JavaScript 和 Web Assembly (wasm) 中可用，并且它可以在 worker 中运行（我们在物理课结束时看到的另一个线程）。这两个功能显著提高了性能，但它们意味着具有完全独立的代码。
+Three.js 已经提供了这个分离的代码。要找到它，我们必须浏览到 Three.js 依赖项并将 Draco 解码器文件夹复制到我们的`/static/`文件夹中。
+这个 Draco 文件夹位于`/node_modules/three/examples/js/libs/`. 获取整个`/draco/`文件夹并将其复制到您的`/static/`文件夹中。我们现在可以将此文件夹的路径提供给我们的`dracoLoader`：
+
+```javascript
+dracoLoader.setDecoderPath('/draco/')
+```
+
+最后，我们可以使用`setDRACOLoader(...)`方法将[DRACOLoader](https://threejs.org/docs/#examples/en/loaders/DRACOLoader)实例提供给[GLTFLoader](https://threejs.org/docs/#examples/en/loaders/GLTFLoader)实例：
+
+```javascript
+gltfLoader.setDRACOLoader(dracoLoader)
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685518862986-ac3db3a9-2a00-49de-9e1c-3dc6128e21db.png#averageHue=%233c3831&clientId=u27185b89-d41c-4&from=paste&id=uebf2dded&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u4d53cdca-ea9c-4634-83b3-4da3aaa31a8&title=)
+你的鸭子应该回来了，但这次是 Draco 压缩版本。
+[您仍然可以使用GLTFLoader](https://threejs.org/docs/#examples/en/loaders/GLTFLoader)加载未压缩的 glTF 文件，并且仅在需要时加载 Draco 解码器。
+### 何时使用 Draco 压缩
+虽然您可能认为 Draco 压缩是一个双赢的局面，但事实并非如此。是的，几何体更轻，但首先，您必须加载[DRACOLoader](https://threejs.org/docs/#examples/en/loaders/DRACOLoader)类和解码器。其次，您的计算机需要花费时间和资源来解码压缩文件，这可能会导致体验开始时出现短暂的卡顿，即使我们使用的是 worker 和 Web Assembly 代码也是如此。
+你必须适应并决定什么是最好的解决方案。如果你只有一个 100kB 几何模型，你可能不需要 Draco。但是，如果您有很大 MB 的模型要加载并且不关心用户体验开始时要进行一些等待，您可能需要 Draco 压缩。
+## 动画 
+正如我们之前所说，glTF 也支持动画。Three.js 可以处理这些动画。
+### 加载动画模型
+首先，我们需要一个动画模型。我们可以使用位于文件夹中的狐狸`/static/models/Fox/`（也取自[glTF 模型示例](https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/Fox)）。
+更改加载该狐狸的路径：
+
+```javascript
+gltfLoader.load(
+    '/models/Fox/glTF/Fox.gltf',
+```
+![tutieshi_640x400_5s.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1685524738225-a1cf473e-2ff3-4c86-be90-a7cbbb8e480b.gif#averageHue=%23303030&clientId=u4621e0b7-5761-4&from=drop&id=ue49ba74f&originHeight=400&originWidth=640&originalType=binary&ratio=2&rotation=0&showTitle=false&size=633989&status=done&style=none&taskId=ud1383e32-14ff-4b1f-a09f-af3d519034d&title=)
+我们渲染出现了问题; 狐狸太大了。如果您看不到它，请查看上方或缩小。
+在处理动画之前，让我们修复比例。如果您查看导入场景的组成，狐狸由一个[Object3D](https://threejs.org/docs/#api/en/core/Object3D)组成，它本身由一个[Bone](https://threejs.org/docs/#api/en/objects/Bone)和一个[SkinnedMesh](https://threejs.org/docs/#api/en/objects/SkinnedMesh)组成。我不会解释它们是什么，但是我们不应该简单地缩放[Object3D](https://threejs.org/docs/#api/en/core/Object3D)就解决问题了。即使现在可以用缩放解决，但是它可能不适用于更复杂的模型。
+我们在这里可以做的是缩放加载的场景并将其直接添加到我们的场景中：
+
+```javascript
+gltfLoader.load(
+    '/models/Fox/glTF/Fox.gltf',
+    (gltf) =>
+    {
+        gltf.scene.scale.set(0.025, 0.025, 0.025)
+        scene.add(gltf.scene)
+    }
+)
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685518863363-af4d5008-d223-4087-be02-8cd2e3b37616.png#averageHue=%233d3633&clientId=u27185b89-d41c-4&from=paste&id=u22d9835a&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u7ae4c352-0bcf-498b-8abb-babf7dd369f&title=)
+### 处理动画
+如果查看加载的对象，您会看到一个名为`gltf`包含多个[AnimationClip 的](https://threejs.org/docs/#api/en/animation/AnimationClip)`animations`属性。
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685524963526-88e52cef-c796-4560-a915-8e53da16de06.png#averageHue=%23eee8ec&clientId=u4621e0b7-5761-4&from=paste&height=124&id=ue5e32f39&originHeight=248&originWidth=541&originalType=binary&ratio=2&rotation=0&showTitle=false&size=69118&status=done&style=none&taskId=u67447764-3c2e-4d03-9058-6e05d35459e&title=&width=270.5)
+这些[AnimationClip](https://threejs.org/docs/#api/en/animation/AnimationClip)不能轻易使用。我们首先需要创建一个[AnimationMixer](https://threejs.org/docs/#api/en/animation/AnimationMixer)。[AnimationMixer](https://threejs.org/docs/#api/en/animation/AnimationMixer)就像一个可以包含一个或多个[AnimationClips 的](https://threejs.org/docs/#api/en/animation/AnimationClip)对象相关联的播放器。这个想法是为每个需要动画的对象创建一个。
+在 success 函数中，创建一个`AnimationMixer`混音器并发送`gltf.sceneas` 参数：
+
+```javascript
+const mixer = new THREE.AnimationMixer(gltf.scene)
+```
+
+我们现在可以使用`clipAction(...)`该方法将[AnimationClip](https://threejs.org/docs/#api/en/animation/AnimationClip)添加到混合器中。让我们从第一个动画开始：
+
+```javascript
+const action = mixer.clipAction(gltf.animations[0])
+```
+
+这个方法返回一个[AnimationAction](https://threejs.org/docs/#api/en/animation/AnimationAction)，我们终于可以调用`play()`它的方法了：
+
+```javascript
+action.play()
+```
+
+遗憾的是，还是没有动画。
+要播放动画，我们必须告诉混音器在每一帧更新自己。问题是我们的`mixer`变量已经在加载回调函数中声明了，我们在函数中无权访问它tick。为了解决这个问题，我们可以在加载回调函数之外声明一个`mixer = null`值的变量，并在加载模型时更新它：
+
+```javascript
+let mixer = null
+
+gltfLoader.load(
+    '/models/Fox/glTF/Fox.gltf',
+    (gltf) =>
+    {
+        gltf.scene.scale.set(0.03, 0.03, 0.03)
+        scene.add(gltf.scene)
+
+        mixer = new THREE.AnimationMixer(gltf.scene)
+        const action = mixer.clipAction(gltf.animations[0])
+        action.play()
+    }
+)
+```
+
+最后，我们可以用已经计算好的`deltaTime` 更新`tick`函数中的混音器。
+但在更新它之前，我们必须测试`mixer`变量是否与`null`不同。这样，如果模型已加载，我们不会更新混音器，这意味着动画尚未准备好：
+
+```javascript
+const tick = () =>
+{
+    // ...
+
+    if(mixer)
+    {
+        mixer.update(deltaTime)
+    }
+
+    // ...
+}
+```
+![tutieshi_640x400_6s.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1685525325793-d6cb70cb-b784-4e39-9c1a-467d37c3ec2c.gif#averageHue=%23352f2d&clientId=u4621e0b7-5761-4&from=drop&id=u5e4eb76d&originHeight=400&originWidth=640&originalType=binary&ratio=2&rotation=0&showTitle=false&size=535172&status=done&style=none&taskId=ua799bc89-5c5e-4239-8e24-27f0bbe67fb&title=)
+动画应该正在运行。您可以通过更改`clipAction(...)`方法中的值来测试其他动画。
+
+```javascript
+const action = mixer.clipAction(gltf.animations[2])
+```
+![tutieshi_640x400_4s.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1685525412716-f7b40707-3bc9-486d-8982-a13e9fd894f0.gif#averageHue=%2335302d&clientId=u4621e0b7-5761-4&from=drop&id=ua8c48b8f&originHeight=400&originWidth=640&originalType=binary&ratio=2&rotation=0&showTitle=false&size=828175&status=done&style=none&taskId=u9293f4da-702a-47b0-95e4-4840fe11788&title=)
+## 三.Three.js在线编辑器
+Three.js 拥有自己的在线编辑器。你可以在这里找到它： https: [//threejs.org/editor/](https://threejs.org/editor/)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685518863419-6c3c9d3e-8861-44b5-b5fc-ac10ee421a9e.png#averageHue=%232e2e2e&clientId=u27185b89-d41c-4&from=paste&id=u61e7528b&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ub5275726-045b-421c-a5c8-bb8c49246c4&title=)
+它就像一个 3D 软件，但在线且功能较少。您可以创建图元、灯光、材质等。
+因为您可以导入模型，所以这是测试您的模型是否正常工作的好方法。虽然要小心; 您只能测试由一个文件组成的模型。您可以尝试使用 glTF-Binary 或 glTF-Embedded 的文件格式。
+将模型拖放到编辑器中。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685518863486-8808de26-a9af-4376-bde2-c398e64ef14c.png#averageHue=%232c2c2c&clientId=u27185b89-d41c-4&from=paste&id=u8933e5ba&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ue9baa420-c9b6-4087-8404-cdbcc586a91&title=)
+你应该看到一只黑鸭子，因为没有光。从菜单中添加一个`AmbientLight`和一个`DirectionalLight`以更清楚地查看它。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685518864925-151cac31-a45a-4533-b320-d889b0f8f98a.png#averageHue=%2335332d&clientId=u27185b89-d41c-4&from=paste&id=u68d07e9b&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u04c83a32-839c-40aa-89be-9553b9a6044&title=)
+最后，您可以以各种格式导出您的场景，您可以在您的代码中重复使用这些格式，但不在我们讨论范围内。
+目前就是这样，但我们将在接下来的课程中多次使用加载的模型进行开发。
