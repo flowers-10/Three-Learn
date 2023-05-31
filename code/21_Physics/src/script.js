@@ -3,7 +3,6 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import * as dat from "lil-gui";
 import CANNON from "cannon";
 
-
 /**
  * Debug
  */
@@ -32,8 +31,6 @@ const environmentMapTexture = cubeTextureLoader.load([
   "/textures/environmentMaps/0/pz.png",
   "/textures/environmentMaps/0/nz.png",
 ]);
-
-
 
 /**
  * Physics
@@ -82,6 +79,7 @@ floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(-1, 0, 0), Math.PI * 0.5);
 /**
  * Utils
  */
+const objectsToUpdate = [];
 const createSphere = (radius, position) => {
   // Three.js mesh
   const mesh = new THREE.Mesh(
@@ -93,25 +91,31 @@ const createSphere = (radius, position) => {
       envMapIntensity: 0.5,
     })
   );
-  mesh.castShadow = true
-  mesh.position.copy(position)
-  scene.add(mesh)
+  mesh.castShadow = true;
+  mesh.position.copy(position);
+  scene.add(mesh);
 
   // Cannon.js body
-  const shape = new CANNON.Sphere(radius)
+  const shape = new CANNON.Sphere(radius);
 
   const body = new CANNON.Body({
-    mass:1,
-    position: new CANNON.Vec3(0,3,0),
-    shape:shape,
-    material: defaultMaterial
-  })
+    mass: 1,
+    position: new CANNON.Vec3(0, 3, 0),
+    shape: shape,
+    material: defaultMaterial,
+  });
 
-  body.position.copy(position)
-  world.addBody(body)
+  body.position.copy(position);
+  world.addBody(body);
+
+  // Save in objects to update
+  objectsToUpdate.push({
+    mesh,
+    body,
+  });
 };
 
-createSphere(0.5,{x:0,y:3,z:0})
+createSphere(0.5, { x: 0, y: 3, z: 0 });
 
 /**
  * Floor
@@ -212,6 +216,9 @@ const tick = () => {
   // sphereBody.applyForce(new CANNON.Vec3(-0.5,0,0),sphereBody.position)
   world.step(1 / 60, deltaTime, 3);
   // sphere.position.copy(sphereBody.position);
+  for (const object of objectsToUpdate) {
+    object.mesh.position.copy(object.body.position)
+  }
 
   // Update controls
   controls.update();
