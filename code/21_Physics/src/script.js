@@ -8,6 +8,7 @@ import CANNON from "cannon";
  */
 const gui = new dat.GUI();
 const debugObject = {};
+
 debugObject.createSphere = () => {
   createSphere(Math.random() * 0.5, {
     x: (Math.random() - 0.5) * 3,
@@ -15,6 +16,7 @@ debugObject.createSphere = () => {
     z: (Math.random() - 0.5) * 3,
   });
 };
+
 gui.add(debugObject, "createSphere");
 
 debugObject.createBox = () => {
@@ -24,7 +26,25 @@ debugObject.createBox = () => {
     z: (Math.random() - 0.5) * 3,
   });
 };
+
 gui.add(debugObject, "createBox");
+
+// Reset
+debugObject.reset = () => {
+  console.log("reset");
+  for (const object of objectsToUpdate) {
+    // Remove body
+    object.body.removeEventListener("collide", playHitSound);
+    world.removeBody(object.body);
+
+    // Remove mesh
+    scene.remove(object.mesh);
+  }
+  
+  objectsToUpdate.slice(0, objectsToUpdate.length);
+};
+
+gui.add(debugObject, "reset");
 
 /**
  * Base
@@ -53,17 +73,17 @@ const environmentMapTexture = cubeTextureLoader.load([
 /**
  * Sounds
  */
-const hitSound = new Audio('/sounds/hit.mp3')
+const hitSound = new Audio("/sounds/hit.mp3");
 
 const playHitSound = (collision) => {
   // console.log(collision.contact.getImpactVelocityAlongNormal())
-  const impactStrength = collision.contact.getImpactVelocityAlongNormal()
-  if(impactStrength > 1.5) {
-    hitSound.volume = Math.random()
-    hitSound.currentTime = 0
-    hitSound.play()
+  const impactStrength = collision.contact.getImpactVelocityAlongNormal();
+  if (impactStrength > 1.5) {
+    hitSound.volume = Math.random();
+    hitSound.currentTime = 0;
+    hitSound.play();
   }
-}
+};
 
 /**
  * Physics
@@ -111,8 +131,6 @@ world.addBody(floorBody);
 
 floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(-1, 0, 0), Math.PI * 0.5);
 
-
-
 /**
  * Utils
  */
@@ -145,7 +163,7 @@ const createSphere = (radius, position) => {
   });
 
   body.position.copy(position);
-  body.addEventListener('collide', playHitSound)
+  body.addEventListener("collide", playHitSound);
   world.addBody(body);
 
   // Save in objects to update
@@ -185,7 +203,7 @@ const createBox = (width, hegiht, depth, position) => {
   });
   body.position.copy(position);
 
-  body.addEventListener('collide',playHitSound)
+  body.addEventListener("collide", playHitSound);
   world.addBody(body);
 
   // Save in objects
