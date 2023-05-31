@@ -54,6 +54,8 @@ const environmentMapTexture = cubeTextureLoader.load([
  * Physics
  */
 const world = new CANNON.World();
+world.broadphase = new CANNON.SAPBroadphase(world)
+world.allowSleep = true
 
 // Material
 const defaultMaterial = new CANNON.Material("default");
