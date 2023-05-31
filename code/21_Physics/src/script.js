@@ -7,7 +7,15 @@ import CANNON from "cannon";
  * Debug
  */
 const gui = new dat.GUI();
-
+const debugObject = {};
+debugObject.createSphere = () => {
+  createSphere(Math.random() * 0.5, {
+    x: (Math.random() - 0.5) * 3,
+    y: 3,
+    z: (Math.random() - 0.5) * 3,
+  });
+};
+gui.add(debugObject, "createSphere");
 /**
  * Base
  */
@@ -217,7 +225,7 @@ const tick = () => {
   world.step(1 / 60, deltaTime, 3);
   // sphere.position.copy(sphereBody.position);
   for (const object of objectsToUpdate) {
-    object.mesh.position.copy(object.body.position)
+    object.mesh.position.copy(object.body.position);
   }
 
   // Update controls
