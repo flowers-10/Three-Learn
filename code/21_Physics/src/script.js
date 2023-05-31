@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import * as dat from "lil-gui";
-import CANNON from "cannon";
+import * as CANNON from 'cannon-es'
 
 /**
  * Debug
@@ -40,7 +40,7 @@ debugObject.reset = () => {
     // Remove mesh
     scene.remove(object.mesh);
   }
-  
+
   objectsToUpdate.slice(0, objectsToUpdate.length);
 };
 
