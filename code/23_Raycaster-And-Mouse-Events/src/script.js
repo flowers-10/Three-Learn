@@ -223,8 +223,16 @@ const tick = () => {
   // duck
   // Test intersect with a model
   if (model) {
-    const modelIntersects = raycaster.intersectObject(model);
-    console.log(modelIntersects);
+    const modelIntersects = raycaster.intersectObject(model)
+        
+        if(modelIntersects.length)
+        {
+            model.scale.set(1.2, 1.2, 1.2)
+        }
+        else
+        {
+            model.scale.set(1, 1, 1)
+        }
   }
 
   // Update controls
