@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import * as dat from "lil-gui";
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 /**
  * Base
@@ -41,26 +41,25 @@ scene.add(object1, object2, object3);
  * Lights
  */
 // Ambient light
-const ambientLight = new THREE.AmbientLight('#ffffff', 0.3)
-scene.add(ambientLight)
+const ambientLight = new THREE.AmbientLight("#ffffff", 0.3);
+scene.add(ambientLight);
 
 // Directional light
-const directionalLight = new THREE.DirectionalLight('#ffffff', 0.7)
-directionalLight.position.set(1, 2, 3)
-scene.add(directionalLight)
+const directionalLight = new THREE.DirectionalLight("#ffffff", 0.7);
+directionalLight.position.set(1, 2, 3);
+scene.add(directionalLight);
 
 /**
  * Model
  */
-const gltfLoader = new GLTFLoader()
-gltfLoader.load(
-  './models/Duck/glTF-Binary/Duck.glb',
-  (gltf) =>
-  {
-    gltf.scene.position.y = - 1.2
-    scene.add(gltf.scene)
-  }
-)
+let model = null;
+const gltfLoader = new GLTFLoader();
+gltfLoader.load("./models/Duck/glTF-Binary/Duck.glb", (gltf) => {
+  model = gltf.scene;
+  console.log(model)
+  gltf.scene.position.y = -1.2;
+  scene.add(model);
+});
 /**
  * Raycaster
  */
@@ -219,6 +218,13 @@ const tick = () => {
     }
 
     currentintersect = null;
+  }
+
+  // duck
+  // Test intersect with a model
+  if (model) {
+    const modelIntersects = raycaster.intersectObject(model);
+    console.log(modelIntersects);
   }
 
   // Update controls
