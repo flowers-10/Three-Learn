@@ -39,6 +39,7 @@ scene.add(object1, object2, object3);
 /**
  * Raycaster
  */
+let currentintersect = null
 const raycaster = new THREE.Raycaster();
 // const rayOrigin = new THREE.Vector3(-3, 0, 0)
 // const rayDirection = new THREE.Vector3(10,0,0)
@@ -61,7 +62,7 @@ window.addEventListener("mousemove", (event) => {
   mouse.x = (event.clientX / sizes.width) * 2 - 1;
   mouse.y = -(event.clientY / sizes.height) * 2 + 1;
 
-  console.log(mouse);
+  // console.log(mouse);
 });
 
 /**
@@ -159,6 +160,20 @@ const tick = () => {
     if (!intersects.find((intersect) => intersect.object === object)) {
       object.material.color.set("#ff0000");
     }
+  }
+
+  // MouseEnter Raycaster
+  if(intersects.length) {
+    if(!currentintersect) {
+      console.log('mouse enter');
+    }
+    currentintersect = intersects[0]
+  }else {
+    if(currentintersect) {
+      console.log('mouse leave');
+    }
+
+    currentintersect = null
   }
 
   // Update controls
