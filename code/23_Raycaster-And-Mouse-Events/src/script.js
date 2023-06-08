@@ -39,7 +39,7 @@ scene.add(object1, object2, object3);
 /**
  * Raycaster
  */
-let currentintersect = null
+let currentintersect = null;
 const raycaster = new THREE.Raycaster();
 // const rayOrigin = new THREE.Vector3(-3, 0, 0)
 // const rayDirection = new THREE.Vector3(10,0,0)
@@ -63,6 +63,27 @@ window.addEventListener("mousemove", (event) => {
   mouse.y = -(event.clientY / sizes.height) * 2 + 1;
 
   // console.log(mouse);
+});
+
+/**
+ * click
+ */
+window.addEventListener("click", () => {
+  if (currentintersect) {
+    switch (currentintersect.object) {
+      case object1:
+        console.log("click on object 1");
+        break;
+      case object2:
+        console.log("click on object 2");
+        break;
+      case object3:
+        console.log("click on object 3");
+        break;
+      default:
+        break;
+    }
+  }
 });
 
 /**
@@ -132,7 +153,6 @@ const tick = () => {
   // const intersects = raycaster.intersectObjects(objectsToTest);
   // console.log(intersects);
 
-
   // Animate objects
   object1.position.y = Math.sin(elapsedTime * 0.3) * 1.5;
   object2.position.y = Math.sin(elapsedTime * 0.8) * 1.5;
@@ -163,17 +183,17 @@ const tick = () => {
   }
 
   // MouseEnter Raycaster
-  if(intersects.length) {
-    if(!currentintersect) {
-      console.log('mouse enter');
+  if (intersects.length) {
+    if (!currentintersect) {
+      console.log("mouse enter");
     }
-    currentintersect = intersects[0]
-  }else {
-    if(currentintersect) {
-      console.log('mouse leave');
+    currentintersect = intersects[0];
+  } else {
+    if (currentintersect) {
+      console.log("mouse leave");
     }
 
-    currentintersect = null
+    currentintersect = null;
   }
 
   // Update controls
