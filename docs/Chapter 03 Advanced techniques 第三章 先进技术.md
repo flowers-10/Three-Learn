@@ -2,6 +2,7 @@
 ## 介绍
 物理是WebGL可以添加到项目体验中最酷的功能之一。人们喜欢真实物理感的物体，看到它们碰撞、倒塌、坠落和弹跳，就像我的作品集一样： https: [//bruno-simon.com/](https://bruno-simon.com/)
 有很多方法可以将物理功能添加到您的项目中，这取决于您想要实现的目标。[您可以使用一些数学和解决方案（例如Raycaster）](https://threejs.org/docs/index.html#api/en/core/Raycaster)来创建自己的物理学
+
 ## 理论
 这个想法很简单。我们将创建一个物理世界。这个物理世界是纯理论的。在这个物理世界上，东西会产生掉落、碰撞、摩擦、滑动等等交互。
 当我们创建一个 Three.js 网格时，我们还将在物理世界中创建该网格的一个物理版本。如果我们在 Three.js 中创建一个 Box，我们也会在物理世界中创建一个Box框。
@@ -1196,7 +1197,7 @@ const tick = () =>
 const action = mixer.clipAction(gltf.animations[2])
 ```
 ![tutieshi_640x400_4s.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1685525412716-f7b40707-3bc9-486d-8982-a13e9fd894f0.gif#averageHue=%2335302d&clientId=u4621e0b7-5761-4&from=drop&id=ua8c48b8f&originHeight=400&originWidth=640&originalType=binary&ratio=2&rotation=0&showTitle=false&size=828175&status=done&style=none&taskId=u9293f4da-702a-47b0-95e4-4840fe11788&title=)
-## 三.Three.js在线编辑器
+## Three.js在线编辑器
 Three.js 拥有自己的在线编辑器。你可以在这里找到它： https: [//threejs.org/editor/](https://threejs.org/editor/)
 ![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685518863419-6c3c9d3e-8861-44b5-b5fc-ac10ee421a9e.png#averageHue=%232e2e2e&clientId=u27185b89-d41c-4&from=paste&id=u61e7528b&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ub5275726-045b-421c-a5c8-bb8c49246c4&title=)
 它就像一个 3D 软件，但在线且功能较少。您可以创建图元、灯光、材质等。
@@ -1207,3 +1208,555 @@ Three.js 拥有自己的在线编辑器。你可以在这里找到它： https: 
 ![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685518864925-151cac31-a45a-4533-b320-d889b0f8f98a.png#averageHue=%2335332d&clientId=u27185b89-d41c-4&from=paste&id=u68d07e9b&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u04c83a32-839c-40aa-89be-9553b9a6044&title=)
 最后，您可以以各种格式导出您的场景，您可以在您的代码中重复使用这些格式，但不在我们讨论范围内。
 目前就是这样，但我们将在接下来的课程中多次使用加载的模型进行开发。
+
+
+# 23. Raycaster and Mouse Events 投射射线（碰撞检测）和鼠标事件
+## 介绍
+顾名思义，Raycaster 可以向特定方向投射（或发射）一条射线，并测试与它相交的对象。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685525987810-f13077c7-1006-4a89-bc42-da0a2e60eb64.png#averageHue=%23dad4cd&clientId=ud410ab0d-566e-4&from=paste&id=ucc73ca41&originHeight=1080&originWidth=1920&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u84b4479c-fef4-451b-becb-74e22c4570f&title=)
+您可以使用该技术来检测玩家前面是否有墙，测试激光枪是否击中了什么东西，测试当前鼠标下方是否有东西来模拟鼠标事件，以及许多其他事情。
+## 设置 
+在我们的启动器中，我们有 3 个红色球体，我们将射出一条光线，看看这些球体是否相交。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685525988490-028356a3-7aa1-4ea2-a648-0d6a40309f2f.png#averageHue=%23140000&clientId=ud410ab0d-566e-4&from=paste&id=u58ab27dd&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u3b554f5b-6ebf-49e5-9d83-42b0153b5e9&title=)
+## 创建光线投射器
+实例化一个[Raycaster](https://threejs.org/docs/index.html#api/en/core/Raycaster)：
+
+```javascript
+/**
+ * Raycaster
+ */
+const raycaster = new THREE.Raycaster()
+```
+
+要改变光线投射的位置和方向，我们可以使用` set(...)`方法。第一个参数是`position`，第二个参数是`direction`。它需要两个向量作为参数：一个是起点位置，另一个是方向。
+两者都是[Vector3](https://threejs.org/docs/index.html#api/en/math/Vector3)，但`direction`必须进行归一化。归一化向量的长度为`1`. 别担心，你不必自己做数学运算，你可以调用`normalize()`向量上的方法：
+
+```javascript
+const rayOrigin = new THREE.Vector3(- 3, 0, 0)
+const rayDirection = new THREE.Vector3(10, 0, 0)
+rayDirection.normalize()
+
+raycaster.set(rayOrigin, rayDirection)
+```
+在这个例子中，起点位置是(-3, 0, 0)，方向是(10, 0, 0)，我们通过normalize()方法将方向向量归一化处理，使其长度为1，表示这是一个单位向量。
+然后将起点位置和方向向量设置为射线的起点和方向，最后使用raycaster.set()方法将它们传递给Raycaster对象。这个射线可以用于碰撞检测或者其他的渲染相关工作。
+在这里，光线位置应该从我们场景的左侧开始，方向似乎向右。我们的光线应该穿过所有球体。
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685525987842-a053e94e-46a4-4ed4-92bf-a27d2ee27d69.png#averageHue=%23150100&clientId=ud410ab0d-566e-4&from=paste&id=uc48a5d3f&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u476191b5-8374-4fc8-a0f7-80fa755d7e1&title=)
+## 投射光线
+要投射光线并获得相交的对象，我们可以使用两种方法，`intersectObject(...)`（单数）和`intersectObjects(...)`（复数）。
+`intersectObject(...)`将测试一个对象并将`intersectObjects(...)`测试一组对象：
+
+```javascript
+const intersect = raycaster.intersectObject(object2)
+console.log(intersect)
+
+const intersects = raycaster.intersectObjects([object1, object2, object3])
+console.log(intersects)
+```
+
+如果您查看日志，您会看到`intersectObject(...)`返回了一个包含一个对象的数组（可能是第二个球体）并且 `intersectObjects(...)`返回了一个包含三个对象的数组（可能是 3 个球体的集合）。
+## 交集的结果 
+`raycaster.intersectObject`交集的结果始终是一个数组，即使您只测试了一个对象。那是因为一条光线可以多次穿过同一个物体。想象一个甜甜圈。光线将穿过环的第一部分，然后穿过中间的孔，然后再次穿过环的第二部分，这样交集的结果就是2个对象了。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685525988468-65a53dc8-be03-4b5a-a0f2-5b736c3a0b90.png#averageHue=%23dcd6d0&clientId=ud410ab0d-566e-4&from=paste&id=u3e06619f&originHeight=1080&originWidth=1920&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u2b8b8466-10e7-47ed-9e83-0c3195b908a&title=)
+返回数组的每一项都包含很多有用的信息：
+
+- `distance`：射线原点和碰撞点之间的距离。
+- `face`：几何体的哪个面被光线击中。
+- `faceIndex`: 那张脸的索引。
+- `object`: 碰撞涉及什么对象。
+- `point`：碰撞在 3D 空间中的确切位置的[Vector3 。](https://threejs.org/docs/index.html#api/en/math/Vector3)
+- `uv`：该几何体中的 UV 坐标。
+
+使用哪个数据取决于您。如果你想测试玩家面前是否有墙，你可以测试`distance`的值. 如果要更改对象的颜色，可以更新 object的材质。如果你想在冲击点上显示爆炸特效，你可以在该`point`位置创建这个爆炸动画。
+## 测试每一帧
+目前，我们一开始只投射一条光线。如果我们想在物体移动时对其进行测试，我们必须在每一帧上进行测试。让我们为球体设置动画，并在光线与它们相交时将它们变成蓝色。
+删除我们之前所做的代码，只保留 `raycaster` 实例化：
+
+```javascript
+const raycaster = new THREE.Raycaster()
+```
+
+通过使用`tick`函数中的经过时间和经典`Math.sin(...)`来为球体制作动画：
+
+```javascript
+const clock = new THREE.Clock()
+
+const tick = () =>
+{
+    const elapsedTime = clock.getElapsedTime()
+
+    // Animate objects
+    object1.position.y = Math.sin(elapsedTime * 0.3) * 1.5
+    object2.position.y = Math.sin(elapsedTime * 0.8) * 1.5
+    object3.position.y = Math.sin(elapsedTime * 1.4) * 1.5
+
+    // ...
+}
+```
+
+![004.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1686018281817-1c1e8d7e-db80-4e97-b374-e346e51da513.gif#averageHue=%23140000&clientId=ub32c77f7-aae5-4&from=drop&id=u4cdf4760&originHeight=410&originWidth=656&originalType=binary&ratio=1&rotation=0&showTitle=false&size=461453&status=done&style=none&taskId=u6c3142ce-5925-4b5a-96ef-422ff909c1f&title=)
+您应该看到球体以不同的频率上下波动。
+现在让我们在`tick`函数中 像以前一样更新我们的 `raycaster`：
+
+```javascript
+const clock = new THREE.Clock()
+
+const tick = () =>
+{
+    // ...
+
+    // Cast a ray
+    const rayOrigin = new THREE.Vector3(- 3, 0, 0)
+    const rayDirection = new THREE.Vector3(1, 0, 0)
+    rayDirection.normalize()
+    
+    raycaster.set(rayOrigin, rayDirection)
+    
+    const objectsToTest = [object1, object2, object3]
+    const intersects = raycaster.intersectObjects(objectsToTest)
+    console.log(intersects)
+
+    // ...
+}
+```
+
+我们不需要规范化，因为`rayDirection`它的长度已经是`1`。但最好保留 `normalize()`归一化向量以防我们改变方向导致向量没有归一化。
+我们还将要测试的对象数组放在一个`objectsToTest`变量中。因为接下来会派上用场的。
+如果您查看控制台，您应该会得到一个包含交点的数组，并且这些交点会根据球体的位置不断变化。
+我们现在可以`object`为数组的每一项更新属性的材质`intersects`：
+
+```javascript
+for(const intersect of intersects)
+    {
+        intersect.object.material.color.set('#0000ff')
+    }
+```
+![005.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1686018630043-57059bf5-201c-436a-966b-49d5cd1a49a4.gif#averageHue=%23000000&clientId=ub32c77f7-aae5-4&from=drop&id=uddbe00ac&originHeight=410&originWidth=656&originalType=binary&ratio=1&rotation=0&showTitle=false&size=343278&status=done&style=none&taskId=uda5e56db-222c-471e-b499-3363bd05834&title=)
+不幸的是，它们都变蓝了，但再也不会变红了。有很多方法可以将不相交的对象变回红色。我们可以做的是将所有球体变成红色，然后将相交的球体变成蓝色：
+
+```javascript
+for(const object of objectsToTest)
+    {
+        object.material.color.set('#ff0000')
+    }
+
+    for(const intersect of intersects)
+    {
+        intersect.object.material.color.set('#0000ff')
+    }
+```
+![006.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1686018651733-ebb0034a-0526-4761-bab5-f61536cc3fa8.gif#averageHue=%230d0000&clientId=ub32c77f7-aae5-4&from=drop&id=u9d7002ff&originHeight=410&originWidth=656&originalType=binary&ratio=1&rotation=0&showTitle=false&size=609468&status=done&style=none&taskId=u0191fd5d-a652-42f3-b7de-93a5fe1da10&title=)
+## 用鼠标使用 raycaster 
+正如我们之前所说，我们还可以使用光线投射器来测试鼠标后面是否有物体。换句话说，如果你悬停在一个物体上就测试它。
+从数学上讲，它有点复杂，因为我们需要从相机向鼠标方向投射光线，但幸运的是，Three.js 完成了所有繁重的工作。
+现在，让我们在`tick`函数中注释与 `raycaster` 相关的代码。
+### 徘徊悬停
+首先，让我们处理悬停。
+首先，我们需要鼠标的坐标。我们不能使用以像素为单位的基本原生 JavaScript 坐标。我们需要一个在水平轴和垂直轴上都从`-1`到`+1`的范围，当鼠标向上移动时，垂直坐标为正。
+这就是 WebGL 的工作原理，它与裁剪空间之类的东西有关，但我们不需要理解那些复杂的概念。
+例子：
+
+- 鼠标在页面左上角：`-1 / 1`
+- 鼠标在页面左下方：`-1 / - 1`
+- 鼠标垂直居中，水平居右：`1 / 0`
+- 鼠标在页面中央：`0 / 0`
+
+首先，让我们创建一个带有[Vector2 的](https://threejs.org/docs/index.html#api/en/math/Vector2)`mouse`变量，并在鼠标移动时更新该变量：
+
+```javascript
+/**
+ * Mouse
+ */
+const mouse = new THREE.Vector2()
+
+window.addEventListener('mousemove', (event) =>
+{
+    mouse.x = event.clientX / sizes.width * 2 - 1
+    mouse.y = - (event.clientY / sizes.height) * 2 + 1
+
+    console.log(mouse)
+})
+```
+
+查看日志并确保值与前面的示例匹配。
+我们可以在`mousemove`事件回调中投射射线，但不建议这样做，因为`mousemove`对于某些浏览器，事件的触发速度可能超过帧率。我们将像以前一样在`tick`函数中投射射线进行碰撞检测。
+为了将光线定向到正确的方向，我们可以使用[Raycaster](https://threejs.org/docs/index.html#api/en/core/Raycaster)上`setFromCamera()`的方法。其余代码与之前相同。如果对象相交或不相交，我们只需将对象材料更新为红色或蓝色：
+
+```javascript
+const tick = () =>
+{
+    // ...
+
+    raycaster.setFromCamera(mouse, camera)
+    
+    const objectsToTest = [object1, object2, object3]
+    const intersects = raycaster.intersectObjects(objectsToTest)
+    
+    for(const intersect of intersects)
+    {
+        intersect.object.material.color.set('#0000ff')
+    }
+
+    for(const object of objectsToTest)
+    {
+        if(!intersects.find(intersect => intersect.object === object))
+        {
+            object.material.color.set('#ff0000')
+        }
+    }
+
+    // ...
+}
+```
+
+如果光标在球体上方，球体应该变成蓝色。![tutieshi_640x400_4s.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1686216937022-3decfecd-98bd-4e5b-8d05-20414fe7e0cc.gif#averageHue=%230e0000&clientId=uc0e73c23-434e-4&from=drop&id=ubbd2cd92&originHeight=400&originWidth=640&originalType=binary&ratio=1&rotation=0&showTitle=false&size=245472&status=done&style=none&taskId=uf54cbb61-d8c5-4ad7-8702-cc9c89eb6f2&title=)
+### 鼠标进入和鼠标离开事件
+在three项目中`'mouseenter'`、`'mouseleave'`等鼠标事件也不支持。如果您想在鼠标“进入”一个对象或“离开”该对象时得到通知，您必须自己完成。
+我们可以做的是重现`mouseenter`和`mouseleave`事件，即拥有一个包含当前悬停对象的变量。
+如果有一个对象相交，但之前没有，则表示该`a`对象发生了`mouseenter` 。
+如果没有对象相交，但之前有一个，则表示`mouseleave`发生了。
+我们只需要保存当前相交的对象：
+
+```javascript
+let currentIntersect = null
+```
+然后，测试并更新`currentIntersect`变量：
+
+```javascript
+const tick = () =>
+{
+    // ...
+    raycaster.setFromCamera(mouse, camera)
+    const objectsToTest = [object1, object2, object3]
+    const intersects = raycaster.intersectObjects(objectsToTest)
+    
+    if(intersects.length)
+    {
+        if(!currentIntersect)
+        {
+            console.log('mouse enter')
+        }
+
+        currentIntersect = intersects[0]
+    }
+    else
+    {
+        if(currentIntersect)
+        {
+            console.log('mouse leave')
+        }
+        
+        currentIntersect = null
+    }
+
+    // ...
+}
+```
+
+### 鼠标点击事件
+现在我们有了一个包含当前悬停对象的变量，我们可以轻松地实现一个`click`事件。
+首先，我们需要监听`click`事件，不管它发生在哪里：
+
+```javascript
+window.addEventListener('click', () =>
+{
+    
+})
+```
+
+然后，我们可以测试`currentIntersect`变量中是否有东西：
+
+```javascript
+window.addEventListener('click', () =>
+{
+    if(currentIntersect)
+    {
+        console.log('click')
+    }
+})
+```
+
+我们还可以测试点击关注的是什么对象：
+
+```javascript
+window.addEventListener('click', () =>
+{
+    if(currentIntersect)
+    {
+        switch(currentIntersect.object)
+        {
+            case object1:
+                console.log('click on object 1')
+                break
+
+            case object2:
+                console.log('click on object 2')
+                break
+
+            case object3:
+                console.log('click on object 3')
+                break
+        }
+    }
+})
+```
+
+重现本机事件需要时间，但一旦您理解了它，它就会非常简单。
+## 使用模型进行光线投射 
+这一切都很好，但是我们可以将光线投射应用于导入的模型吗？
+答案是肯定的，而且其实很容易。但我们将一起做，因为我们可以在此过程中学到一些有趣的东西。
+首先，我们需要一个模型。
+### 加载模型
+我们在上一课中使用的 `Duck` 模型位于该`static/models/Duck/`文件夹中。
+现在是尝试自行加载该模型并将其添加到场景中的好时机。
+首先，我们将使用[GLTFLoader](https://threejs.org/docs/?q=GLTFLoader#examples/en/loaders/GLTFLoader)。
+引入`GLTFLoader`自`three/examples/jsm/loaders/GLTFLoader.js`：
+
+```javascript
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+```
+
+接下来，我们需要实例化它。
+您可以将该代码放在函数实例化之后`scene`和`tick`函数之前的任何位置：
+
+```javascript
+/**
+ * Model
+ */
+const gltfLoader = new GLTFLoader()
+```
+
+我们现在可以调用该`load`方法。这两个参数是文件的路径和加载模型时应调用的函数。
+我们将使用glTF-Binary，但请随意使用其他版本`GLTFLoader`。另外，不要忘记如果要使用`Draco`压缩版需要`DracoLoader`在实例中添加实例。
+调用该方法并作为路径（没有路径）和一个带有控制台日志的函数`load`发送：`'./models/Duck/glTF-Binary/Duck.glb'static/`
+
+```javascript
+gltfLoader.load(
+    './models/Duck/glTF-Binary/Duck.glb',
+    () =>
+    {
+        console.log('loaded')
+    }
+)
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685526011476-620e1df0-cc38-4267-a66d-d2302f19dd30.png#averageHue=%23282205&clientId=ud410ab0d-566e-4&from=paste&id=u9f0c05e7&originHeight=864&originWidth=1536&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=uca4dc8a2-0026-4297-aef4-25376bd5232&title=)
+`'loaded'`您应该在控制台中看到。
+我们现在可以将模型添加到场景中。首先，`gltf`向函数添加一个参数：
+
+```javascript
+gltfLoader.load(
+    './models/Duck/glTF-Binary/Duck.glb',
+    (gltf) =>
+    {
+        console.log('loaded')
+    }
+)
+```
+
+现在，包含在您自己的`scene`属性中`add` `gltf.scene`整个加载场景：
+
+```javascript
+gltfLoader.load(
+    './models/Duck/glTF-Binary/Duck.glb',
+    (gltf) =>
+    {
+        scene.add(gltf.scene)
+    }
+)
+```
+
+如您所见，有些地方不对劲。
+### 灯灯
+如果您尝试过自己做，您可能在执行这一步时遇到了一些困难。
+好像场景里加了点什么，却是一片漆黑。原因是我们的 `Duck` 材质是 `MeshStandardMaterial` [，](https://threejs.org/docs/?q=MeshStandardMaterial#api/en/materials/MeshStandardMaterial)这种材质只有在灯光下才能看到。
+让我们添加一个[AmbientLight](https://threejs.org/docs/?q=AmbientLi#api/en/lights/AmbientLight)和一个[DirectionalLight](https://threejs.org/docs/?q=Direction#api/en/lights/DirectionalLight)：
+
+```javascript
+/**
+ * Lights
+ */
+// Ambient light
+const ambientLight = new THREE.AmbientLight('#ffffff', 0.3)
+scene.add(ambientLight)
+
+// Directional light
+const directionalLight = new THREE.DirectionalLight('#ffffff', 0.7)
+directionalLight.position.set(1, 2, 3)
+scene.add(directionalLight)
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685526011517-b8fa35dd-9f73-40a1-84b7-db3a278292fd.png#averageHue=%231b0500&clientId=ud410ab0d-566e-4&from=paste&id=u406014f7&originHeight=864&originWidth=1536&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u486010c2-3dbd-48b2-8854-d38a27c581c&title=)
+现在我们可以看到 `Duck`，将它向下移动一点：
+
+```javascript
+gltfLoader.load(
+    './models/Duck/glTF-Binary/Duck.glb',
+    (gltf) =>
+    {
+        gltf.scene.position.y = - 1.2
+        scene.add(gltf.scene)
+    }
+)
+```
+
+### 与模型相交
+让我们在模型上试试 `raycaster`。
+这个练习会很简单。我们希望 `Duck` 在光标进入时变大，在光标离开时恢复到正常大小。
+我们将在每一帧上测试光标是否在 `Duck` 中，这意味着我们需要配置该`tick`功能。光线投射器已经通过鼠标设置，我们可以在与我们对球体进行的测试相关的代码之后立即进行相交测试。
+以前，我们曾经针对 `raycaster`内的一组网格`raycaster.intersectObjects`进行测试。但是现在，我们测试的是一个`gltf.scene`， 是的，这个对象可能有多个孩子，更糟糕的是，孩子中也会有孩子，但你会发现这不是问题，我们仍在测试一整个对象。
+我们不使用`intersectObjects`（复数），而是使用`intersectObject`（单数）。它的工作原理是一样的，也会返回一个交集数组，但我们必须向它发送一个对象而不是对象数组。
+那么，你必须做什么？首先，创建一个`modelIntersects`变量（这样它就不会与`intersects`变量冲突），然后调用`raycaster.intersectObject`（单数）方法，最后将其发送`gltf.scene`（此代码无效）：
+
+```javascript
+const tick = () =>
+{
+    // ...
+
+    // Test intersect with a model
+    const modelIntersects = raycaster.intersectObject(gltf.scene)
+    console.log(modelIntersects)
+
+    // Update controls
+    // ...
+}
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685526011380-870d98af-3990-4e50-8fad-d00ecf9d787f.png#averageHue=%23888788&clientId=ud410ab0d-566e-4&from=paste&id=ua21087d8&originHeight=864&originWidth=1536&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=ud886dff7-f5d8-4f3e-b65c-7dcc75dc2a9&title=)
+我们在这里犯了一个错误。如果你熟悉 JS，你就会知道我们无法从加载的回调函数访问外部`gltf`变量。我们称之为变量的“范围”。
+此外，加载模型需要时间。是的，我们正在使用一个非常简单的模型在本地进行测试，但情况可能会有所不同，在线加载复杂的对象需要时间。
+当您尝试与加载的模型进行交互或为加载的模型设置动画时，这些都是您将遇到的经典问题。
+为了解决这两个问题，我们将在加载模型之前使用 `let` 创建一个`model`变量并将其设置为`null`（相当于 JavaScript 中的“无”）：
+
+```javascript
+let model = null
+gltfLoader.load(
+    // ...
+)
+```
+
+由于我们`model`在函数之外创建了该变量，因此我们将能够在`tick`函数中使用它。
+接下来，当加载模型时，我们将 分配`gltf.scene`给`model`：
+
+```javascript
+let model = null
+gltfLoader.load(
+    './models/Duck/glTF-Binary/Duck.glb',
+    (gltf) =>
+    {
+        model = gltf.scene
+        gltf.scene.position.y = - 1.2
+        scene.add(gltf.scene)
+    }
+)
+```
+
+你也可以在加载的函数中把`gltf.scene`替换成`model`因为它更佳语意化方便阅读，尽管它是可选的：
+
+```javascript
+let model = null
+gltfLoader.load(
+    './models/Duck/glTF-Binary/Duck.glb',
+    (gltf) =>
+    {
+        model = gltf.scene
+        model.position.y = - 1.2
+        scene.add(model)
+    }
+)
+```
+
+回到`tick`函数和我们的`intersectObject`：我们现在可以使用`model`变量而不是`gltf.scene`（这段代码现在还不能工作）：
+
+```javascript
+const tick = () =>
+{
+    // ...
+
+    // Test intersect with a model
+    const modelIntersects = raycaster.intersectObject(model)
+    console.log(modelIntersects)
+
+    // ...
+}
+```
+
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685526011456-e80f9780-3a9f-4409-9a68-faace4cbc860.png#averageHue=%23898688&clientId=ud410ab0d-566e-4&from=paste&id=uacb2f0a3&originHeight=864&originWidth=1536&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=uce333b4e-aede-4dd3-b660-02733f8ead9&title=)
+再一次，我们得到一个错误。我们忘记了js的同步执行，因为加载模型需要时间，这意味着`model`变量将暂时已`null`存在。
+`model`我们在这里可以做的只是测试语句中是否有内容`if`：
+
+```javascript
+const tick = () =>
+{
+    // ...
+
+    if(model)
+    {
+        const modelIntersects = raycaster.intersectObject(model)
+        console.log(modelIntersects)
+    }
+
+    // ...
+}
+```
+
+现在我们得到了相交数组。
+### 笔记
+在我们解决 `Duck size` 这个功能之前，有几件事需要注意。
+#### 递归
+首先，我们调用`intersectObject`，`model`它是一个[Group](https://threejs.org/docs/#api/en/objects/Group)，而不是[Mesh](https://threejs.org/docs/#api/en/objects/Mesh)。
+您可以在加载的回调函数中分配`model`之前通过记录来测试它：
+
+```javascript
+let model = null
+gltfLoader.load(
+    './models/Duck/glTF-Binary/Duck.glb',
+    (gltf) =>
+    {
+        model = gltf.scene
+        console.log(model)
+        model.position.y = - 1.2
+        scene.add(model)
+    }
+)
+```
+
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685526011435-0c01f27d-76de-497b-a5c0-bbf75f11404e.png#averageHue=%23121901&clientId=ud410ab0d-566e-4&from=paste&id=u44f558cb&originHeight=864&originWidth=1536&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u6b216dab-d421-4a9c-8dfd-2ad6d4bd9fa&title=)
+这不应该工作，因为 `Raycaster` 应该针对网格进行测试。它起作用的原因是，默认情况下，Raycaster 将检查对象的子对象。更好的是，它会递归地测试所有的内部孩子。
+实际上，我们可以通过将`intersectObject`和`intersectObjects`方法的第二个参数设置为 `false` 来选择停用该选项，但我们可以接受默认行为。
+#### 相交数组
+第二点要注意的是，当我们只测试一个对象时，我们收到了一组相交。
+第一个原因是，由于 Raycaster 正在递归地测试子项，因此可能有多个与射线相交的网格。此处情况并非如此，因为 Duck 仅由一个网格构成，但我们本可以测试更复杂的模型。
+第二个原因是，正如我们之前看到的，即使是一个网格也可以与一条射线相交多次，我们的鸭子就是这种情况。从一个非常特定的角度进行测试，您可以有多个相交点：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685526012993-f5495581-2597-4ec8-bc36-4bf5b478ebb3.png#averageHue=%23250a00&clientId=ud410ab0d-566e-4&from=paste&id=u90aacea5&originHeight=864&originWidth=1536&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=uf81b3bbe-71cc-472c-b020-18a0971a461&title=)
+### 更新规模
+我们快完成了。我们现在需要做的就是根据相交数组更新模型的`scale` 。
+在调用 `intersectObject`之后，我们可以测试数组的`length` 。
+`0`被认为是`false`，所以我们可以只使用`modelIntersects.lengthas` 条件。
+如果在上方`0`，则为`true，`这意味着鼠标悬停在模型上，我们应该增加比例。否则，它将是`false`，这意味着鼠标没有悬停在模型上，我们应该将比例设置为`1`：
+
+```javascript
+const tick = () =>
+{
+    // ...
+
+    if(model)
+    {
+        const modelIntersects = raycaster.intersectObject(model)
+        
+        if(modelIntersects.length)
+        {
+            model.scale.set(1.2, 1.2, 1.2)
+        }
+        else
+        {
+            model.scale.set(1, 1, 1)
+        }
+    }
+
+    // ...
+}
+```
+![tutieshi_640x360_5s.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1686218608306-6d8ec2be-fcec-4cf4-9d2d-0f246756a90c.gif#averageHue=%231b0500&clientId=uc0e73c23-434e-4&from=drop&id=uba6a9598&originHeight=360&originWidth=640&originalType=binary&ratio=1&rotation=0&showTitle=false&size=809290&status=done&style=none&taskId=uec3dbbf9-84fd-4600-aa4d-2a9b4b0dfab&title=)
