@@ -2,7 +2,6 @@
 ## 介绍
 物理是WebGL可以添加到项目体验中最酷的功能之一。人们喜欢真实物理感的物体，看到它们碰撞、倒塌、坠落和弹跳，就像我的作品集一样： https: [//bruno-simon.com/](https://bruno-simon.com/)
 有很多方法可以将物理功能添加到您的项目中，这取决于您想要实现的目标。[您可以使用一些数学和解决方案（例如Raycaster）](https://threejs.org/docs/index.html#api/en/core/Raycaster)来创建自己的物理学
-
 ## 理论
 这个想法很简单。我们将创建一个物理世界。这个物理世界是纯理论的。在这个物理世界上，东西会产生掉落、碰撞、摩擦、滑动等等交互。
 当我们创建一个 Three.js 网格时，我们还将在物理世界中创建该网格的一个物理版本。如果我们在 Three.js 中创建一个 Box，我们也会在物理世界中创建一个Box框。
@@ -1760,3 +1759,373 @@ const tick = () =>
 }
 ```
 ![tutieshi_640x360_5s.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1686218608306-6d8ec2be-fcec-4cf4-9d2d-0f246756a90c.gif#averageHue=%231b0500&clientId=uc0e73c23-434e-4&from=drop&id=uba6a9598&originHeight=360&originWidth=640&originalType=binary&ratio=1&rotation=0&showTitle=false&size=809290&status=done&style=none&taskId=uec3dbbf9-84fd-4600-aa4d-2a9b4b0dfab&title=)
+# 
+24. Blender 自定义建模
+## 介绍
+现在我们知道如何将模型导入场景了；但是我们还不会怎么创建复杂的模型，让我们学习如何使用 3D 软件帮助我们创建自己的模型。
+## 选择软件
+有很多软件可以3D建模，如 Cinema 4D、Maya、3DS Max、Blender、ZBrush、Marmoset Toolbag、Substance Painter 等。这些都很棒，但它们在 UX、性能、功能、兼容性、价格等不同标准上有所不同。
+在本课中，我们将使用 Blender，因为它是免费的，性能卓越，适用于所有主要操作系统，具有许多功能，拥有庞大的社区，并且自 2.8 版本以来操作也变得更加容易。
+请注意，在课程结束时您不会成为 Blender 专家。学习它的所有方面需要一个完整的课程，而且市面上已经有很多很好的学习资源。这个课程是为了让我们了解基础知识并揭开 Blender 软件的神秘面纱，以便有足够的基础来创建简单的模型。
+一开始，我们将了解所有基础知识。需要接受的东西很多，但别担心；我们将多次重复大多数快捷方式、机制和功能。
+如果你在某个时候按下了错误的快捷方式，你失去了你的场景，或者界面完全混乱，只需关闭并重新打开 Blender。
+## 下载Blender
+进入blender官网下载页面，下载最新版本：[https://www.blender.org/download/](https://www.blender.org/download/)
+该软件非常轻便，不会超过几分钟。
+下载后，只需安装即可。
+该课程是使用 Blender 编写和录制的2.83.5。虽然不应存在重大差异，但请留意版本内部潜在的变化。
+## 界面
+### 闪屏
+初始屏幕使您可以访问一些有用的链接、模板和最近打开的文件。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697418847-42c3b993-d58a-4ea5-8c37-fe16ad7e1d0e.png#averageHue=%233b3a3a&clientId=u088972ae-4aa2-4&from=paste&id=u66abd4d1&originHeight=1920&originWidth=3072&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ucdd8ee04-853b-41ea-b36a-c5674bb5e7e&title=)
+起始面板中的图片随 Blender 版本而变化，所以如果您有不同的版本，请不要感到惊讶。
+您还可以在它的右上角看到确切的版本。
+单击启动画面外的任意位置以将其关闭。
+### 领域
+界面的不同部分称为区域。区域非常灵活，您可以创建所需的布局。
+#### 默认区域
+默认情况下，您的主区域名为`3D Viewport`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697418805-91f596b6-e266-4d65-8cc3-08b36d707bfd.png#averageHue=%233d3d3d&clientId=u088972ae-4aa2-4&from=paste&id=u6ed259b8&originHeight=1400&originWidth=2538&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u607cc715-aaf5-49cc-a972-c7e723bf1a9&title=)
+`Timeline`创建动画：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697418765-c1e62ee0-f601-4061-9a23-c9aa511347ed.png#averageHue=%233e3e3e&clientId=u088972ae-4aa2-4&from=paste&id=ufc0dbb58&originHeight=380&originWidth=2540&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u27a5f2ed-577b-47d0-8a9a-7dd9b612c83&title=)
+查看`Outliner`和管理场景图（或场景树）：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697418824-b78d30c3-d42d-443a-8e27-e26cf899f47c.png#averageHue=%232e2e2e&clientId=u088972ae-4aa2-4&from=paste&id=u344f69dc&originHeight=564&originWidth=534&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u06f62c65-3d65-49bb-9265-5b5fa50c181&title=)
+管理`Properties`活动对象（选择）和环境的属性：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697418783-b1d392f4-4ae7-49aa-a440-bd29dc68a4a2.png#averageHue=%23404040&clientId=u088972ae-4aa2-4&from=paste&id=ue4ea0026&originHeight=1182&originWidth=534&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u653551e7-9d15-42f1-a1e7-f9e28b3df5c&title=)
+#### 换一个区域
+要更改某个区域的显示内容，请单击该区域的左上角按钮。在这里，我们将更改时间轴区域。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697421240-0dac4fea-c552-462b-8426-af51c99e8505.png#averageHue=%233d3d3d&clientId=u088972ae-4aa2-4&from=paste&id=u6ed492b6&originHeight=78&originWidth=122&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u98ce47ef-52f3-401a-a6ac-8f7284b7c32&title=)
+我们要在`Timeline`中换一个区域`3D Viewport`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697422992-d0102e62-b1f5-4ed6-9038-216490de1a0f.png#averageHue=%23353535&clientId=u088972ae-4aa2-4&from=paste&id=uf1e2dd0b&originHeight=568&originWidth=424&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u68b660bc-f873-4df1-883a-43950ae89da&title=)
+#### 调整区域大小
+要调整区域大小，请将光标放在两个区域之间并拖放：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697423047-b47dad90-ed0d-4528-8b1e-cc09c1f53045.png#averageHue=%23434343&clientId=u088972ae-4aa2-4&from=paste&id=ub97f6c7a&originHeight=246&originWidth=844&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u3b4fe424-973c-4e22-83fe-79656fdb666&title=)
+#### 创建新区域
+要创建一个新区域，首先，我们必须决定要拆分的区域。然后，我们必须将光标定位在我们左上角，让光标变成十字形然后向右拖放（区域内的几个像素）：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697423843-bddb5e18-e6da-4215-9ec3-b16c6e76b3a4.png#averageHue=%234b4b4b&clientId=u088972ae-4aa2-4&from=paste&id=u9553de28&originHeight=216&originWidth=138&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u6e730e58-22e1-4390-957d-ec2e4f902c4&title=)
+最后，我们就托放出两个分割的区域：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697424197-306889fd-4377-47b2-998b-46ce191ab57a.png#averageHue=%233c3c3c&clientId=u088972ae-4aa2-4&from=paste&id=ud521d305&originHeight=636&originWidth=2580&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u734f9b61-0c6c-477e-a5da-1dc49c7fc5a&title=)
+#### 删除一个区域
+删除一个区域有点棘手，您最终可能会得到几十个不需要的区域。
+在某种程度上，我们不会删除一个区域；我们要做的是取消拆分两个区域。首先，您必须决定两个区域中的哪一个将接管另一个。如果要删除右侧区域，请从左侧区域开始。然后将光标放在与我们要删除的区域相邻的两个角之一（该区域中的几个像素应该接管另一个）：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697428966-df79bee1-29b9-4651-8557-848a7732ebd1.png#averageHue=%23454444&clientId=u088972ae-4aa2-4&from=paste&id=uabd04426&originHeight=412&originWidth=204&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u9abfc058-2987-45a1-9dd3-452d9edd845&title=)
+然后拖放（就像我们创建一个区域一样）但这次是在相反的方向（朝向我们要删除的区域）：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697429800-56f46955-baa0-40dd-9bd2-765a0ce8096b.png#averageHue=%233d3d3d&clientId=u088972ae-4aa2-4&from=paste&id=u745c6147&originHeight=634&originWidth=1512&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u6a8df486-0df8-4327-94a2-ec8198f2c89&title=)
+可能需要多尝试几次，但你会明白的。
+## 快捷方式
+Blender 的优势之一是它的快捷方式。它们有很多，一旦你掌握了这些快捷方式，你的建模效率就会大大滴提高。不用担心; 您可以通过界面或我们稍后将看到的搜索面板使用所有快捷操作。在本课中，我们将使用一些常用的重要的快捷方式。
+这是一个非详尽的快捷方式列表：[https://docs.google.com/document/d/1wZzJrEgNye2ZQqwe8oBh54AXwF5cYIe56EGFe2bb0QU/edit ?usp=sharing](https://docs.google.com/document/d/1wZzJrEgNye2ZQqwe8oBh54AXwF5cYIe56EGFe2bb0QU/edit?usp=sharing)
+需要了解的一件重要事情是快捷方式对鼠标悬停区域敏感。这意味着相同的快捷方式可以根据我们光标悬浮的内容而有不同的操作。我们将在本课中看到的大多数快捷方式都与`3D Viewport`交互. 按快捷键时，您应始终确保将光标保持在这些区域上方。
+快捷方式也是模式敏感的，但我们稍后会讨论模式。
+在 Mac 和 Windows 之间只有一两个快捷方式有所不同。如果有差异，我们课程将引用两个版本。如果快捷方式包含`CTRL`键并且您使用的是 `Mac`系统，请不要假定它是`CMD`键. 请还是使用`CTRL`键。
+## View
+如您所见，您可以向各个可能的方向移动视图。虽然您可以使用触控板，但我建议您使用带滚轮的鼠标，出于建模方便的原因，您可以按下滚轮（或第三个按钮）。从现在开始，我们将把滚轮按钮（我们可以按下的按钮）称为`MIDDLE MOUSE`。
+如果您使用的是触控板，则可以使用两根手指模拟滚轮。
+如果您使用的是 `Magic Mouse`，则可以复制`MIDDLE MOUSE`. 通过 转到首选项`Edit` > `Preferences`。使用左侧的导航菜单，选择该`Input`部分。选中`Emulate 3 Button Mouse`复选框。
+最好你有一个键盘辅助。
+### 轨道旋转
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697430793-c59701c4-a2d8-4104-97c5-07ca1038c858.png#averageHue=%23dbd5cf&clientId=u088972ae-4aa2-4&from=paste&id=u7a14cc6e&originHeight=1080&originWidth=1920&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uee169fe2-6286-4696-8cbe-a5d363a9fac&title=)
+我们可以通过按下`MIDDLE MOUSE`并拖放来旋转视图`3D Viewport`。
+或者我们可以使用每个右上角的小工具`3D Viewport`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697431530-3494a9a5-fe4f-485d-b3e1-e20e98d36982.png#averageHue=%233e3e3e&clientId=u088972ae-4aa2-4&from=paste&id=u941872aa&originHeight=180&originWidth=210&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ud9cf2601-f89a-4364-9bbb-3394791ef9c&title=)
+我们称此旋转轨道（如 Three.js [OrbitControl](https://threejs.org/docs/#examples/en/controls/OrbitControls)），因为视图围绕一个称为视点的不可见中心旋转。我们稍后会谈到这一点。
+### Truck 和Pedstal 
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697432527-b6a7bf24-dcde-4cdf-950f-d29a6403244a.png#averageHue=%23d9d9d9&clientId=u088972ae-4aa2-4&from=paste&id=uc83f84ca&originHeight=1080&originWidth=1920&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ubcb5894d-5243-4d82-b479-4c77627a2bc&title=)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697438172-bc10dd1e-2aeb-42f9-aad1-f78a6bd4f840.png#averageHue=%23d9d9d9&clientId=u088972ae-4aa2-4&from=paste&id=uc3474132&originHeight=1080&originWidth=1920&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uf8e625d9-2e21-4c38-b7a7-c91ce1555cc&title=)
+`Truck`是视图左右移动的进行过程，而`Pedsta`是视图上下移动的进行过程。我们可以通过再次按下`MIDDLE MOUSE`来同时完成这两项操作，但这次还要按下`SHIFT` 键。
+或者我们可以使用右上角的手形图标：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697438240-444101ab-ac84-472b-b33a-74ce18e67665.png#averageHue=%23474747&clientId=u088972ae-4aa2-4&from=paste&id=u576c9be8&originHeight=70&originWidth=92&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u8c8f7f3e-2a1f-4fc9-babc-810c2ea68d5&title=)
+Truck也称为轨道。
+有些人可能还错误地将这些动作称为“平移”。（摄像的专有名词，国外沿用了这个考究的说法，所以你也可以理解为平移）
+### Dolly
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697438137-3536f870-abee-4924-9cfc-9a2d143223b6.png#averageHue=%23dbd1d0&clientId=u088972ae-4aa2-4&from=paste&id=uc8e0e15f&originHeight=1080&originWidth=1920&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ueb62eb16-682e-4336-9f60-dcdb2d94ca3&title=)
+Dollu是当视图向前和向后移动时。我们可以使用`WHEEL`来实现这一点（滚轮滚动）。
+或者我们可以使用右上角的放大镜图标：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697440046-d7342e92-752b-4a38-b188-a137f6482531.png#averageHue=%23484848&clientId=u088972ae-4aa2-4&from=paste&id=udbdf7c9b&originHeight=62&originWidth=94&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u7d9d1b62-582a-4331-b80a-fe8b941ac3e&title=)
+不过要小心；缩放并不完全像前进和后退。**我们离我们在Orbit**部分讨论的视点越来越近或越来越远，但我们不能缩放超过那个点，缩放太多会导致视图卡住。
+要解决此缩放限制问题，我们可以通过按下`SHIFT + CTRL + MIDDLE MOUSE`并拖放来向前和向后移动`3D Viewport`（不适用于触控板的双指技术）。这样，我们就不会卡在视点上。
+界面中没有图标可以执行此操作。
+### 倾斜和平移
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697440205-06f363e3-698a-4bbb-9f3d-0f47824669e0.png#averageHue=%23d5dde1&clientId=u088972ae-4aa2-4&from=paste&id=u8432afae&originHeight=1080&originWidth=1920&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u796a640e-6ee9-4b84-ac4c-a46eed60fda&title=)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697441073-f2e91f21-bb12-4a65-8018-39262dfffd9e.png#averageHue=%23ced8dd&clientId=u088972ae-4aa2-4&from=paste&id=uc2bca1c3&originHeight=1080&originWidth=1920&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ueb9bcc37-a9a1-416c-a630-5512ae5ddac&title=)
+倾斜和平移是相机点上的简单旋转。
+我们必须进入**步行模式**（也称为飞行模式）才能使用这些动作。
+为此，如果您使用的是`QWERTY`键盘，请按`SHIFT + BACK QUOTE`。``` 反引号——也称为反引号、锐音符或左引号——是一种倾斜的简单引号，可用于添加重音。
+找到该字符可能有点困难，因为它的位置会根据您的键盘发生很大变化。您可以在右上角、左下角或非常靠近`ENTER`键的地方找到它。
+如果您使用的是**AZERTY**键盘，则快捷方式将不起作用。我们需要更改键盘映射。通过 转到首选项`Edit > Preferences`。使用左侧的导航菜单，选择该`Keymap`部分。在搜索输入中，编写并更改`view navigation`的快捷方式。`View Navigation (Walk/Fly)SHIFT + F`
+就是这样，您可以使用步行模式`SHIFT + F`。
+您还可以在行走模式下前进、后退和侧面，使用`ARROWS`或`WASD`如果使用`QWERTY`。
+### 透视/正交
+默认视图使用透视图。我们可以使用`NUMPAD 5`或右上角的网格图标切换正交版本：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697443036-bedf54c9-3416-49ce-9f0a-44cd99db8baf.png#averageHue=%23434343&clientId=u088972ae-4aa2-4&from=paste&id=udc6e5179&originHeight=64&originWidth=86&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u9399f26f-a73f-4a27-b497-d3e041931e0&title=)
+### 轴
+我们可以通过按`NUMPAD 1`、 `NUMPAD 3` 和`NUMPAD 7`将相机对准`X`、`Y`和`Z`轴。我们谈论的是数字键盘数字，而不是键盘顶部的数字。 
+要将相机定位在对面，请按相同的键，但同时使用`CTRL`键。
+或者我们可以使用 `gizmo` 并单击轴：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697443017-acfad42c-c7ad-4f5a-b6cb-704c00df0baa.png#averageHue=%233e3e3e&clientId=u088972ae-4aa2-4&from=paste&id=ua219ae5c&originHeight=180&originWidth=210&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u9d6fdc21-5c7c-4f76-af2f-7cf40fdfd4b&title=)
+在 Blender 中，我们将顶轴视为`Z`，这与 Three.js 不同，它是`Y`。
+### 相机
+您可能已经在`3D Viewport`. 要获取相机视点，请按`NUMPAD 0`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697445021-e0d572be-d9d7-409b-bc9f-3797635f2abe.png#averageHue=%23494949&clientId=u088972ae-4aa2-4&from=paste&id=u49a9acab&originHeight=66&originWidth=100&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u67373d8b-094b-4624-bb44-9cf045080dc&title=)
+进行渲染时将使用相机。没有相机就无法渲染场景。
+### 重置
+有时候，我们会迷路，甚至不知道自己的场景在哪里。我们可以通过按`SHIFT + C `重新关注我们的场景。
+### 重点
+要将相机聚焦在一个物体上，请使用` LEFT MOUSE`选择物体，然后按`NUMPAD ,`（我们说的是数字键盘上的逗号，它可能是一个点，具体取决于您使用的键盘）。
+我们还可以专注于一个对象并使用隐藏其他所有内容`NUMPAD /`。使用相同的快捷方式离开焦点模式。
+## 选择
+正如我们刚刚看到的，我们可以使用`LEFT MOUSE`选择物体. 我们还可以使用`SHIFT + LEFT MOUSE `来选择多个对象。
+您可能已经注意到其中一个对象的轮廓总是更亮。该对象不仅被选中；它也是活跃的。我们稍后会看到更多相关信息。
+要撤消选择，请按`CMD + Z`(`CTRL + Z`在 Windows 上)。是的，选择对象被认为是我们可以撤消的操作。虽然这看起来很奇怪，但它在您误按时非常有用。
+要取消选择一个对象，请`SHIFT + LEFT MOUSE`再次使用。如果它不是活动的，它将变为活动的，如果它是活动的，它将被取消选择。
+要选择所有内容，请按`A`。
+要取消选择所有内容，请双击`A`。
+要选择矩形区域，请按`B`。
+要像绘画一样选择，请按`C`。在此模式下，使用`WHEEL`更改半径。
+## 创建对象
+要创建对象，请将光标放在 `3D Viewport` 上方，然后按`SHIFT + A`。一个菜单应该在你的光标后面打开。浏览此菜单以创建各种对象。我们将在课程中看到的大部分内容都在`Mesh`子菜单中：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697445333-cf0732e9-c441-43e2-b7f7-fe4628a36df1.png#averageHue=%23383837&clientId=u088972ae-4aa2-4&from=paste&id=u615c4b14&originHeight=970&originWidth=864&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u0306bc8e-a09f-4226-9813-7739cb9a6e9&title=)
+当你创建一个对象时，一个小按钮应该出现在左下角：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697445310-ae186534-c0bb-458f-890d-5e65c2ea8b01.png#averageHue=%23404040&clientId=u088972ae-4aa2-4&from=paste&id=u10696f08&originHeight=124&originWidth=390&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uc9894811-bbe9-4ea8-aff6-fefd1cc1a81&title=)
+单击它可以更改各种属性，例如大小、细分以及与您尝试创建的对象相关的许多其他属性：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697446646-d7a57c1d-1ad9-4f09-9e7b-304776857ed6.png#averageHue=%23373737&clientId=u088972ae-4aa2-4&from=paste&id=u3f45d67f&originHeight=668&originWidth=606&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u02b24d4f-4801-4e17-b90c-3d3dbeee34c&title=)
+如果您单击其他任何地方，您将丢失该菜单。您可以按`F9`重新打开它，但是如果您开始对几何体进行修改，您将无法重新打开此菜单。
+## 删除对象
+要删除一个对象，请选择它，然后将光标放在 `3D Viewport` 上方，然后按`X`。光标后面应该会打开一个确认菜单。点击它删除对象：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697446695-1c40fffe-a485-417d-956d-1200e704dea1.png#averageHue=%2364863c&clientId=u088972ae-4aa2-4&from=paste&id=ub45044b0&originHeight=236&originWidth=498&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ued340604-4398-402b-ae8f-f602a39d464&title=)
+## 隐藏对象 
+要隐藏所选对象，请按`H`。
+要显示隐藏的对象，请按`ALT + H`。
+要隐藏未选定的对象，请按`SHIFT + H`。
+您也可以使用`Outliner`眼睛图标管理它。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697447748-417e83db-b084-49ef-b3e8-1142122fca44.png#averageHue=%23393939&clientId=u088972ae-4aa2-4&from=paste&id=ueb6f3c8e&originHeight=280&originWidth=92&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u50dc06a4-6b43-4e5a-b9b9-40f2e8ba05b&title=)
+## 转换对象
+有 3 种类型的转换——就像在 Three.js 中一样。我们可以改变位置、旋转和比例。
+我们可以使用左侧的菜单分别激活每个或使用第四个按钮一起激活它们：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697447678-37ff83d7-b49a-4709-aab4-009420d1df57.png#averageHue=%23484848&clientId=u088972ae-4aa2-4&from=paste&id=ue83adacb&originHeight=308&originWidth=108&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uf89d74f3-5303-4994-86cc-d3dcf2807ec&title=)
+或者我们可以使用快捷方式：
+
+- `G`职位
+- `R`为了轮换
+- `S`对于规模
+
+激活这些快捷方式之一后，您可以通过按相应的键（ `X`、`Y`和`Z`）强制转换在特定轴上运行。
+## 模式 
+我们目前处于`Object Mode`，我们可以在其中创建、删除和转换对象。还有很多其他模式。
+### 改变模式
+我们可以使用任何区域左上角选择按钮上的菜单更改模式`3D Viewport`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697448741-f8218586-b409-4ee7-9c13-28db6236c405.png#averageHue=%234c4c4b&clientId=u088972ae-4aa2-4&from=paste&id=u6fee5c62&originHeight=108&originWidth=282&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u33e7b750-2d87-410e-806e-65bebe8fc7f&title=)
+或者我们可以按下`CTRL + TAB`打开一个滚轮菜单（又名，最酷的菜单）：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697449461-36b097e1-8d24-4a0f-bafb-1a3f3c1d9ed8.png#averageHue=%233c3b3b&clientId=u088972ae-4aa2-4&from=paste&id=u5486d15b&originHeight=704&originWidth=1104&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u9d126c33-6441-47e2-8cfd-5c63b67356e&title=)
+我们不会涵盖所有模式，但我们将使用`Edit Mode`. 选择一个网格（或创建一个）并切换到`Edit Mode`.
+### 编辑模式
+实际上有一个快捷方式来切换`Edit Mode`. 只需按下`TAB`。
+`Edit Mode`与`Object Mode`非常相似，但我们可以编辑顶点、边和面。默认情况下，我们可以更改顶点。尝试选择顶点，使用常用的快捷方式对它们进行变换——`G`用于位置、`R`旋转、`S`缩放。
+要切换到边和面，我们可以使用右上角的按钮3D Viewport：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697450548-ab881ca9-46fe-4e87-9222-af9d3adc34d8.png#averageHue=%23515151&clientId=u088972ae-4aa2-4&from=paste&id=u1fe744d0&originHeight=96&originWidth=222&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uf641320b-e53f-4fc3-b7e0-16d8c2340ed&title=)
+或者我们可以按键盘顶部的前三个数字`1`, `2`, 和`3`。
+完成对象编辑后，保留`Edit Mode`with `TAB`。
+## 底纹 
+阴影是您在`3D Viewport.`
+我们目前处于`Solid`阴影中。此阴影使您可以看到具有默认材质且没有灯光支持的对象。它既高效又方便。
+我们可以使用右上角的按钮更改阴影：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697450587-e9aa50fb-1e4a-4e54-8f94-30289707a9a5.png#averageHue=%234f4f4f&clientId=u088972ae-4aa2-4&from=paste&id=u77de6c67&originHeight=118&originWidth=314&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u0c56a312-5e4e-4574-aca0-41c8be78051&title=)
+或者我们可以按下`Z`打开一个滚轮菜单：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697450569-cf6dd267-2bd6-4c40-b335-d1624595b431.png#averageHue=%23444444&clientId=u088972ae-4aa2-4&from=paste&id=ub69ed8b7&originHeight=686&originWidth=1054&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ubcc29b04-1119-4fdb-aab9-0e8b1ce4543&title=)
+
+- `Solid`：默认为每个对象使用相同的材质。
+- `Material`：类似于Solid阴影，但可以预览材质及其纹理。
+- `Wireframe`：所有几何图形都在线框内。
+- `Renderer`：低质量渲染——它最逼真但性能最低。
+
+如果您在 `Render`中看不到太多东西，可能是因为您的场景中没有足够的灯光。只需按`SHIFT + A`打开菜单即可添加一两个灯光。
+## 特性
+除非您更改了布局，否则右下方区域名为`Properties`，您可以使用渲染属性、环境属性和活动对象的属性。请记住，活动对象是具有最亮轮廓的对象。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697452128-55736437-0818-459e-bf35-fc705aa21cf1.png#averageHue=%233d3d3d&clientId=u088972ae-4aa2-4&from=paste&id=u157e2433&originHeight=1184&originWidth=626&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u3e6f7eb2-c5aa-4c96-b189-b7d50d7cc3d&title=)
+我们不会涵盖所有这些选项卡，但最上面的选项卡处理渲染和环境：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697454304-716c05fd-6093-4152-b2d4-f94ca5d6fa38.png#averageHue=%23393939&clientId=u088972ae-4aa2-4&from=paste&id=uf752aa04&originHeight=374&originWidth=98&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ud0eebab0-eac3-493c-ac2b-2f47c5811f1&title=)
+下面的那些与活动对象有关，它们可能会根据活动对象的类型而有所不同，因为我们没有立方体与灯光相同的属性：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697454890-adbe883f-6c1b-4dd0-a20e-c860bdbfca78.png#averageHue=%23333332&clientId=u088972ae-4aa2-4&from=paste&id=ud91258f9&originHeight=498&originWidth=112&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ub61b14ae-616b-4d02-b39b-7a64d2b9c1a&title=)
+### 对象属性
+`Object Properties`让您准确更改属性，例如转换：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697455443-43e1aa36-c7de-4cfb-b26e-8bf864635016.png#averageHue=%23403c39&clientId=u088972ae-4aa2-4&from=paste&id=ua414b2e6&originHeight=72&originWidth=108&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ue7446b3e-5dcc-42be-9e8e-2c09b409c37&title=)
+### 修饰符属性
+`Modifiers Properties`让您添加我们所说的修饰符。这些是非破坏性修改。您可以细分、弯曲、增长、收缩等，并根据需要关闭它们：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697455902-9d07f6c9-25f3-4420-8fab-ae1ebba8b43c.png#averageHue=%233b3b3b&clientId=u088972ae-4aa2-4&from=paste&id=u1b61d354&originHeight=64&originWidth=98&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ub3a3989f-54e8-4354-94c1-22bcfa088c6&title=)
+### 材料特性
+`Material Properties`让你玩的材料：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697457467-a30bca99-cbe7-4705-bc9f-dea4ffe8ff8d.png#averageHue=%23353535&clientId=u088972ae-4aa2-4&from=paste&id=u67e5b4f6&originHeight=72&originWidth=96&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uc228770d-11d8-4ade-b85f-c9d8eb57290&title=)
+默认情况下，您可以访问一种名为`Material `的材质，如果您没有删除它，它应该应用于默认立方体：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697457615-b08fec91-3386-46d8-a2ba-7381e19389cf.png#averageHue=%23494949&clientId=u088972ae-4aa2-4&from=paste&id=u4246222c&originHeight=306&originWidth=494&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u3c59748c-fd4b-4314-ae8a-99e0fcb8bbb&title=)
+您可以使用按钮移除材料-并将它们与按钮组合+，但我们通常每个网格只使用一种材料：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697458385-64797302-f463-4d0c-958b-9ad1b2c73657.png#averageHue=%234d4d4d&clientId=u088972ae-4aa2-4&from=paste&id=ufd7e989c&originHeight=140&originWidth=100&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ua59141f8-f631-4354-a3e9-0362835e137&title=)
+如果网格上没有材质，我们可以选择一个现有的，或者我们可以使用按钮创建一个新的New：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697458757-b78379b7-8342-4a2c-a989-1f83e2db4213.png#averageHue=%23434343&clientId=u088972ae-4aa2-4&from=paste&id=uc4287250&originHeight=226&originWidth=970&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u7f68169d-d938-4439-a811-26d2dfe03bc&title=)
+对于一种材料，我们可以有不同类型的表面。默认的`Principled `一个被调用`BSDF`，这种类型的表面使用 `PBR` 原则，就像 `MeshStandardMaterial`[在](https://threejs.org/docs/index.html#api/en/materials/MeshStandardMaterial)Three.js 中所做的那样。这意味着如果我们将这种材质导出到 Three.js 场景，我们应该会得到非常相似的结果。
+我们不会在本课中看到其他类型的材料。
+## 渲染引擎 
+转到`Render Properties`选项卡：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697459972-70345f87-3cf4-445f-b328-874733592878.png#averageHue=%23444444&clientId=u088972ae-4aa2-4&from=paste&id=u1fa95c35&originHeight=66&originWidth=104&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u37093d66-90db-49f7-9d28-1fc64549669&title=)
+在此面板中，我们可以更改`Render Engine`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697463358-481afc3a-62e8-49fb-a4c3-ef3473069de3.png#averageHue=%234b4b4b&clientId=u088972ae-4aa2-4&from=paste&id=u6b382ebd&originHeight=118&originWidth=496&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ubd86bf20-a759-4d41-aa3d-2e3cfc8b3c6&title=)
+有 3 种类型的渲染引擎：
+
+- `Eevee`：实时渲染引擎。它像 Three.js 一样使用 GPU，性能非常好，但它有一些局限性，例如真实感、光反射、反射和折射。
+- `Workbench`：我们不再经常使用的遗留渲染引擎。它的性能非常好，但结果不是很现实。
+- `Cycles`: 光线追踪引擎。这很现实。它可以处理光反射、深度反射、深度折射和许多其他功能，但它非常缓慢，您可能需要等待数小时甚至数天才能渲染您的场景。
+
+您可以更改此属性并查看场景中是否有任何变化。确保使用`Renderer`阴影 — 按`Z`更改阴影。Blender 开发人员在渲染引擎之间保持非常相似的结果方面做得非常出色。
+默认的是`Eevee`，在我们的例子中它是完美的，因为它是实时渲染，Three.js 也是实时渲染。
+如果要渲染场景，请按`F12`。渲染将从相机中看到 - 确保相机在您的场景中定位良好。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697463295-9a162edd-5798-415c-91f0-f109cd37ee19.png#averageHue=%234a4a4a&clientId=u088972ae-4aa2-4&from=paste&id=u15e851c1&originHeight=1376&originWidth=2118&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u88b9e3f2-482b-4089-baa4-e9f0b7397f9&title=)
+## 搜索
+有太多可能的动作，我们不记得如何触发它们。当我们想不通按钮在哪里时的正确解决方案，或者快捷方式是使用面板`Search`。
+要打开`Search`面板，请按`F3`（您可能需要添加fn键，具体取决于您的键盘和操作系统）并输入操作名称：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697464198-91900048-18e7-4fe8-8819-0f238cf1da87.png#averageHue=%233b3b3b&clientId=u088972ae-4aa2-4&from=paste&id=u2ece4099&originHeight=604&originWidth=1138&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ucaa41894-319a-4cea-8071-c9b68447cbd&title=)
+## 保存我们的设置
+创建一个可靠的设置。这取决于你，但因为我们使用 Blender 为 Three.js 导出，所以我们不需要相机。我们还可以在`3D Viewport`带有阴影的`Z``Y`轴上的`Wireframe`主视图下方创建两个侧视图：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697464518-76cbb2f6-a3a6-4e4d-b460-c60b5cf826b9.png#averageHue=%23424242&clientId=u088972ae-4aa2-4&from=paste&id=u6c7a59c8&originHeight=1920&originWidth=3072&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u8d9833f4-bb93-4d27-bde3-c73f8fb9dc2&title=)
+对设置满意后，转到`File` > `Defaults` >` Save Startup File`。这会将您当前的设置设置为打开 `Blender` 时的默认设置：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697464547-0715f60c-a500-4fb2-92d5-6e8fc10a3cf2.png#averageHue=%233e3e3e&clientId=u088972ae-4aa2-4&from=paste&id=u06d2db93&originHeight=894&originWidth=796&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u2deb76f1-e9a9-434f-8424-9401cd5149a&title=)
+点击时要小心`Save Startup File`；确认菜单应该打开，如果您将鼠标移出它，您将失去它。再次点击确认：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697466458-2ddef06c-7766-47fc-998b-5e7bffe13ce6.png#averageHue=%23435922&clientId=u088972ae-4aa2-4&from=paste&id=u5fd181d0&originHeight=184&originWidth=428&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u0fa1164d-b44e-4ae2-9e0c-d40c43a5203&title=)
+## 汉堡时间
+是时候创建我们自己的模型了。在本课中，我们将制作一个汉堡包并将其导入 Three.js。
+就像在 Three.js 中一样，一个好的做法是决定单位比例。如果您查看网格，一个正方形真正代表一个单位，默认情况下，Blender 认为一个单位表示一米：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697466905-61b7f7da-8764-4266-88d5-45e712738dac.png#averageHue=%23464646&clientId=u088972ae-4aa2-4&from=paste&id=ud563efd2&originHeight=172&originWidth=374&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ub4ee7f24-8502-4b10-960c-f057d60737f&title=)
+我们可以制作一个巨大的汉堡包，但抱歉，我们最好从普通大小的三明治开始。我们可以认为`1m`是`1cm`，但如果您不喜欢看到它，您可以通过选择`Scene Properties`作为我们的`PropertiesNoneUnit System`在该区域的选项卡中将其删除：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697467611-351ef205-8a4e-4880-a430-1fedca17579b.png#averageHue=%233d3d3d&clientId=u088972ae-4aa2-4&from=paste&id=u1992afd6&originHeight=272&originWidth=530&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uf0ee096a-de51-453a-901e-a049b5747b4&title=)
+我们现在可以认为`1`是`1cm`。
+### 汉堡包的底部面饼
+对于我们的底部面饼，听起来可能很奇怪，我们将从一个 10 厘米的立方体开始：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697467984-2d212411-a35d-4c50-8bc5-7c6473c02c52.png#averageHue=%233a3a3a&clientId=u088972ae-4aa2-4&from=paste&id=uc1c401d4&originHeight=268&originWidth=634&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u3e093cea-4d06-4d1d-bdd2-3f94c2815e6&title=)
+然后，在确保我们的立方体处于活动状态后，转到`Modifier Properties`选项卡并添加`Subdivision Surface`修饰符：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697469534-8b2505cb-82a5-40a6-ae82-165273bce975.png#averageHue=%232b2e1e&clientId=u088972ae-4aa2-4&from=paste&id=ue293df72&originHeight=216&originWidth=630&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u294cac34-cf63-4f5c-a8e3-be406621445&title=)
+立方体现在有点像球体。
+`Subdivision Surface`是最著名的修饰符之一。它细分了几何体，但同时平滑了角度。
+在字段中添加更多细分`Subdivisions` > `viewport`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697469572-25a98a3a-0f17-4e6b-9236-e1dd3b0a1487.png#averageHue=%23525252&clientId=u088972ae-4aa2-4&from=paste&id=u0072f21b&originHeight=196&originWidth=292&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u48fae9dd-1448-49a6-9201-eeea6543091&title=)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697470645-69628c59-5636-42ea-b5f7-eedd70a86fee.png#averageHue=%233f3f3d&clientId=u088972ae-4aa2-4&from=paste&id=uf8eec4fe&originHeight=1056&originWidth=1258&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u7d2b7c83-1980-4053-a08e-68cd3e4adca&title=)
+面是平的，但我们想要一个光滑的表面。为此，请右键单击球体并选择`Shade Smooth`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697471180-c5df28fa-3d72-45f1-86a1-b1df0c521e97.png#averageHue=%23818384&clientId=u088972ae-4aa2-4&from=paste&id=u068ec368&originHeight=264&originWidth=630&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ub039a435-9ac7-40f1-a5a1-7d47c1e4867&title=)
+使用修改器的好处是您可以保留原始几何体。通过`Edit Mode`按下`g`并移动顶点 ，直到您在地面上方看到鹅卵石：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697472368-cb5d56de-3453-430a-8af4-3f6903082682.png#averageHue=%2352504e&clientId=u088972ae-4aa2-4&from=paste&id=u68a72117&originHeight=898&originWidth=1502&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u4eabdec4-0800-4eb4-a768-8d82ddcee3c&title=)
+所以它仍然不是面包。为了得到正确的形状，我们必须在发髻的边缘添加更多的顶点。我们需要的是循环切割。按下`CTRL + R`并在`Edit Mode`四个垂直边缘之一上移动鼠标：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697472820-3bb2ac7d-7974-4e25-a605-2bea2fb74dff.png#averageHue=%23484848&clientId=u088972ae-4aa2-4&from=paste&id=u622eaf0a&originHeight=722&originWidth=1486&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u3783bb5b-9d24-404c-85f3-ede1469fe07&title=)
+单击一次以创建切口，但不要再次单击。此时，您可以上下移动循环剪切。将循环切割更靠近顶部边缘：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697472800-f9825b7e-6def-402e-80c2-02d947f3e90d.png#averageHue=%2341403f&clientId=u088972ae-4aa2-4&from=paste&id=u709ff35d&originHeight=656&originWidth=1348&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uf6273e11-1986-4a55-a272-896d701c494&title=)
+对面包的下部重复该过程。我们希望我们的面包在底部是平的，但不要太平：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697474062-3ca8fc3c-a0dc-4ac9-9272-c245cbf4701e.png#averageHue=%233e3e3e&clientId=u088972ae-4aa2-4&from=paste&id=u32d0d03b&originHeight=706&originWidth=1652&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u0edfd7bb-c7ac-4fca-ae0e-60d3a9c8916&title=)
+改进你的发髻，直到你满意为止，但不要花太多时间在上面。别担心，一旦我们有了整个场景，我们就会回来。
+### 节省
+是时候保存了。按`CMD + S`（`CTRL + S`在 Windows 上）或转到`Files > Save`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697474121-6e4636e9-1d1b-4279-ba7c-2eedebd0e607.png#averageHue=%23323232&clientId=u088972ae-4aa2-4&from=paste&id=uf590e075&originHeight=368&originWidth=434&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uc7cad920-ea4d-466c-a85e-227ec04405a&title=)
+保存在任何你想要的地方。
+如果您进行了一些更改并再次保存，您将在与`.blend`原始文件相同的文件夹中看到一个文件`.blend1`。这是 Blender 自动生成的最新保存的备份。曾经有一段时间 Blender 不像今天这样稳定。保存文件可能会导致文件损坏。这就是他们创建这些自动备份的原因。今天，Blender 非常稳定，但他们保留备份以防万一，或者因为用户可能会犯错误，例如删除对象、保存和关闭 Blender。幸运的是，您只需重命名该.blend1文件.blend即可访问您之前的保存。
+### 肉
+对肉重复相同的过程。`SHIFT + D`您还可以使用 `Object Mode`（默认）复制底部发髻
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697475516-e2df3c0e-b7b5-45ad-b6af-12c04af54cd5.png#averageHue=%23434b31&clientId=u088972ae-4aa2-4&from=paste&id=ua0bb9265&originHeight=676&originWidth=1434&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u35a964e5-de80-43b7-a315-f210236ef2a&title=)
+不要忘记保存。
+### 奶酪
+对于奶酪，从肉正上方的平面开始：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697476145-57eb7abd-0d69-43f7-a7e5-d7127d60fec6.png#averageHue=%23c5870d&clientId=u088972ae-4aa2-4&from=paste&id=ube629b57&originHeight=652&originWidth=1030&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u0e625485-74b5-4f86-8c68-ed00bcdc70c&title=)
+转到`Edit Mode`（您可以在此处编辑顶点、边和面）并细分几何体。选择唯一的面，右键单击它并选择`Subdivide`。设置`Number of Cuts`为`10`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697476073-f1ce0190-e9b6-481f-9bc8-f58589552805.png#averageHue=%2355504d&clientId=u088972ae-4aa2-4&from=paste&id=u4214f904&originHeight=784&originWidth=1392&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u4e1bf673-4def-40cf-a477-abdbaeacbd5&title=)
+我们要把奶酪角融化。
+当我们还在的时候`Edit Mode`，选择一个奶酪角。如果我们一次移动一个顶点，会花费很长时间，而且结果可能看起来令人失望。我们能做的就是使用`Proportional Editing`. 按`O`“字母”或单击顶部中心的图标`3D Viewport`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697477356-62d9f434-a1a7-440f-b5bc-0e9db3d734ac.png#averageHue=%23434343&clientId=u088972ae-4aa2-4&from=paste&id=u044c1373&originHeight=314&originWidth=674&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ue42648c4-e90a-4775-addc-dddca7e0544&title=)
+现在 `Proportional Editing`已激活，变换一个顶点也会变换相邻顶点。`WHEEL`按下变形键后使用增加效果区域——就像`G`移动一样：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697477659-7273b170-e89b-4902-9819-83be1e69461d.png#averageHue=%23454545&clientId=u088972ae-4aa2-4&from=paste&id=u29eff401&originHeight=754&originWidth=1122&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ub4205d2d-2f6c-4b82-aa2f-f3f942e7bc2&title=)
+相邻顶点移动的方式不正确。要更改它，请单击`Proportional Editing Falloff`图标并选择`Sharp`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697478364-4510312d-9b3d-4aaf-9b0f-ebcaeff05e3e.png#averageHue=%23494949&clientId=u088972ae-4aa2-4&from=paste&id=u1c0af83b&originHeight=474&originWidth=550&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ufad1fc75-961b-4123-93e6-54818844d2b&title=)
+现在调整顶点和`Proportional Editing`大小，直到得到漂亮的俗气形状：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697479627-7a8b2594-bc25-47d4-90bf-ea527055e2f8.png#averageHue=%23a67719&clientId=u088972ae-4aa2-4&from=paste&id=u8ef4edbf&originHeight=696&originWidth=1228&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u214bf0cb-96f0-40ce-a692-ca39421cfc7&title=)
+在`Object Mode` 中，右键单击并选择`Shade Smooth`平滑表面：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697480471-ef6816f8-e428-49d6-995a-cfa9eeddc003.png#averageHue=%23645023&clientId=u088972ae-4aa2-4&from=paste&id=u68ddbac7&originHeight=708&originWidth=1292&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u3d3c8190-5a3b-43a5-b445-ee99ca8bb3c&title=)
+我们的奶酪看起来不够厚。要解决这个问题，请转到`Modifier Properties`并添加`Solidify`修饰符：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697481585-53885180-525e-4eb2-bdb3-cfe4b9d63358.png#averageHue=%232a311d&clientId=u088972ae-4aa2-4&from=paste&id=u5c6506e1&originHeight=240&originWidth=636&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ue8c100b9-44d0-4146-b837-c3e27cc0d74&title=)
+然后将厚度增加到0.08：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697481564-c49983d5-828e-4eb8-9a55-981af74cb528.png#averageHue=%23505050&clientId=u088972ae-4aa2-4&from=paste&id=ue85c6701&originHeight=190&originWidth=294&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u00ddc1f1-8005-4e3e-bd90-7352a9de76a&title=)
+如果您想更加欣赏结果，请将阴影更改为线框 — 按`Z`打开着色轮菜单：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697482687-27e3cfce-15ad-46f2-a58e-97239cde8ac3.png#averageHue=%23474038&clientId=u088972ae-4aa2-4&from=paste&id=ud1fd7224&originHeight=930&originWidth=1698&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uea0c5122-60f1-4894-9646-4a1e28bca48&title=)
+不要听起来太挑剔，但是`Shade Smooth`边缘看起来有点奇怪：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697483064-b723d96d-09a7-4bd8-9361-2cce1680529e.png#averageHue=%238f9192&clientId=u088972ae-4aa2-4&from=paste&id=uc595bf2f&originHeight=580&originWidth=1248&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u55dcc142-e3ee-4bc0-88ca-e447f4f40c0&title=)
+要解决此问题，请转到`Object Data Properties`面板，然后转到该`Normals`部分，然后检查`Auto Smooth`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697483959-31b280a9-30c1-4cce-aaef-c48dfb779f1b.png#averageHue=%23464646&clientId=u088972ae-4aa2-4&from=paste&id=u94038eae&originHeight=220&originWidth=564&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uc954c712-ff9e-4b6c-8920-6f1cad26179&title=)
+只有当边缘的角度低于 30° 时，此功能才会使表面平滑。在这一点上，你应该得到一个逼真且开胃的融化奶酪：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697484543-e04b049c-ff63-4905-83c9-1f59a867c3b2.png#averageHue=%238c8e8f&clientId=u088972ae-4aa2-4&from=paste&id=u6f0256dd&originHeight=650&originWidth=1158&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=udafadb35-78d1-4fa8-aeb8-fd1cc14d187&title=)
+### 顶包子
+像添加底部面包一样添加顶部面包，但使其更圆：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697485162-bae08531-30fb-4129-9e25-bc0c75742d05.png#averageHue=%234e682c&clientId=u088972ae-4aa2-4&from=paste&id=ua694fe1b&originHeight=784&originWidth=1432&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u8d718a67-98a1-4a0f-93b0-ee7a1fbfae9&title=)
+### 最后的调整
+现在我们有了所有的成分，我们可以固定比例，回到以前的成分，改善整体形状。
+不要忘记保存。
+### 材料
+是时候给我们的汉堡添加一些颜色和表面特性了。为简单起见，我们不会应用纹理或使用绘画。
+我们需要 3 种材料——一种用于面包，一种用于肉，一种用于奶酪。
+选择底部的面包并转到`Material Properties`面板：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697485982-a638db37-819c-4df1-95c4-883ee6f59226.png#averageHue=%233e3e3e&clientId=u088972ae-4aa2-4&from=paste&id=u44c7d317&originHeight=66&originWidth=146&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u91ce1891-850b-4054-9126-35ed404237f&title=)
+你应该没有与发髻相关的材料。如果有，请单击它并按下按钮-。
+要创建新材料，请单击按钮`New`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697486939-fbb26e22-5889-41fe-a548-8ae7affc7669.png#averageHue=%23484848&clientId=u088972ae-4aa2-4&from=paste&id=u54ea2832&originHeight=318&originWidth=536&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ub456eb1d-fa1b-41b7-be7f-2abe83c81de&title=)
+重命名材料是一种很好的做法。双击它的名字并调用它`BunMaterial`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697487915-5f78d545-fa14-4e81-9298-4c88fcfb3677.png#averageHue=%23434343&clientId=u088972ae-4aa2-4&from=paste&id=ua693ada9&originHeight=90&originWidth=362&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u03e447b8-6856-4d0a-a8ac-9a8ca898220&title=)
+现在，调整属性以获得美味的颜色。我们只需要更改`Base Color`和`Roughness`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697489104-a968bd0f-5089-4cd8-8df1-3bd5855397b0.png#averageHue=%23d9c545&clientId=u088972ae-4aa2-4&from=paste&id=uefeca056&originHeight=1116&originWidth=510&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u99fdb951-a062-4e80-85fc-acf23549127&title=)
+如果您看不到 上的颜色`3D Viewport`，可能是因为您没有使用正确的阴影。要更改阴影，请按`Z`并选择`Renderer`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697489545-5c1b8f96-a85b-4818-9c4e-e7d25e604b53.png#averageHue=%23646058&clientId=u088972ae-4aa2-4&from=paste&id=u9f3bdd1c&originHeight=762&originWidth=1506&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u8fae2bef-e7e8-473a-8352-a29e54a1e7d&title=)
+如果汉堡看起来真的很黑，那可能是因为光线的原因。选择灯，将其放置在距离汉堡包稍远的位置，转到`Object Data Properties`面板，并将其功率增加到`5000`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697489596-b0d9a1da-fbeb-436f-8685-f7a7742c056d.png#averageHue=%234c4c4c&clientId=u088972ae-4aa2-4&from=paste&id=uc849328c&originHeight=372&originWidth=534&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u45a2b34a-9df7-4061-a48d-4aadffb9db9&title=)
+对肉和奶酪重复材料过程：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697489570-e0d1d624-0334-478f-9526-194967b08ba0.png#averageHue=%235c574f&clientId=u088972ae-4aa2-4&from=paste&id=u39621614&originHeight=694&originWidth=1236&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u892d4389-87fd-4dee-aaf1-6082050fe5a&title=)
+对于顶部包子，您只需要选择BunMaterial您已经处理过的：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697491009-ddbe7642-4418-49a8-9f29-500643dabb1a.png#averageHue=%235b4e3e&clientId=u088972ae-4aa2-4&from=paste&id=u1cef3095&originHeight=746&originWidth=1284&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ucd5c2ded-fd14-4c8a-90e9-86673ac62dd&title=)
+慢慢来，删除并重试，直到你得到一个看起来很美味的汉堡包。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697491584-c1002789-7904-4633-9e6f-d89f9e8c9678.png#averageHue=%23414140&clientId=u088972ae-4aa2-4&from=paste&id=udd518fee&originHeight=192&originWidth=616&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u8c0e6bf1-40c9-4450-bc28-63c6da931ed&title=)
+你甚至可以添加其他配料，如沙拉、西红柿，如果你是这些人中的一员，也许还可以加入泡菜片——但有人喜欢泡菜吗？
+不要忘记保存。
+## 导出
+终于到了导出我们的汉堡包的时候了。下载并运行启动器。Three.js场景准备好了，剩下的就是提供模型了。
+选择汉堡包的所有成分。如果您选择其他元素，如灯光或相机，您也可以导出它们。这可能有用，但对我们来说不是。
+前往`File` > `Export` > `glTF 2.0 (.glb/.gltf)`：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697492561-9b640a8f-104e-4f13-8bbe-6fc2c3009a32.png#averageHue=%23403f3e&clientId=u088972ae-4aa2-4&from=paste&id=u57c34076&originHeight=1038&originWidth=1068&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ud76ec533-f649-4f17-81e3-6bfc0abee4e&title=)
+面板应该在屏幕中间打开。使用它导航到`/static/models/`项目的文件夹（`.gitkeep`如果看到该文件，请忽略它）。
+在面板的底部，为您的文件选择一个名称。我们会去的`hamburger`。不要添加扩展名：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697492780-f595156e-aef3-4046-8668-c3615edbd412.png#averageHue=%23323130&clientId=u088972ae-4aa2-4&from=paste&id=u0dbebb4d&originHeight=126&originWidth=342&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u07d33835-c00d-45ca-a735-ecd33d74158&title=)
+在右侧部分，我们可以选择`Format`. 这些选择对应于我们在上一课中讨论的 `GLTF` 格式。我们会这样做，`glTF Binary`因为我们没有任何纹理，我们想要尽可能小的文件：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697492857-814b8be1-745b-4006-a2e9-bcecad8ee873.png#averageHue=%233b3b3b&clientId=u088972ae-4aa2-4&from=paste&id=u19702e0e&originHeight=420&originWidth=668&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u3731224a-80a9-4b08-af76-615349da0b8&title=)
+对于其余属性，这里是设置：
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697494196-7eec25dc-2099-47b8-831d-a3cdbbbd03b6.png#averageHue=%23414141&clientId=u088972ae-4aa2-4&from=paste&id=ue666e511&originHeight=1294&originWidth=472&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u02054b61-621b-4c89-90eb-21f29c88e64&title=)
+其中大部分是显而易见的，但这是列表
+
+- `Remember Export Settings`：下次导出时保留这些设置。
+- 包括： `Selected Objects`：仅选定的对象。 `Custom Properties`: 我们可以添加到 Blender 中任何对象的文本信息，但我们没有添加任何内容。 `Cameras`: 相机。 `Punctual Lights`： 灯光。
+- `Transform`: +Y `Up`：转换坐标轴，使正 Y 轴位于上方——Three.js 的默认属性。
+- 几何：： `Apply Modifiers`应用修改器，如`Subdivision Surface`. 如果你不检查这个，你最终会得到原来的立方体而不是圆面包。 UVs：添加 UV 坐标。这些是 Three.js 和其他环境用于在几何体上应用纹理的坐标。因为我们没有纹理，所以不需要那些坐标。 `Normals`：每个面的外侧方向。如果我们想让灯正常工作，我们确实需要这个。 `Tangents`：与法线协同工作，但它们垂直于法线。` Vertex Colors`：与每个顶点关联的颜色。如果我们绘制顶点很有用，但我们没有。 `Materials`: 我们使用的不同材料。 `Compression`：传说中的天龙压缩。
+- 动画： 与动画相关的所有内容，但我们不需要任何这些，因为我们没有动画。
+
+单击`Export glTF 2.0`并检查文件。文件大小应该很小。尝试导出不带 的同一个汉堡包`compression`，它应该大得多。在实际项目中，这将是您必须在使用压缩版本和赢得一些kB加载整个 `Draco` 解码器或选择未压缩版本之间做出决定的时候。
+只要我们有文件就没关系。
+## 在 Three.js 中测试
+运行项目并根据需要更改汉堡包路径：
+
+```javascript
+gltfLoader.load(
+    '/models/hamburger.glb',
+
+// ...
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697494710-f839e82a-ac48-493e-9e06-c6d1b3fee0b6.png#averageHue=%233f342b&clientId=u088972ae-4aa2-4&from=paste&id=u85acb73b&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u609221d0-e681-41c2-80f9-a97d8acce18&title=)
+你应该在 Three.js 场景中看到你的汉堡。
+遗憾的是，与 Blender 版本相比，我们的汉堡看起来太橙色了。这是由于 Three.js 设置，我们必须做一些调整。这将是下一课的主题，但是一旦您应用完我们将学习的功能，请随时回到您的汉堡。
+## 走得更远
+有很多很棒的在线教程，而且大部分都是免费的。以下是您可以使用的资源的非详尽列表：
+
+- Blender Youtube 频道：[https://www.youtube.com/user/BlenderFoundation](https://www.youtube.com/user/BlenderFoundation)
+- Blender Guru Youtube 频道：[https://www.youtube.com/channel/UCOKHwx1VCdgnxwbjyb9Iu1g](https://www.youtube.com/channel/UCOKHwx1VCdgnxwbjyb9Iu1g)
+- Grant Abbitt Youtube 频道：[https://www.youtube.com/channel/UCZFUrFoqvqlN8seaAeEwjlw](https://www.youtube.com/channel/UCZFUrFoqvqlN8seaAeEwjlw)
+- CGFastTrack：[https://www.youtube.com/c/CGFastTrack/videos](https://www.youtube.com/c/CGFastTrack/videos)
+- CGCookie： https: [//cgcookie.com/](https://cgcookie.com/)
+
+确保始终遵循至少使用 2.8 版 Blender 的教程。
+
