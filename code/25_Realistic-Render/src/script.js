@@ -8,17 +8,50 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
  */
 // Debug
 const gui = new dat.GUI();
+const debugObject = {};
 
 // Canvas
 const canvas = document.querySelector("canvas.webgl");
-
-// Scene
-const scene = new THREE.Scene();
 
 /*
  *Loader
  */
 const gltfLoader = new GLTFLoader();
+const cubeTextureLoader = new THREE.CubeTextureLoader();
+
+/**
+ * Update all materials
+ */
+const updateAllMaterials = () => {
+  scene.traverse((child) => {
+    if (
+      child instanceof THREE.Mesh &&
+      child.material instanceof THREE.MeshStandardMaterial
+    ) {
+      child.material.envMap = environmentMap;
+      child.material.envMapIntensity = debugObject.envMapIntensity
+    }
+  });
+};
+
+debugObject.envMapIntensity = 2.5
+gui.add(debugObject, 'envMapIntensity').min(0).max(10).step(0.001).onChange(updateAllMaterials)
+
+/**
+ * Environment map
+ */
+const environmentMap = cubeTextureLoader.load([
+  "/textures/environmentMaps/0/px.jpg",
+  "/textures/environmentMaps/0/nx.jpg",
+  "/textures/environmentMaps/0/py.jpg",
+  "/textures/environmentMaps/0/ny.jpg",
+  "/textures/environmentMaps/0/pz.jpg",
+  "/textures/environmentMaps/0/nz.jpg",
+]);
+
+// Scene
+const scene = new THREE.Scene();
+scene.background = environmentMap;
 
 /*
  * Models
@@ -26,11 +59,18 @@ const gltfLoader = new GLTFLoader();
 gltfLoader.load("/models/FlightHelmet/glTF/FlightHelmet.gltf", (gltf) => {
   console.log("success");
   console.log(gltf);
-  gltf.scene.scale.set(10,10,10)
-  gltf.scene.position.set(0,-4,0)
-  gltf.scene.rotation.y = Math.PI * 0.5
-  gui.add(gltf.scene.rotation, 'y').min(- Math.PI).max(Math.PI).step(0.001).name('rotation')
-  scene.add(gltf.scene)
+  gltf.scene.scale.set(10, 10, 10);
+  gltf.scene.position.set(0, -4, 0);
+  gltf.scene.rotation.y = Math.PI * 0.5;
+  gui
+    .add(gltf.scene.rotation, "y")
+    .min(-Math.PI)
+    .max(Math.PI)
+    .step(0.001)
+    .name("rotation");
+  scene.add(gltf.scene);
+
+  updateAllMaterials();
 });
 
 /**
