@@ -37,6 +37,7 @@ const updateAllMaterials = () => {
 debugObject.envMapIntensity = 2.5
 gui.add(debugObject, 'envMapIntensity').min(0).max(10).step(0.001).onChange(updateAllMaterials)
 
+
 /**
  * Environment map
  */
@@ -48,6 +49,8 @@ const environmentMap = cubeTextureLoader.load([
   "/textures/environmentMaps/0/pz.jpg",
   "/textures/environmentMaps/0/nz.jpg",
 ]);
+
+environmentMap.encoding = THREE.sRGBEncoding
 
 // Scene
 const scene = new THREE.Scene();
@@ -158,11 +161,23 @@ controls.enableDamping = true;
  */
 const renderer = new THREE.WebGLRenderer({
   canvas: canvas,
+  antialias: true
 });
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.physicallyCorrectLights = true;
+renderer.outputEncoding = THREE.sRGBEncoding
+renderer.toneMapping = THREE.ACESFilmicToneMapping
+renderer.toneMappingExposure = 3
+gui.add(renderer, 'toneMapping', {
+  No: THREE.NoToneMapping,
+  Linear: THREE.LinearToneMapping,
+  Reinhard: THREE.ReinhardToneMapping,
+  Cineon: THREE.CineonToneMapping,
+  ACESFilmic: THREE.ACESFilmicToneMapping
+})
 
+gui.add(renderer, 'toneMappingExposure').min(0).max(10).step(0.001)
 /**
  * Animate
  */
