@@ -1,7 +1,9 @@
+import * as THREE from "three";
 import Sizes from "./Utils/Sizes";
 import Time from "./Utils/Time.js";
 import Camera from "./Camera.js";
-import * as THREE from "three";
+import World from './World/World.js'
+import Renderer from './Renderer'
 
 let instance = null;
 
@@ -24,6 +26,7 @@ export default class Experience {
     this.scene = new THREE.Scene();
     this.camera = new Camera();
     this.renderer = new Renderer()
+    this.world = new World()
 
     // console.log(this.sizes.width)
     // console.log(this.sizes.height)
