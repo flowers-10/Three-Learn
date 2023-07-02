@@ -1,8 +1,18 @@
 import Sizes from "./Utils/Sizes";
 import Time from "./Utils/Time.js";
+import Camera from "./Camera.js";
+import * as THREE from "three";
+
+let instance = null;
 
 export default class Experience {
   constructor(canvas) {
+    // Singleton
+    if (instance) {
+      return instance;
+    }
+    instance = this;
+
     // Global access
     window.experience = this;
     // Options
@@ -11,7 +21,9 @@ export default class Experience {
     // Setup
     this.sizes = new Sizes();
     this.time = new Time();
-    this.scene = new THREE.Scene()
+    this.scene = new THREE.Scene();
+    this.camera = new Camera();
+
     // console.log(this.sizes.width)
     // console.log(this.sizes.height)
     // console.log(this.sizes.pixelRatio)
@@ -26,6 +38,11 @@ export default class Experience {
       this.update();
     });
   }
-  resize() {}
-  update() {}
+  resize() {
+    this.camera.resize();
+  }
+  update()
+  {
+      this.camera.update()
+  }
 }
