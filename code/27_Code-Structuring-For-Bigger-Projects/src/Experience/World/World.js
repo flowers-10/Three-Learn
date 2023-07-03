@@ -2,6 +2,8 @@ import * as THREE from "three";
 import Experience from "../Experience.js";
 import Environment from "./Environment.js";
 import Floor from "./Floor.js";
+import Fox from './Fox.js'
+
 
 export default class World {
   constructor() {
@@ -12,16 +14,23 @@ export default class World {
     this.resources.on("ready", () => {
       // Setup
       this.floor = new Floor();
+      this.fox = new Fox()
       this.environment = new Environment();
     });
-    // Test mesh
-    const testMesh = new THREE.Mesh(
-      new THREE.BoxGeometry(1, 1, 1),
-      new THREE.MeshStandardMaterial()
-    );
-    this.scene.add(testMesh);
+    // // Test mesh
+    // const testMesh = new THREE.Mesh(
+    //   new THREE.BoxGeometry(1, 1, 1),
+    //   new THREE.MeshStandardMaterial()
+    // );
+    // this.scene.add(testMesh);
 
     // Setup
     this.environment = new Environment();
+  }
+
+  update()
+  {
+      if(this.fox)
+          this.fox.update()
   }
 }
