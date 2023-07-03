@@ -82,6 +82,7 @@ export default class Experience {
     this.camera.controls.dispose();
     this.renderer.instance.dispose();
     if (this.debug.active) this.debug.ui.destroy();
+    //  清除canvas 完结撒花！
     document.querySelector('.webgl').remove()
   }
 }
