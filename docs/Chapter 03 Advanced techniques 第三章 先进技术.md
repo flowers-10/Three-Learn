@@ -4947,9 +4947,9 @@ export default class Experience
 我们现在有一个`resize()`方法和一个`update()`方法在Experience. 这些方法是自动调用的，它们将在需要时更新其余的体验。
 可`EventEmitter`用于任何需要触发事件的类。例如，它可用于表示模型动画已完成、已单击对象、玩家正在离开关卡等。
 后面我们要用它来讲述所有资源加载完毕的体验。
-## 场景 [01:19:44](https://threejs-journey.com/lessons/code-structuring-for-bigger-projects#)
+## 场景
 现在我们有了主类和一些有用的类，我们可以开始使用 Three.js 了。
-在类中，使用[Scene](https://threejs.org/docs/?q=scene#api/en/scenes/Scene)Experience类添加场景属性。不要忘记像我们以前那样导入：three
+在类中，使用`Experience`类添加[Scene](https://threejs.org/docs/?q=scene#api/en/scenes/Scene)场景属性。不要忘记像我们以前那样导入：three
 
 ```javascript
 import * as THREE from 'three'
@@ -4972,11 +4972,10 @@ export default class Experience
     // ...
 }
 ```
-JavaScript
-复制
-## 相机（和单例） [01:20:46](https://threejs-journey.com/lessons/code-structuring-for-bigger-projects#)
+
+## 相机（和单例）
 对于相机，我们将创建一个单独的类。
-在/src/Experience/文件夹中，创建一个Camera类：
+在`/src/Experience/`文件夹中，创建一个`Camera`类：
 
 ```javascript
 export default class Camera
@@ -4987,9 +4986,8 @@ export default class Camera
     }
 }
 ```
-JavaScript
-复制
-并在Experience类中实例化它：
+
+并在`Experience`类中实例化它：
 
 ```javascript
 // ...
@@ -5012,10 +5010,9 @@ export default class Experience
     // ...
 }
 ```
-JavaScript
-复制
-但是现在，我们有一个问题。在Camera类中，我们将实例化[PerspectiveCamera](https://threejs.org/docs/?q=persp#api/en/cameras/PerspectiveCamera)和[OrbitControls](https://threejs.org/docs/?q=orbit#examples/en/controls/OrbitControls)类。但是这些额外的类需要诸如widthandheight以及<canvas>for [OrbitControls](https://threejs.org/docs/?q=orbit#examples/en/controls/OrbitControls)之类的信息。我们还需要将这个类添加到[Scene](https://threejs.org/docs/?q=scene#api/en/scenes/Scene)中。
-换句话说，我们需要访问类中的属性Experience。
+
+但是现在，我们有一个问题。在`Camera`类中，我们将实例化[PerspectiveCamera](https://threejs.org/docs/?q=persp#api/en/cameras/PerspectiveCamera)和[OrbitControls](https://threejs.org/docs/?q=orbit#examples/en/controls/OrbitControls)类。但是这些额外的类需要诸如`width`、`height`以及`<canvas>`for [OrbitControls](https://threejs.org/docs/?q=orbit#examples/en/controls/OrbitControls)之类的信息。我们还需要将这个类添加到[Scene](https://threejs.org/docs/?q=scene#api/en/scenes/Scene)中。
+换句话说，我们需要访问`Experience`类中的属性。
 可以通过三种方式从相机访问体验：
 
 - 来自全局变量
@@ -5024,15 +5021,16 @@ JavaScript
 
 为了学习它们，我们将探索所有这三种技术，但只使用一种。
 ### 访问体验
-来自全局变量
-早些时候，我们将体验添加到windowwith：
+
+- **全局变量**
+
+早些时候，我们将体验添加到`window`：
 
 ```javascript
 window.experience = this
 ```
-JavaScript
-复制
-这使得它可以在代码中的任何位置访问，如类中所示Camera：
+
+这使得它可以在代码中的任何位置访问，如类中所示`Camera`：
 
 ```javascript
 export default class Camera
@@ -5045,13 +5043,14 @@ export default class Camera
     }
 }
 ```
-JavaScript
-复制
-虽然这有效，但它假定我们确实拥有experience可用的属性window，并且没有代码的其他部分会弄乱该属性。
-不推荐添加全局属性，window这就是我们不使用该技术的原因。
-从一个参数
+
+虽然这有效，但它假定我们`window`确实拥有可用的`experience`属性，并且代码的其他部分确保不会操作该属性。
+不推荐添加到全局属性`window`，这就是我们不使用该技术的原因。
+
+- **携带一个参数**
+
 另一种解决方案是将体验作为参数发送给需要它的每个类。
-在Experience课堂上，我们会输入：
+在`Experience Class`上，我们会输入：
 
 ```javascript
 // ...
@@ -5070,9 +5069,8 @@ export default class Experience
     // ...
 }
 ```
-JavaScript
-复制
-在课堂上Camera，我们会输入：
+
+在上`Camera Class`，我们会输入：
 
 ```javascript
 export default class Camera
@@ -5085,14 +5083,15 @@ export default class Camera
     }
 }
 ```
-JavaScript
-复制
-这个解决方案是一个很好的解决方案。主要问题是，如果我们有更深层次的结构，我们需要为每个需要获得体验的班级以及他们的父母这样做。
-我们完全可以选择这个解决方案，但为了学习，我们将使用下一个。
-通过单例
+
+这是一个很好的解决方案。主要问题是，如果我们有更深层次的结构，我们需要为每个需要获得体验的Class以及他们的父级这样做。
+我们完全可以选择这个解决方案，但为了学习，我们将使用更方便的方案。
+
+- **通过单例**
+
 简而言之，单例是一个在第一次实例化时会像往常一样实例化的类。但是，对于以下所有时间，它将返回第一个实例。
-我们可以做一堆new Experience()实例化，但只有第一个才是真正的实例。所有其他实例化也将返回第一个实例。
-要将我们的Experience类转换为单例，请在最开始添加以下代码constructor：
+我们可以做一堆`new Experience()`实例化，但只有第一个才是真正的实例。所有其他实例化也将返回第一个实例。
+要将我们的`Experience`类转换为单例，请在最开始添加以下代码`constructor`：
 
 ```javascript
 // ...
@@ -5116,12 +5115,11 @@ export default class Experience
     // ...
 }
 ```
-JavaScript
-复制
-我们创建一个instance变量并将其设置到null类外部。
-在 中constructor，我们测试该变量中是否有内容。如果是这样，那么我们将返回里面的内容。当我们执行 a 时return，函数会停在那里，其余的不会执行。否则，我们将实例 ( this) 保存在该变量中并继续执行函数的其余部分。
-现在，我们可以Experience在代码中任何需要的地方导入它，然后实例化它以检索第一个实例。
-在课堂上Camera：
+
+我们创建一个`instance`变量为`null`并将其设置到类的外部。
+在 `constructor`中，我们测试该变量中是否有内容。如果是这样，那么我们将返回里面的内容。当我们执行`return` 时，函数会停在那里，其余的不会执行。否则，我们将实例 ( `this`) 保存在该变量中并继续执行函数的其余部分。
+现在，我们可以在代码中任何需要的地方导入它，然后实例化`Experience`以检索第一个实例。
+在课堂上`Camera`：
 
 ```javascript
 import Experience from './Experience.js'
@@ -5136,10 +5134,9 @@ export default class Camera
     }
 }
 ```
-JavaScript
-复制
+
 这个解决方案听起来更干净一点，但也更复杂一点。如果您对单例不满意，请不要犹豫，使用之前的解决方案之一。
-现在我们可以访问体验，我们也可以访问它的属性。我们将需要sizes、scene和canvas。我们可以将这些作为属性保存到Camera类中：
+现在我们可以访问体验，我们也可以访问它的属性。我们将需要`sizes`、`scene`和`canvas`。我们可以将这些作为属性保存到`Camera`类中：
 
 ```javascript
 import Experience from './Experience.js'
@@ -5155,10 +5152,8 @@ export default class Camera
     }
 }
 ```
-JavaScript
-复制
 ### 实例
-创建[PerspectiveCamera](https://threejs.org/docs/?q=orbit#api/en/cameras/PerspectiveCamera)并将其保存为instance属性。不要忘记导入three：
+创建[PerspectiveCamera](https://threejs.org/docs/?q=orbit#api/en/cameras/PerspectiveCamera)并将其保存为`instance`属性。不要忘记导入`three`：
 
 ```javascript
 import * as THREE from 'three'
@@ -5184,8 +5179,7 @@ export default class Camera
     }
 }
 ```
-JavaScript
-复制
+
 ### 轨道控制
 对[OrbitControls](https://threejs.org/docs/?q=orbit#examples/en/controls/OrbitControls)做同样的事情：
 
@@ -5211,12 +5205,11 @@ export default class Camera
     }
 }
 ```
-**JavaScript**
-**复制**
+
 ### 调整大小
 我们还不能测试它，但如果我们要调整视口的大小，相机将不会更新。
-我们可以在课堂上听这个**resize**活动**Sizes**。但最好从父 ( **Experience**) 到子 ( **Camera**) 调用它。它在这里不相关，但是一旦我们有很多类，这些类具有通过实例传播的许多调整大小，控制这些调整大小的顺序是很有用的。
-在**Camera**类中，添加**resize()**方法：
+我们可以在课堂上听这个`resize`活动`Sizes`。但最好从父 ( `Experience`) 到子 ( `Camera`) 调用它。它在这里不相关，但是一旦我们有很多类，这些类具有通过实例传播的许多调整大小，控制这些调整大小的顺序是很有用的。
+在**Camera**类中，添加`resize()`方法：
 
 ```javascript
 // ...
@@ -5232,9 +5225,9 @@ export default class Camera
     }
 }
 ```
-**JavaScript**
-**复制**
-在类**resize()**的方法中**Experience**，调用该方法：
+
+
+在`Experience`类的`resize()`方法中，调用该方法：
 
 ```javascript
 // ...
@@ -5251,12 +5244,11 @@ export default class Experience
     // ...
 }
 ```
-**JavaScript**
-**复制**
+
 我们仍然无法真正对此进行测试，因为场景中我们还看不到任何东西。但是您可以尝试调整视口的大小以检查潜在的错误，即使页面保持白色也是如此。
 ### 更新
 正如我们对调整大小所做的那样，我们还需要在每一帧上更新此类。这是由于[OrbitControls](https://threejs.org/docs/?q=orbit#examples/en/controls/OrbitControls)及其阻尼功能。
-在**Camera**类中，创建**update**方法：
+在**Camera**类中，创建`update`方法：
 
 ```javascript
 // ...
@@ -5271,9 +5263,8 @@ export default class Camera
     }
 }
 ```
-**JavaScript**
-**复制**
-并在课堂上称呼它**Experience**：
+
+并在**Experience Class**上称呼它：
 
 ```javascript
 // ...
@@ -5288,12 +5279,12 @@ export default class Experience
     }
 }
 ```
-**JavaScript**
-**复制**
+
+
 您现在应该看到我们的结构模式，其中一切都从主类开始并传播到子类。
-## 渲染器 [01:39:05](https://threejs-journey.com/lessons/code-structuring-for-bigger-projects#)
+## 渲染器 
 就像我们创建类的方式一样**Camera**，让我们创建一个**Renderer**类。
-创建一个**/src/Experience/Renderer.js**文件。
+创建一个`/src/Experience/Renderer.js`文件。
 在此类中，检索**Experience**和以下属性：
 
 ```javascript
@@ -5311,8 +5302,7 @@ export default class Renderer
     }
 }
 ```
-**JavaScript**
-**复制**
+
 在以下位置导入并实例化此类**Experience**：
 
 ```javascript
@@ -5334,9 +5324,8 @@ export default class Experience
     }
 }
 ```
-**JavaScript**
-**复制**
-我们现在可以使用和属性实例化[WebGLRenderer](https://threejs.org/docs/?q=webglrend#api/en/renderers/WebGLRenderer)。不要忘记导入：**sizescanvasthree**
+
+我们现在可以使用`sizes`和`canvas`属性实例化[WebGLRenderer](https://threejs.org/docs/?q=webglrend#api/en/renderers/WebGLRenderer)。不要忘记导入**three**：
 
 ```javascript
 import * as THREE from 'three'
@@ -5353,24 +5342,23 @@ export default class Renderer
 
     setInstance()
     {
-        this.instance = new THREE.WebGLRenderer({
+      this.instance = new THREE.WebGLRenderer({
             canvas: this.canvas,
             antialias: true
         })
         this.instance.physicallyCorrectLights = true
-        this.instance.outputEncoding = THREE.sRGBEncoding
         this.instance.toneMapping = THREE.CineonToneMapping
         this.instance.toneMappingExposure = 1.75
         this.instance.shadowMap.enabled = true
         this.instance.shadowMap.type = THREE.PCFSoftShadowMap
+        this.instance.setClearColor('#211d20')
         this.instance.setSize(this.sizes.width, this.sizes.height)
         this.instance.setPixelRatio(Math.min(this.sizes.pixelRatio, 2))
     }
 }
 ```
-**JavaScript**
-**复制**
-添加**resize()**方法：
+
+添加`resize()`方法：
 
 ```javascript
 // ...
@@ -5386,9 +5374,9 @@ export default class Renderer
     }
 }
 ```
-**JavaScript**
-**复制**
-**resize()**并从类中的方法调用它**Experience**：
+
+
+并从**Experience**类中的`resize()`方法调用它：
 
 ```javascript
 // ...
@@ -5406,9 +5394,8 @@ export default class Experience
     // ...
 }
 ```
-**JavaScript**
-**复制**
-添加**update()**使用**scene**和进行渲染的方法**camera**。注意，该**camera**属性是我们类的一个实例**Camera**，而不是 Three.js 相机。我们可以通过以下方式访问 Three.js 相机**this.camera.instance**：
+
+添加`update()`使用**scene**和**camera**进行渲染的方法。注意，该**camera**属性是我们类的一个实例**Camera**，而不是 Three.js 相机。我们可以通过以下方式访问 Three.js 相机**this.camera.instance**：
 
 ```javascript
 // ...
@@ -5423,9 +5410,8 @@ export default class Renderer
     }
 }
 ```
-**JavaScript**
-**复制**
-并在课堂上称呼它**Experience**：
+
+并在**Experience Class**上调用它：
 
 ```javascript
 // ...
@@ -5441,12 +5427,11 @@ export default class Experience
     }
 }
 ```
-**JavaScript**
-**复制**
+
 屏幕上仍然没有任何内容，但我们已经接近了。我们实际上正在做渲染，但我们的场景是空的。
-## 世界 [01:47:06](https://threejs-journey.com/lessons/code-structuring-for-bigger-projects#)
-是时候向我们的场景添加一些可见的东西了。为了防止文件夹中有太多类**/src/Experience**，我们将把组成我们世界的所有东西分开在一个单独的类和文件夹中，名为**World**.
-**World**在其中创建一个文件夹并在其中**/src/Experience/**创建一个类。**World**首先检索新创建的类中的**Experience**和：**scene**
+## 世界
+是时候向我们的场景添加一些可见的东西了。为了防止`/src/Experience`文件夹中有太多类，我们将把组成我们世界的所有东西分开在一个单独的类和文件夹中，名为**World**.
+在**World**其中创建一个文件夹并在其中`/src/Experience/`创建一个类。**World**首先检索新创建的类中的**Experience**和**scene**：
 
 ```javascript
 import Experience from '../Experience.js'
@@ -5460,9 +5445,8 @@ export default class World
     }
 }
 ```
-**JavaScript**
-**复制**
-在中实例化它**Experience**：
+
+在**Experience**中实例化它：
 
 ```javascript
 import World from './World/World.js'
@@ -5481,8 +5465,7 @@ export default class Experience
     }
 }
 ```
-**JavaScript**
-**复制**
+
 让我们[向](https://threejs.org/docs/?q=mesh#api/en/objects/Mesh)我们的**World**. 不要忘记导入**three**：
 
 ```javascript
@@ -5505,11 +5488,10 @@ export default class World
     }
 }
 ```
-**JavaScript**
-**复制**
+
 ![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697634098-20dc5fb8-d199-435d-a204-fa3790ae5bec.png#averageHue=%23252023&clientId=u088972ae-4aa2-4&from=paste&id=ub9a5e9d1&originHeight=1920&originWidth=3072&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u10ee29a6-a157-45d6-9e83-9744eb7d65a&title=)
 恭喜你，终于可以看到东西了。
-## 阳光 [01:51:33](https://threejs-journey.com/lessons/code-structuring-for-bigger-projects#)
+## 阳光 Sunlight 
 如果你记得我们的场景是什么样的，我们有一只狐狸在地板上，有灯光和阴影。在继续之前，我们需要为我们正在构建的场景添加一盏灯。
 根据项目的特点和您的喜好，这部分的结构可能会有很大差异。对于这种体验，我们将创建一个**Environment**包含光的类。稍后，我们将向其添加环境贴图。
 首先，让我们将**testMesh**材质更改为[MeshStandardMaterial](https://threejs.org/docs/?q=meshstan#api/en/materials/MeshStandardMaterial)，以便我们能够看到光：
@@ -5532,10 +5514,9 @@ export default class World
     }
 }
 ```
-**JavaScript**
-**复制**
+
 ![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697634074-c21e6bab-a8bc-4e6f-a8f5-081f519bfb36.png#averageHue=%23241f22&clientId=u088972ae-4aa2-4&from=paste&id=u1b831011&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ub7b14aa3-b5f6-4ee5-a283-87fa0641cf5&title=)
-**Environment**现在在文件夹中创建类**/src/Experience/World/**：
+现在在`/src/Experience/World/`文件夹中创建**Environment**类：
 
 ```javascript
 import Experience from '../Experience.js'
@@ -5549,8 +5530,7 @@ export default class Environment
     }
 }
 ```
-**JavaScript**
-**复制**
+
 然后，在**World**类之后实例化它**testMesh**：
 
 ```javascript
@@ -5568,8 +5548,7 @@ export default class World
     }
 }
 ```
-**JavaScript**
-**复制**
+
 现在，我们可以将光添加到该环境中。
 因为我们的光会模仿太阳，所以我们可以将属性命名为**sunLight**。不要忘记导入**three**：
 
@@ -5600,13 +5579,12 @@ export default class Environment
     }
 }
 ```
-**JavaScript**
-**复制**
+
 ![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697636360-34e37042-79c2-47ea-8bdb-02d24786128a.png#averageHue=%23252023&clientId=u088972ae-4aa2-4&from=paste&id=u982ce1cf&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u4455bcd3-f8b2-4775-b6ff-e8078d5d1da&title=)
 在基础项目中，我们还有一个环境贴图。我们可以在类中实例化一个[CubeTextureLoader](https://threejs.org/docs/?q=cubete#api/en/loaders/CubeTextureLoader)**Environment**，但这意味着每个类都将自行处理资源加载。我们最终会搞得一团糟，我们不知道资产是否准备好，它们会在加载时弹出屏幕。
-## 资源 [01:55:52](https://threejs-journey.com/lessons/code-structuring-for-bigger-projects#)
+## 资源 Resources 
 为了让事情更清晰，我们将把资产加载集中在一个专门的类中。这个类将实例化我们需要的所有加载器。然后我们发送一个资产数组来加载，一旦所有这些资产都被加载，我们让该类触发一个事件。
-在**/src/Experience/Utils/**文件夹中，创建一个**Resources**类。我们已经知道这个类将触发一个事件，这就是为什么我们可以扩展这个**EventEmitter**类：
+在`/src/Experience/Utils/`文件夹中，创建一个**Resources**类。我们已经知道这个类将触发一个事件，这就是为什么我们可以扩展这个**EventEmitter**类：
 
 ```javascript
 import EventEmitter from './EventEmitter.js'
@@ -5619,9 +5597,8 @@ export default class Resources extends EventEmitter
     }
 }
 ```
-**JavaScript**
-**复制**
-**Experience**在实例化场景后立即在类中实例化它：
+
+在实例化场景后立即在**Experience**类中实例化它：
 
 ```javascript
 // ...
@@ -5645,8 +5622,7 @@ export default class Experience
     // ...
 }
 ```
-**JavaScript**
-**复制**
+
 对于要加载的资产列表，我们将使用一个数组。数组中的每个资源都将由一个由以下属性组成的对象定义：
 
 - **name**: 将用于检索加载的资源。
@@ -5654,7 +5630,7 @@ export default class Experience
 - **path**: 要加载的文件的路径。
 
 对于一个更大的项目，这个数组可能会变得有点胖，这就是为什么最好将它放在一个单独的文件中。
-在该**/src/Experience/**文件夹中，创建一个**sources.js**导出以下数组的文件：
+在该`/src/Experience/`文件夹中，创建一个`sources.js`导出以下数组的文件：
 
 ```javascript
 export default [
@@ -5673,8 +5649,7 @@ export default [
     }
 ]
 ```
-**JavaScript**
-**复制**
+
 稍后我们将向该数组添加更多源。
 现在，在**Experience**类中，导入该数组并将其作为参数发送给**Resources**类：
 
@@ -5699,8 +5674,7 @@ export default class Experience
     // ...
 }
 ```
-**JavaScript**
-**复制**
+
 然后将其保存为**Resources**类中的属性：
 
 ```javascript
@@ -5719,8 +5693,7 @@ export default class Resources extends EventEmitter
     }
 }
 ```
-**JavaScript**
-**复制**
+
 您应该在控制台中看到您的来源。
 在**Resources**类中，创建以下三个属性：
 
@@ -5744,8 +5717,8 @@ export default class Resources extends EventEmitter
     }
 }
 ```
-**JavaScript**
-**复制**
+
+
 我们现在要创建不同的装载机。在这个项目中，我们将需要[GLTFLoader](https://threejs.org/docs/?q=GLTFLoader#examples/en/loaders/GLTFLoader)、[TextureLoader](https://threejs.org/docs/?q=TextureLoader#api/en/loaders/TextureLoader)和[CubeTextureLoader](https://threejs.org/docs/?q=TextureLoader#api/en/loaders/CubeTextureLoader)。我们将一次创建它们，但您通常会在工作时逐步添加它们。不要忘记导入**three**和**GLTFLoader**：
 
 ```javascript
@@ -5772,10 +5745,9 @@ export default class Resources extends EventEmitter
     }
 }
 ```
-**JavaScript**
-**复制**
+
 我们不打算使用 Draco 压缩模型，但如果您想加载一个，您还需要在此处添加 DracoLoader [。](https://threejs.org/docs/#examples/en/loaders/DRACOLoader)
-我们现在要创建一个**startLoading()**方法。在该方法中，我们将遍历数组**sources**并使用相应的加载器加载它们：
+我们现在要创建一个`startLoading()`方法。在该方法中，我们将遍历数组**sources**并使用相应的加载器加载它们：
 
 ```javascript
 // ...
@@ -5830,10 +5802,10 @@ export default class Resources extends EventEmitter
     }
 }
 ```
-**JavaScript**
-**复制**
+
+
 您应该看到源和加载的资源在加载时被记录在控制台中。
-在每次加载时，我们将调用一个**sourceLoaded**方法，将加载的资源保存在**items**属性中，更新**loaded**属性并测试加载是否完成。如果加载了所有源，我们将触发一个**ready**事件：
+在每次加载时，我们将调用一个`sourceLoaded`方法，将加载的资源保存在`items`属性中，更新`loaded`属性并测试加载是否完成。如果加载了所有源，我们将触发一个`ready`事件：
 
 ```javascript
 // ...
@@ -5893,10 +5865,9 @@ export default class Resources extends EventEmitter
     }
 }
 ```
-**JavaScript**
-**复制**
-**ready**什么都不应该发生，但现在我们可以在实例上监听事件**Resources**。
-在**World**类中，在实例化类之前检索**Resources**实例并监听事件：**readyEnvironment**
+
+`ready`什么都不应该发生，但现在我们可以在实例上监听`Resources`事件。
+在**World**类中，在**Environment**实例化类之前检索`Resources`实例并监听`ready`事件：
 
 ```javascript
 // ...
@@ -5920,12 +5891,11 @@ export default class World
     }
 }
 ```
-**JavaScript**
-**复制**
+
 您在哪里以及如何收听活动**ready**由您决定。在这个项目中，我们将需要世界每个组成部分的资源。但在其他项目中，您可以在加载其余体验的同时开始向用户展示内容，加载后，您可以将其余部分添加到场景中。
 以[bruno-simon.com](https://bruno-simon.com/)为例。加载程序的图形几乎立即显示出来，即使它是 3D 的。然后，一旦加载了其余部分，我们就可以单击按钮并发现体验。
-## 环境图 [02:18:08](https://threejs-journey.com/lessons/code-structuring-for-bigger-projects#)
-我们现在可以检索**Resources**环境中的实例并使用该**environmentMapTexture**项目创建环境贴图：
+## 环境图 Environment map
+我们现在可以检索**Resources**环境中的实例并使用该`environmentMapTexture`项目创建环境贴图：
 
 ```javascript
 // ...
@@ -5955,11 +5925,10 @@ export default class Environment
     }
 }
 ```
-**JavaScript**
-**复制**
+
 ![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697637368-b30c76e9-a537-4ab2-bc37-ff1bb7f5ef36.png#averageHue=%23252023&clientId=u088972ae-4aa2-4&from=paste&id=u0dc7fffb&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u1ec85ddd-07f1-4359-b8ed-b969d9651d9&title=)
 不幸的是，这行不通，因为环境贴图是在立方体之后添加的，我们需要通知立方体材质它需要更新。
-**updateMaterials**向属性添加一个方法**environmentMap**，该方法将遍历场景并在需要时更新材质并在之后立即调用它们：
+向`environmentMap`属性添加一个`updateMaterials`方法，该方法将遍历场景并在需要时更新材质并在之后立即调用它们：
 
 ```javascript
 // ...
@@ -5988,14 +5957,13 @@ export default class Environment
     }
 }
 ```
-**JavaScript**
-**复制**
+
 ![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697638320-0717764a-1082-4f69-885e-8b8581c9d7e4.png#averageHue=%23211d20&clientId=u088972ae-4aa2-4&from=paste&id=u7d93f0a4&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=udcccb6a7-1356-4031-baa0-dd7a8036da3&title=)
 您应该看到环境贴图影响了立方体的暗面，现在看起来更亮了。
 将场景遍历放在一个单独的函数中会在以后变得很方便。
-## 地面 [02:24:40](https://threejs-journey.com/lessons/code-structuring-for-bigger-projects#)
-现在我们有了我们的课程，地板会更容易添加**Resources**。
-首先，加载位于的两个纹理**/textures/dirt/color.jpg**并将**/textures/dirt/normal.jpg**它们添加到**sources.js**文件中：
+## 地面 
+现在我们有了我们的**Resources Class**，地板会更容易添加。
+首先，加载位于`/textures/dirt/normal.jpg` 和`** **/textures/dirt/color.jpg`的两个纹理并将它们添加到`sources.js`文件中：
 
 ```javascript
 export default [
@@ -6013,10 +5981,9 @@ export default [
     }
 ]
 ```
-**JavaScript**
-**复制**
-（不要忘记**,**上一个来源末尾的 ）。
-在文件夹中创建一个**Floor**类**/src/Experience/World/**：
+
+（不要忘记，上一个来源末尾的`**,** `）。
+在`/src/Experience/World/`文件夹中创建一个**Floor**类：
 
 ```javascript
 import Experience from '../Experience.js'
@@ -6031,9 +5998,9 @@ export default class Floor
     }
 }
 ```
-**JavaScript**
-**复制**
-然后在**World**类中实例化它。确保在 之前执行此操作，**Environment**因为环境会更新场景的每个子项，并且我们希望地板在发生这种情况时位于该场景中：
+
+
+然后在**World**类中实例化它。确保在**Environment** 之前执行此操作，因为环境会更新场景的每个子项，并且我们希望地板在发生这种情况时位于该场景中：
 
 ```javascript
 // ...
@@ -6057,8 +6024,7 @@ export default class World
     }
 }
 ```
-**JavaScript**
-**复制**
+
 在这个例子中，我们将把地板的每个部分分成一个单独的方法：
 
 - **setGeometry**
@@ -6085,8 +6051,7 @@ export default class Floor
     }
 }
 ```
-**JavaScript**
-**复制**
+
 对于几何，我们创建一个[CircleGeometry](https://threejs.org/docs/?q=CircleGeometry#api/en/geometries/CircleGeometry)。不要忘记导入**three**：
 
 ```javascript
@@ -6104,8 +6069,7 @@ export default class Floor
     }
 }
 ```
-**JavaScript**
-**复制**
+
 在设置材质之前，我们需要对纹理做一些处理。我们需要让它们重复并确保颜色纹理的编码是**sRGGEncoding**：
 
 ```javascript
@@ -6117,10 +6081,10 @@ export default class Floor
 
     setTextures()
     {
-        this.textures = {}
+         this.textures = {}
 
         this.textures.color = this.resources.items.grassColorTexture
-        this.textures.color.encoding = THREE.sRGBEncoding
+        this.textures.color.colorSpace = THREE.SRGBColorSpace
         this.textures.color.repeat.set(1.5, 1.5)
         this.textures.color.wrapS = THREE.RepeatWrapping
         this.textures.color.wrapT = THREE.RepeatWrapping
@@ -6132,8 +6096,7 @@ export default class Floor
     }
 }
 ```
-**JavaScript**
-**复制**
+
 现在我们可以添加材料了：
 
 ```javascript
@@ -6152,8 +6115,7 @@ export default class Floor
     }
 }
 ```
-**JavaScript**
-**复制**
+
 最后是网格，不要忘记确保它接收到阴影：
 
 ```javascript
@@ -6172,17 +6134,16 @@ export default class Floor
     }
 }
 ```
-**JavaScript**
-**复制**
+
 ![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697638924-c4ff4a6d-7d87-459a-9785-81f1fbefc3b8.png#averageHue=%23624b36&clientId=u088972ae-4aa2-4&from=paste&id=ueaea4b1f&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ufcd52c13-ba12-44b3-afee-ad77c8bc9f1&title=)
 我们现在有一个漂亮的地板，我们可以摆脱盒子。
 不要介意丢失的影子，我们稍后会修复它。
 ![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697639961-a31c9cd7-46b6-404f-9975-954250c54567.png#averageHue=%23624a34&clientId=u088972ae-4aa2-4&from=paste&id=ucacc7bcd&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u92147dc3-2af3-4563-a10d-ab61776525b&title=)
 不，这不是煎饼。
-## 狐狸 [02:33:39](https://threejs-journey.com/lessons/code-structuring-for-bigger-projects#)
+## 狐狸
 狐狸的过程非常相似。我们将加载模型并将其添加到场景中。
 不同之处在于动画。
-**/models/Fox/glTF/Fox.gltf**通过将其添加到来加载位于的模型**sources.js**：
+通过将其添加到`sources.js`来加载位于/models/Fox/glTF/Fox.gltf的模型：
 
 ```javascript
 export default [
@@ -6194,9 +6155,8 @@ export default [
     }
 ]
 ```
-**JavaScript**
-**复制**
-在文件夹中创建一个**Fox**类**/src/Experience/World/**：
+
+在`/src/Experience/World/`文件夹中创建一个**Fox**类：
 
 ```javascript
 import Experience from '../Experience.js'
@@ -6211,9 +6171,8 @@ export default class Fox
     }
 }
 ```
-**JavaScript**
-**复制**
-并在**World**类中实例化它，但要确保在 之前执行此操作，**Environment**因为环境将更新场景的每个子项，我们希望狐狸在它更新时出现在该场景中：
+
+并在**World**类中实例化它，但要确保在 **Environment **之前执行此操作，因为环境将更新场景的每个子项，我们希望狐狸在它更新时出现在该场景中：
 
 ```javascript
 // ...
@@ -6236,8 +6195,7 @@ export default class World
     }
 }
 ```
-**JavaScript**
-**复制**
+
 在**Fox**类中，我们可以从以下位置获取资源**Resources**：
 
 ```javascript
@@ -6254,9 +6212,8 @@ export default class Fox
     }
 }
 ```
-**JavaScript**
-**复制**
-**scene**实际模型可以作为我们资源中称为的项目进行访问**foxModel**。但是，由于我们将需要该资源中的更多项目，我们将其全部保存为一个属性。
+
+实际模型可以作为我们资源中称为`scene`的项目进行访问。但是，由于我们将需要该资源中的更多项目，我们将其全部保存为一个`foxModel`属性。
 在一个单独的方法中，保存实际模型，缩放它，将它添加到您的场景并确保它投射阴影。不要忘记导入**three**：
 
 ```javascript
@@ -6288,11 +6245,10 @@ export default class Fox
     }
 }
 ```
-**JavaScript**
-**复制**
+
 ![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697641169-877a5029-4858-4e8b-8643-f241ecef5952.png#averageHue=%23614933&clientId=u088972ae-4aa2-4&from=paste&id=uc16060a0&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u00b11b79-40ed-4ba6-a1ac-eceb60c9eed&title=)
 这是我们的狐狸，但我们仍然需要让动画正常工作。
-在类中创建一个[AnimationMixer](https://threejs.org/docs/?q=mixer#api/en/animation/AnimationMixer)**Fox**并添加第一个动画**this.resource.animations**：
+在**Fox**类中创建一个`this.resource.animations`并添加第一个[AnimationMixer](https://threejs.org/docs/?q=mixer#api/en/animation/AnimationMixer)动画：
 
 ```javascript
 // ...
@@ -6317,11 +6273,10 @@ export default class Fox
     }
 }
 ```
-**JavaScript**
-**复制**
+
 这是一个好的开始，但如果您还记得之前的课程之一，我们需要在每一帧上更新该混合器。
 为此，我们将更新**World**并且**World**将更新**Fox**.
-在**Experience**课堂上，更新**World**. 确保在进行渲染之前正确执行此操作：
+在**Experience** **Class**上，更新**World**. 确保在进行渲染之前正确执行此操作：
 
 ```javascript
 //...
@@ -6338,9 +6293,8 @@ export default class Experience
     }
 }
 ```
-**JavaScript**
-**复制**
-在 中**World**，更新**Fox**，但首先确保它存在，因为模型可能尚未加载：
+
+在**World** 中，更新**Fox**，但首先确保它存在，因为模型可能尚未加载：
 
 ```javascript
 // ...
@@ -6356,9 +6310,8 @@ export default class World
     }
 }
 ```
-**JavaScript**
-**复制**
-在**Fox**类中，检索**Time**类，因为我们将需要经过的时间，然后创建**update**更新 AnimationMixer 的[方法](https://threejs.org/docs/?q=mixer#api/en/animation/AnimationMixer)：
+
+在**Fox**类中，检索**Time**类，因为我们将需要经过的时间，然后创建**update**更新 `AnimationMixer` 的[方法](https://threejs.org/docs/?q=mixer#api/en/animation/AnimationMixer)：
 
 ```javascript
 // ...
@@ -6382,14 +6335,13 @@ export default class Fox
     }
 }
 ```
-**JavaScript**
-**复制**
-狐狸应该是动画的。
+
+狐狸应该是有动画的。
 似乎我们已经完成了，但是我们忘记了一些东西。
-## 调试 [02:44:04](https://threejs-journey.com/lessons/code-structuring-for-bigger-projects#)
+## 调试
 我们缺少一个非常重要的部分，即调试 UI。
 ### 添加类
-在中创建一个**Debug**类**/src/Experience/Utils/**：
+在`/src/Experience/Utils/`中创建一个**Debug**类：
 
 ```javascript
 export default class Debug
@@ -6400,8 +6352,7 @@ export default class Debug
     }
 }
 ```
-**JavaScript**
-**复制**
+
 在**Experience**类中，在任何其他类之前实例化它：
 
 ```javascript
@@ -6428,8 +6379,8 @@ export default class Experience
     // ...
 }
 ```
-**JavaScript**
-**复制**
+
+
 我们将让用户选择拥有它，而不是总是拥有调试 UI。
 如果用户在末尾访问了 URL **#debug**，他们将拥有调试 UI。否则，没有调试 UI。
 这很方便，因为大多数用户会在不看到 UI 的情况下访问该网站，但是知道他们在做什么的用户（比如您作为开发人员）可以访问 UI 而无需重建项目。
@@ -6444,9 +6395,8 @@ export default class Debug
     }
 }
 ```
-**JavaScript**
-**复制**
-如果是这样，我们在属性中实例化 Dat.GUI **ui**。不要忘记导入**lil-gui**：
+
+如果是这样，我们在属性中实例化 Dat.GUI **ui**。不要忘记导入`**lil-gui**`：
 
 ```javascript
 import * as dat from 'lil-gui'
@@ -6464,9 +6414,8 @@ export default class Debug
     }
 }
 ```
-**JavaScript**
-**复制**
-**#debug**通过在末尾添加来访问 URL 。请注意，在更改或**#**向 URL 添加 a 时，大多数浏览器不会自动刷新，您必须自己进行。
+
+通过在URl末尾`#debug`添加来访问 。请注意，在更改URL或向 **URL** 添加 # 时，大多数浏览器不会自动刷新，您必须自己进行。
 ![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697642708-ce2ef452-84f7-4548-8b7c-26f609b61325.png#averageHue=%235d452f&clientId=u088972ae-4aa2-4&from=paste&id=u2554cf18&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ub0170774-77cb-4a95-aeca-878f146d206&title=)
 调试 UI 应出现在右上角。
 ### 调试狐狸
@@ -6496,10 +6445,10 @@ export default class Fox
     // ...
 }
 ```
-**JavaScript**
-**复制**
-在**setAnimation**方法中，我们将进行一些更改。
-首先，让我们创建所有可用的三个操作**this.resource.animations**并将它们保存在一个**actions**属性中：
+
+
+在`setAnimation`方法中，我们将进行一些更改。
+首先，让我们创建所有可用的三个操作`this.resource.animations`并将它们保存在一个`actions`属性中：
 
 ```javascript
 // ...
@@ -6524,9 +6473,8 @@ export default class Fox
     // ...
 }
 ```
-**JavaScript**
-**复制**
-然后，我们将其中一个保存在**current**属性中并播放：
+
+然后，我们将其中一个保存在`current`属性中并播放：
 
 ```javascript
 // ...
@@ -6554,21 +6502,19 @@ export default class Fox
     // ...
 }
 ```
-**JavaScript**
-**复制**
-我们应该得到相同的结果，但现在，我们可以访问**walking**和**running**动画。
+
+我们应该得到相同的结果，但现在，我们可以访问`walking`和`running`动画。
 在为模型播放新动画时，我们希望平滑过渡。为此，我们可以使用[AnimationAction](https://threejs.org/docs/?q=actio#api/en/animation/AnimationAction.crossFadeFrom)类中可用的众多方法之一。
-我们将使用**crossFadeFrom(...)**. 需要在传入操作上调用此方法，将前一个操作作为第一个参数，将转换的持续时间（以秒为单位）作为第二个参数。我们还需要重置并播放新动画。
-我们将把这些指令放在一个新的方法中。在**animation**属性中，创建一个**play**方法：
+我们将使用`crossFadeFrom(...)`. 需要在传入操作上调用此方法，将前一个操作作为第一个参数，将转换的持续时间（以秒为单位）作为第二个参数。我们还需要重置并播放新动画。
+我们将把这些指令放在一个新的方法中。在`animation`属性中，创建一个`play`方法：
 
 ```javascript
 this.animation.play = (name) =>
 {
 }
 ```
-**JavaScript**
-**复制**
-在那个**play**方法中，定义以前的和新的动作：
+
+在那个`play`方法中，定义以前的和新的动作：
 
 ```javascript
 this.animation.play = (name) =>
@@ -6577,9 +6523,8 @@ this.animation.play = (name) =>
     const oldAction = this.animation.actions.current
 }
 ```
-**JavaScript**
-**复制**
-然后，重置新的，播放它并执行以下操作**crossFadeFrom(...)**：
+
+然后，重置新的，播放它并执行以下`crossFadeFrom(...)`操作：
 
 ```javascript
 this.animation.play = (name) =>
@@ -6592,9 +6537,8 @@ this.animation.play = (name) =>
     newAction.crossFadeFrom(oldAction, 1)
 }
 ```
-**JavaScript**
-**复制**
-最后，将新动作保存在属性中**current**，这样，下次我们调用我们的**play**函数时，它就会从该动作淡入淡出到新动作：
+
+最后，将新动作保存在属性中`current`，这样，下次我们调用我们的`play`函数时，它就会从该动作淡入淡出到新动作：
 
 ```javascript
 this.animation.play = (name) =>
@@ -6609,20 +6553,18 @@ this.animation.play = (name) =>
     this.animation.actions.current = newAction
 }
 ```
-**JavaScript**
-**复制**
+
 理论上，我们的代码应该可以工作。但是有没有一种方法可以在不将按钮添加到调试 UI 的情况下对其进行测试？
-请记住，我们将经验放在一个名为 的全局变量中**experience**。这意味着，在控制台中，我们可以键入：
+请记住，我们将经验放在一个名为 `**experience** `的全局变量中。这意味着，在控制台中，我们可以键入：
 
 ```javascript
 window.experience.world.fox.animation.play('walking')
 ```
-**JavaScript**
-**复制**
+
 你应该看到狐狸开始走路了。
-我们现在可以将调试按钮添加到我们的**fox**调试文件夹中。
-请记住，Dat.GUI 需要该值作为属性可用。不幸的是，我们不能只将**this.animation.play**函数添加到 Dat.GUI，因为我们还需要发送要播放的动作的名称。
-我们将使用 a**debugObject**并放入三个函数，每个函数都**this.animation.play**使用相应的参数调用：
+我们现在可以将调试按钮添加到我们的`fox`调试文件夹中。
+请记住，Dat.GUI 需要该值作为属性可用。不幸的是，我们不能只将`this.animation.play`函数添加到 Dat.GUI，因为我们还需要发送要播放的动作的名称。
+我们将使用 `debugObject`并放入三个函数，每个函数都`this.animation.play`使用相应的参数调用：
 
 ```javascript
 // ...
@@ -6652,12 +6594,11 @@ export default class Fox
     // ...
 }
 ```
-**JavaScript**
-**复制**
+
 我们现在可以直接从调试 UI 测试不同的动画。
 ### 调试环境
 出于本课的目的并确保我们可以使用调试 UI，让我们对环境进行一些调整。
-在**Environment**类中，检索**Debug**并**active**添加一个文件夹：
+在**Environment**类中，检索`Debug`并`active`添加一个文件夹：
 
 ```javascript
 // ...
@@ -6682,11 +6623,10 @@ export default class Environment
     // ...
 }
 ```
-**JavaScript**
-**复制**
+
 ![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697644077-831ffe6e-81b6-420a-add6-2a3b2f522242.png#averageHue=%23614933&clientId=u088972ae-4aa2-4&from=paste&id=uaefd144b&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uf562b0f5-e7cc-4cf1-8bca-9af162b7a89&title=)
 您应该会看到**environment**调试文件夹。
-在**setEnvironment**函数中，为该文件夹添加一个调整**intensity**，不要忘记**this.environmentMap.updateMaterials**在值更改时调用我们之前准备的方法：
+在`setEnvironment`函数中，为该文件夹添加一个调整`intensity`，不要忘记`this.environmentMap.updateMaterials`在值更改时调用我们之前准备的方法：
 
 ```javascript
 // ...
@@ -6713,10 +6653,9 @@ export default class Environment
     }
 }
 ```
-**JavaScript**
-**复制**
+
 我们现在可以调整环境贴图强度，并且场景的所有子项都会正确更新。
-让我们对和 添加调整来**sunLight**控制**intensity**、**position.x**和：**position.yposition.z**
+让我们对`sunLight`和 `intensity`添加调整来控制`position.z`、`position.x`和`position.y`：
 
 ```javascript
 // ...
@@ -6765,15 +6704,14 @@ export default class Environment
     // ...
 }
 ```
-**JavaScript**
-**复制**
+
 我们现在可以调整光线。
-## 破坏 [03:07:18](https://threejs-journey.com/lessons/code-structuring-for-bigger-projects#)
-在某些时候，您可能需要破坏部分体验，甚至是整个体验。这可能是因为动画已经完成，玩家移动到另一个级别，WebGL 不再可见或者狐狸跑掉了。
+## 销毁 Destroying 
+在某些时候，您可能需要销毁部分体验，甚至是整个体验。这可能是因为动画已经完成，玩家移动到另一个级别，WebGL 不再可见或者狐狸跑掉了。
 我们可以让事情保持原样，但这对表演不利。我们有在每一帧上调用的函数，我们有 GPU 上的纹理，我们有监听器，等等。
-在本节中，我们将破坏整个体验并确保妥善处理这些东西。
+在本节中，我们将销毁整个体验并确保妥善处理这些东西。
 ### 停止时间和调整大小事件
-首先，让我们在我们的**Experience**类中添加一个 destroy 方法。此方法将停止侦听**Time**和**Sizes**事件**off()**：
+首先，让我们在我们的**Experience**类中添加一个 `destroy` 方法。`off()`此方法将停止侦听`Time`和`Sizes`事件：
 
 ```javascript
 // ...
@@ -6789,14 +6727,13 @@ export default class Experience
     }
 }
 ```
-**JavaScript**
-**复制**
-**off()**是类的一部分**EventEmitter**，将删除附加到实例的每个侦听器。
-为了测试它，我们可以**window.experience.destroy()**在浏览器控制台中调用。
-动画应该停止，因为我们不再监听事件**tick**并且我们的**update()**函数没有被调用。
+
+`off()`是**EventEmitter**类的一部分，将删除附加到实例的每个侦听器。
+为了测试它，我们可以在浏览器控制台中调用`window.experience.destroy()`。
+动画应该停止，因为我们不再监听`tick`事件并且我们的`update()`函数没有被调用。
 ### 处理场景中的所有内容
 我们现在要遍历场景，寻找我们要处理的东西。
-首先，让我们**traverse()**在场景中使用该功能：
+首先，让我们在场景中使用该`traverse()`功能：
 
 ```javascript
 // ...
@@ -6818,16 +6755,16 @@ export default class Experience
     }
 }
 ```
-**JavaScript**
-**复制**
+
+
 您应该看到场景中的每个子项（甚至是子项的子项）都已登录到控制台中。
 如果你参考 Three.js 文档（[如何处理对象](https://threejs.org/docs/#manual/en/introduction/How-to-dispose-of-objects)），你会看到我们需要处理几何体、材质、纹理，然后是特定的东西，如控件、通道等。
 以下是我们将如何处理每个孩子：
 
 - 测试它是否是[Mesh](https://threejs.org/docs/index.html?q=mesh#api/en/objects/Mesh)。
-- 调用属性**dispose()**上的函数**geometry**。
-- 遍历属性的每个键**material**。
-- **dispose()**如果该键上有可用的功能，请调用它。
+- 调用`geometry`属性上的函数`dispose()`。
+- 遍历`material`属性的每个键。
+- 如果该键上有可用的功能，请调用它`dispose()`。
 
 这样，我们就不需要测试所有可能的材质贴图来处理场景中的所有纹理和几何体：
 
@@ -6867,11 +6804,11 @@ export default class Experience
     }
 }
 ```
-**JavaScript**
-**复制**
+
+
 这是一种破坏场景中一切的极简主义方式。您可能会发现特定类中会有例外，但我们在这里的尝试是让事情尽可能简单。
 ### 处理控件
-还有更多的清理工作要做。不需要处理相机，但 OrbitControls[可以](https://threejs.org/docs/index.html?q=controls#examples/en/controls/OrbitControls.dispose)：
+还有更多的清理工作要做。不需要处理相机，但 `OrbitControls`[可以](https://threejs.org/docs/index.html?q=controls#examples/en/controls/OrbitControls.dispose)：
 
 ```javascript
 // ...
@@ -6888,10 +6825,10 @@ export default class Experience
     }
 }
 ```
-**JavaScript**
-**复制**
+
+
 ### 处理渲染器
-WebGLRenderer也有一个 dispose 方法，我们可以调用它[而](https://threejs.org/docs/index.html?q=webglre#api/en/renderers/WebGLRenderer.dispose)无需深入研究它。
+`WebGLRenderer`也有一个 `dispose` 方法，我们可以调用它[而](https://threejs.org/docs/index.html?q=webglre#api/en/renderers/WebGLRenderer.dispose)无需深入研究它。
 
 ```javascript
 // ...
@@ -6907,9 +6844,8 @@ export default class Experience
     }
 }
 ```
-**JavaScript**
-**复制**
-请注意，如果您正在使用后处理，则需要处理 EffectComposer [、](https://threejs.org/docs/#examples/en/postprocessing/EffectComposer)它的[WebGLRenderTarget](https://threejs.org/docs/?q=rendertar#api/en/renderers/WebGLRenderTarget)和您正在使用的任何潜在通道。
+
+请注意，如果您正在使用后处理，则需要处理 `EffectComposer `[、](https://threejs.org/docs/#examples/en/postprocessing/EffectComposer)它的[WebGLRenderTarget](https://threejs.org/docs/?q=rendertar#api/en/renderers/WebGLRenderTarget)和您正在使用的任何潜在通道。
 ### 处理调试
 我们使用 Dat.GUI 作为调试 UI，它很容易被破坏。我们需要做的就是调用它的**destroy()**方法，但是在这样做之前我们需要确保调试当前处于活动状态：
 
@@ -6928,16 +6864,15 @@ export default class Experience
     }
 }
 ```
-**JavaScript**
-**复制**
-就这样。**window.experience.destroy()**您现在可以在控制台中调用。
+
+就这样。您现在可以在控制台中调用`window.experience.destroy()`。
 ### 警告和进一步处置
 如您所见，销毁东西有点棘手。您必须深入研究您使用过的不同组件，并确保正确处理所有组件。
-我们没有删除**<canvas>**，最后一帧仍在其中呈现，但如果需要，您可以从页面中删除。
-请注意，当我们停止收听**Sizes**和**Time**事件时，这些类仍将收听本机事件。这没什么大不了的，但如果你有点挑剔，你也可以处理掉它们。
-还要承认的另一件事是，**destroy()**为了简单起见，我们用相同的方法编写了所有内容。**destroy()**如果你有一个更复杂的项目，需要销毁很多东西，你可能想为每个需要它的类创建一个方法。这样，经验将**destroy()**像我们为**update()**和**resize()**方法所做的那样传播给它的孩子。
-## 概括 [03:18:20](https://threejs-journey.com/lessons/code-structuring-for-bigger-projects#)
-使用模块和类构建代码起初可能看起来很难并且适得其反，但现实生活中的 Three.js 项目最终可能会变得如此庞大，如果您想正确完成该项目，您最好不要使用意大利面条式代码。
-拥有这些单独的类也非常适合在其他项目中重用它们。我们创建的大多数类都**Utils**可以在不对它们做任何事情的情况下被重用。
+我们没有删除`<canvas>`，最后一帧仍在其中呈现，但如果需要，您可以从页面中删除。
+请注意，当我们停止收听`Sizes`和`Time`事件时，这些类仍将收听本机事件。这没什么大不了的，但如果你有点挑剔，你也可以处理掉它们。
+还要承认的另一件事是，为了简单起见，我们用相同的`destroy()`方法编写了所有内容。如果你有一个更复杂的项目，需要销毁很多东西，你可能想为每个需要它的类创建一个`destroy()`方法。这样，经验将像我们为`update()`和`resize()`方法所做的那样把`destroy()`传播给它的孩子。
+## 概括
+使用模块和类构建代码起初可能看起来很难并且适得其反，但现实生活中的 Three.js 项目最终可能会变得如此庞大，如果您想正确完成该项目，您最好不要在一个文件写所有代码。
+拥有这些单独的类也非常适合在其他项目中复用它们**。我们**`**Utils**`**创建的大多数类都可以在不对它们做任何事情的情况下被重用**。
 构建代码还可以创造一个与其他开发人员合作并限制冲突的良好环境。每个开发人员都可以在特定的类上工作。
 我们在本课中做出的许多决定都是针对我的个人喜好。您应该处理您的结构并创建一个模板，以便您可以更快地开始处理新项目。不要犹豫与他人分享该结构。
