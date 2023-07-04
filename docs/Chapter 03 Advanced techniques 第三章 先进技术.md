@@ -4973,7 +4973,7 @@ export default class Experience
 }
 ```
 
-## 相机（和单例）
+## 相机（和单例）Camera
 对于相机，我们将创建一个单独的类。
 在`/src/Experience/`文件夹中，创建一个`Camera`类：
 
@@ -5282,7 +5282,7 @@ export default class Experience
 
 
 您现在应该看到我们的结构模式，其中一切都从主类开始并传播到子类。
-## 渲染器 
+## 渲染器 **Renderer**
 就像我们创建类的方式一样**Camera**，让我们创建一个**Renderer**类。
 创建一个`/src/Experience/Renderer.js`文件。
 在此类中，检索**Experience**和以下属性：
@@ -5429,7 +5429,7 @@ export default class Experience
 ```
 
 屏幕上仍然没有任何内容，但我们已经接近了。我们实际上正在做渲染，但我们的场景是空的。
-## 世界
+## 世界 World
 是时候向我们的场景添加一些可见的东西了。为了防止`/src/Experience`文件夹中有太多类，我们将把组成我们世界的所有东西分开在一个单独的类和文件夹中，名为**World**.
 在**World**其中创建一个文件夹并在其中`/src/Experience/`创建一个类。**World**首先检索新创建的类中的**Experience**和**scene**：
 
@@ -5961,7 +5961,7 @@ export default class Environment
 ![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697638320-0717764a-1082-4f69-885e-8b8581c9d7e4.png#averageHue=%23211d20&clientId=u088972ae-4aa2-4&from=paste&id=u7d93f0a4&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=udcccb6a7-1356-4031-baa0-dd7a8036da3&title=)
 您应该看到环境贴图影响了立方体的暗面，现在看起来更亮了。
 将场景遍历放在一个单独的函数中会在以后变得很方便。
-## 地面 
+## 地面 Foolr
 现在我们有了我们的**Resources Class**，地板会更容易添加。
 首先，加载位于`/textures/dirt/normal.jpg` 和`** **/textures/dirt/color.jpg`的两个纹理并将它们添加到`sources.js`文件中：
 
@@ -6140,7 +6140,7 @@ export default class Floor
 不要介意丢失的影子，我们稍后会修复它。
 ![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1685697639961-a31c9cd7-46b6-404f-9975-954250c54567.png#averageHue=%23624a34&clientId=u088972ae-4aa2-4&from=paste&id=ucacc7bcd&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u92147dc3-2af3-4563-a10d-ab61776525b&title=)
 不，这不是煎饼。
-## 狐狸
+## 狐狸 Fox
 狐狸的过程非常相似。我们将加载模型并将其添加到场景中。
 不同之处在于动画。
 通过将其添加到`sources.js`来加载位于/models/Fox/glTF/Fox.gltf的模型：
@@ -6335,10 +6335,11 @@ export default class Fox
     }
 }
 ```
+![tutieshi_640x400_6s (1).gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1688483251510-24a28903-479c-495c-a496-a8b7cc7ed7c6.gif#averageHue=%235a432d&clientId=u55ff8609-5af3-4&from=drop&id=u70fe80a7&originHeight=400&originWidth=640&originalType=binary&ratio=1&rotation=0&showTitle=false&size=1107449&status=done&style=none&taskId=u854cd620-a425-4a9f-bff5-eeae2f6fc49&title=)
 
 狐狸应该是有动画的。
 似乎我们已经完成了，但是我们忘记了一些东西。
-## 调试
+## 调试 Debug
 我们缺少一个非常重要的部分，即调试 UI。
 ### 添加类
 在`/src/Experience/Utils/`中创建一个**Debug**类：
@@ -6561,6 +6562,7 @@ this.animation.play = (name) =>
 window.experience.world.fox.animation.play('walking')
 ```
 
+![tutieshi_640x400_12s (1).gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1688483379873-3dbab874-517e-4449-b47b-7f1a1eec3493.gif#averageHue=%23858787&clientId=u55ff8609-5af3-4&from=drop&id=u440bea9f&originHeight=400&originWidth=640&originalType=binary&ratio=1&rotation=0&showTitle=false&size=890701&status=done&style=none&taskId=udcbf156a-df88-4399-9927-2b2a3035835&title=)
 你应该看到狐狸开始走路了。
 我们现在可以将调试按钮添加到我们的`fox`调试文件夹中。
 请记住，Dat.GUI 需要该值作为属性可用。不幸的是，我们不能只将`this.animation.play`函数添加到 Dat.GUI，因为我们还需要发送要播放的动作的名称。
@@ -6595,6 +6597,7 @@ export default class Fox
 }
 ```
 
+![tutieshi_640x400_11s (1).gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1688483598733-ed3ba729-1195-4e8e-b999-b4edb610c82d.gif#averageHue=%23563f2b&clientId=u55ff8609-5af3-4&from=drop&id=u5c394f1e&originHeight=400&originWidth=640&originalType=binary&ratio=1&rotation=0&showTitle=false&size=738474&status=done&style=none&taskId=u47ababcb-b4f6-4c91-ad2f-255902d0986&title=)
 我们现在可以直接从调试 UI 测试不同的动画。
 ### 调试环境
 出于本课的目的并确保我们可以使用调试 UI，让我们对环境进行一些调整。
@@ -6653,7 +6656,7 @@ export default class Environment
     }
 }
 ```
-
+![tutieshi_640x400_6s (1).gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1688483762743-346bbfd5-62cf-4640-850c-99704b10ccfc.gif#averageHue=%2359422d&clientId=u55ff8609-5af3-4&from=drop&id=u47c6832c&originHeight=400&originWidth=640&originalType=binary&ratio=1&rotation=0&showTitle=false&size=1911545&status=done&style=none&taskId=uc733ad9e-d130-45bf-b3f4-0b097bf33e6&title=)
 我们现在可以调整环境贴图强度，并且场景的所有子项都会正确更新。
 让我们对`sunLight`和 `intensity`添加调整来控制`position.z`、`position.x`和`position.y`：
 
@@ -6704,7 +6707,7 @@ export default class Environment
     // ...
 }
 ```
-
+![tutieshi_640x400_13s (1).gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1688484647091-c2fde40c-71b0-498d-9e1d-f3e19d7b41e7.gif#averageHue=%23515351&clientId=uba79b9e6-8889-4&from=drop&id=ud1980483&originHeight=400&originWidth=640&originalType=binary&ratio=1&rotation=0&showTitle=false&size=5068019&status=done&style=none&taskId=ud2f88019-6068-4435-adae-730bd795099&title=)
 我们现在可以调整光线。
 ## 销毁 Destroying 
 在某些时候，您可能需要销毁部分体验，甚至是整个体验。这可能是因为动画已经完成，玩家移动到另一个级别，WebGL 不再可见或者狐狸跑掉了。
@@ -6730,6 +6733,7 @@ export default class Experience
 
 `off()`是**EventEmitter**类的一部分，将删除附加到实例的每个侦听器。
 为了测试它，我们可以在浏览器控制台中调用`window.experience.destroy()`。
+![tutieshi_640x400_8s.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1688484783226-f9ad6b3f-322f-447c-8a7a-28983cb8ad7e.gif#averageHue=%23888a8a&clientId=uba79b9e6-8889-4&from=drop&id=u47840637&originHeight=400&originWidth=640&originalType=binary&ratio=1&rotation=0&showTitle=false&size=533295&status=done&style=none&taskId=u38befc55-5e6b-48d0-a34b-9e622b7d4cd&title=)
 动画应该停止，因为我们不再监听`tick`事件并且我们的`update()`函数没有被调用。
 ### 处理场景中的所有内容
 我们现在要遍历场景，寻找我们要处理的东西。
@@ -6755,8 +6759,7 @@ export default class Experience
     }
 }
 ```
-
-
+![tutieshi_640x400_5s.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1688484861510-6d7ac238-cd11-473b-90d0-5939503510e6.gif#averageHue=%23162422&clientId=uba79b9e6-8889-4&from=drop&id=uf5b40772&originHeight=400&originWidth=640&originalType=binary&ratio=1&rotation=0&showTitle=false&size=1007731&status=done&style=none&taskId=u92d4c3ed-fcec-48f0-97be-a4ba8c8e115&title=)
 您应该看到场景中的每个子项（甚至是子项的子项）都已登录到控制台中。
 如果你参考 Three.js 文档（[如何处理对象](https://threejs.org/docs/#manual/en/introduction/How-to-dispose-of-objects)），你会看到我们需要处理几何体、材质、纹理，然后是特定的东西，如控件、通道等。
 以下是我们将如何处理每个孩子：
