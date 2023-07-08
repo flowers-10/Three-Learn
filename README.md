@@ -5,10 +5,16 @@
 
 # Menu
 ├── code                                          * 课程代码
+
 ├── docs                                          * 课程文档
+
 |  ├── Graphics                               * 图形学
+
 |  ├── LinearAlgebra                      * 线性代数
+
 |  └── THREE                                   * THREE框架
+
 └── Projects                                    * 项目案例
+
    └── GeniusInvokationTCG         * 骰子游戏：From [KallkaGo](https://github.com/KallkaGo)
 
