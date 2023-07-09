@@ -19,5 +19,3 @@
 
 └── Projects                                    * 项目案例
 
-   └── GeniusInvokationTCG         * 骰子游戏：From [KallkaGo](https://github.com/KallkaGo)
-
