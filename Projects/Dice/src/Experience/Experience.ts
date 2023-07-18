@@ -1,8 +1,10 @@
 import Sizes from "./Utils/Sizes";
+import Time from "./Utils/Time";
 
 export default class Experience {
   public canvas: HTMLCanvasElement
-  public sizes: any
+  public sizes: unknown
+  public time:unknown
   constructor(canvas:HTMLCanvasElement) {
     // Global access
     window.experience = this;
@@ -12,5 +14,6 @@ export default class Experience {
 
     // 初始化
     this.sizes = new Sizes()
+    this.time = new Time()
   }
 }
