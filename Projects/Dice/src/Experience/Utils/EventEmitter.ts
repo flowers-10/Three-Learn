@@ -104,7 +104,7 @@ export default class EventEmitter {
     return this;
   }
 
-  trigger(_name: string, _args: any[]) {
+  trigger(_name: string, _args: any[]|unknown) {
     const that = this
     // Errors
     if (typeof _name === "undefined" || _name === "") {
