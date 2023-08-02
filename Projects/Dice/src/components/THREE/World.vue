@@ -3,15 +3,14 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from "vue"
-import Experience from '@/Experience/Experience';
+import { ref, onMounted } from "vue";
+import Experience from "@/Experience/Experience";
 
 const webgl = ref();
 
 onMounted(() => {
-  new Experience(webgl.value)
-})
-
+  new Experience(webgl.value);
+});
 </script>
 
 <style scoped>
