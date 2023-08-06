@@ -9,3 +9,4 @@ declare module "*.vue" {
 declare interface Window {
   experience: Experience;
 }
+
