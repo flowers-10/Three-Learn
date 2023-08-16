@@ -4,6 +4,9 @@ uniform mat4 modelMatrix;
 
 uniform vec2 uFrequency;
 uniform float uTime;
+attribute vec2 uv;
+
+varying vec2 vUv;
 // attribute float aRandom;
 // varying float vRandom;
 attribute vec3 position;
@@ -16,5 +19,5 @@ void main(){
     vec4 projectedPosition = projectionMatrix * viewPosition;
     gl_Position = projectedPosition;
     // vRandom = aRandom;
-
+    vUv = uv;
 }
