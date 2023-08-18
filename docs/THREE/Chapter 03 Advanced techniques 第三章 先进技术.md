@@ -1759,8 +1759,8 @@ const tick = () =>
 }
 ```
 ![tutieshi_640x360_5s.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1686218608306-6d8ec2be-fcec-4cf4-9d2d-0f246756a90c.gif#averageHue=%231b0500&clientId=uc0e73c23-434e-4&from=drop&id=uba6a9598&originHeight=360&originWidth=640&originalType=binary&ratio=1&rotation=0&showTitle=false&size=809290&status=done&style=none&taskId=uec3dbbf9-84fd-4600-aa4d-2a9b4b0dfab&title=)
-# 
-24. Blender 自定义建模
+
+# 24. Blender 自定义建模
 ## 介绍
 现在我们知道如何将模型导入场景了；但是我们还不会怎么创建复杂的模型，让我们学习如何使用 3D 软件帮助我们创建自己的模型。
 ## 选择软件
@@ -2129,7 +2129,7 @@ gltfLoader.load(
 
 确保始终遵循至少使用 2.8 版 Blender 的教程。
 
-# **25. **Environment map环境图
+# 25. Environment map环境图
 ## 介绍 [00:00](https://threejs-journey.com/lessons/environment-map#)
 我们已经在上一课中讨论了环境贴图。
 场景周围的图像可以用作背景，但也可以直接在对象上用作反射和照明。是的，你没看错，环境贴图可以用来以非常逼真的方式照亮整个场景。
@@ -3294,6 +3294,7 @@ holyDonut.layers.enable(1)
 ## 更进一步 [01:48:55](https://threejs-journey.com/lessons/environment-map#)
 我们完成了！您现在拥有制作精美环境地图的所有工具，让您的场景熠熠生辉。
 **#threejsJourney**使用主题标签在 Twitter 上或在 Three.js Journey Discord 服务器上分享结果。我很想看看你的作品！
+
 # 26. Realistic render逼真的渲染
 ## 介绍
 当我们在上一课中导入汉堡包时，成品渲染的颜色不够逼真。简而言之：很多错误代码导致渲染出的模型颜色不逼真。
@@ -3784,10 +3785,8 @@ directionalLight.shadow.normalBias = 0.05
 ![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1686824352899-df498c24-0caa-4a24-93bb-7967ab9e173b.png#averageHue=%23938062&clientId=u619d3325-df7b-4&from=paste&id=u08555aad&originHeight=1120&originWidth=1792&originalType=url&ratio=2&rotation=0&showTitle=false&status=done&style=none&taskId=u1465f7d9-941b-4ec6-a6cb-bac847f8334&title=)
 现在你得到了一个非常体面的的汉堡包。
 祝你胃口常开。
-# 
-27. Code structuring for bigger projects大型项目的代码结构
 
-
+# 27. Code structuring for bigger projects大型项目的代码结构
 ## 介绍
 到目前为止，所有的练习都是小的案例，它们可以轻松地放入一个 JavaScript 文件中。我们使用块注释将代码的不同职责部分分开，并且代码行数很长。
 但是现实生活中的项目往往有更多的代码。将所有东西像意大利面条一样纠缠在一个文件中很快就会成为一个问题。例如：

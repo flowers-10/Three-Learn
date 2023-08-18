@@ -192,7 +192,7 @@ const material = new THREE.RawShaderMaterial({
 ### 缩进
 缩进不是必需的。您可以根据需要缩进。
 ### 分号
-任何指令都需要用分号来结束。即使忘记一个分号也可能会导致编译错误，并且整个材料将无法工作。
+**任何指令都需要用分号来结束。即使忘记一个分号也可能会导致编译错误，并且整个材料将无法工作。**
 ### 变量
 它是一种类型语言，这意味着我们必须指定变量的类型，并且不能为该变量分配任何其他类型。
 要声明变量，我们必须以类型开始，然后是名称（通常采用驼峰式命名法），然后是符号=，然后是值，最后以 结尾;：
@@ -202,8 +202,8 @@ float fooBar = 0.123;
 ```
 
 有多种不同的类型。
-#### 漂浮
-浮点数是小数。它们可以是消极的，也可以是积极的。.即使该值被四舍五入，我们也必须始终提供小数位数：
+#### 浮点数
+浮点数是小数。它们可以是正数的，也可以是负数的。即使该值被四舍五入，我们也必须始终提供小数位数：
 
 ```glsl
 float foo = - 0.123;
@@ -258,7 +258,22 @@ bool foo = true;
 bool bar = false;
 ```
 
-#### 矢量2
+### 矢量
+矢量或者说向量，可以通过2~4个分量表示一个向量，比如通过`vec3(1,0,0)`表示三维空间中一个沿着x轴正方向的三维方向向量，如果你有高中数学的基础，应该对向量有一定的了解，对于三维坐标的相关几何运算也有一定的概念。
+
+| 关键字 | 数据类型 |
+| --- | --- |
+| vec2 | 二维向量，具有xy两个分量，分量是浮点数 |
+| vec3 | 三维向量 ，具有xyz三个分量，分量是浮点数 |
+| vec4 | 四维向量 ，具有xyzw四个分量，分量是浮点数 |
+| ivec2 | 二维向量，分量是整型数 |
+| ivec3 | 三维向量 ，分量是整型数 |
+| ivec4 | 四维向量 ，分量是整型数 |
+| bvec2 | 二维向量，分量是布尔值bool |
+| bvec3 | 三维向量 ，分量是布尔值bool |
+| bvec4 | 四维向量 ，分量是布尔值bool |
+
+#### 矢量2 **vec4**
 这就是事情变得有趣的地方。如果我们想用`x`和`y`属性存储像 `2` 个坐标这样的值，我们可以使用  `vec2`：
 
 ```glsl
@@ -286,7 +301,7 @@ vec2 foo = vec2(1.0, 2.0);
 foo *= 2.0;
 ```
 
-#### 矢量3
+#### 矢量3 **vec3**
 **vec3**与**vec2** 类似，但具有名为 `z` 的第三个属性。当需要 **3D** 坐标时，这是非常方便的：
 
 ```glsl
@@ -325,7 +340,7 @@ vec3 foo = vec3(1.0, 2.0, 3.0);
 vec2 bar = foo.yx;
 ```
 
-#### 矢量4
+#### 矢量4 **vec4**
 最后，**vec4**它的工作方式就像它的两个前身，但有第四个值，名为**wor** —因为 字母表中没有`z`后面的字母和“alpha”：
 
 ```glsl
@@ -334,7 +349,7 @@ vec4 bar = vec4(foo.zw, vec2(5.0, 6.0));
 ```
 
 还有其他类型的变量，例如`mat2`、`mat3`、`mat4`或`sampler2D`，但我们稍后会看到。
-### Function
+### 函数 Function
 就像大多数编程语言一样，我们可以创建和使用函数。
 函数必须以返回值的类型开头：
 
@@ -368,8 +383,46 @@ float add(float a, float b)
 ```
 
 正如您可以想象的那样，这个功能毫无价值。
+### 常量
+#### const
+
+
+着色器语言和C语言、javascript语言一样可以通过关键字`const`声明一个常量。
+
+着色器语言和其它语言一样，声明一个变量，可以重新赋值，如果通过关键字const声明一个常量，顾名思义是常量，在代码中是不可以更改的。
+```glsl
+// 着色器语言定义一个整形常量
+const int count = 10;
+// 定义一个浮点数常量10.0
+const float count = 10.0;
+// 定义一个三维向量vec3常量,表示方向等量
+const vec3 direction = vec(1.0,0.5,0.6);
+```
+错误写法
+```glsl
+// 着色器语言定义一个整型数常量
+const int count=10;
+// count是常量，不知改变该常量的值
+count=20;
+```
+
+
 ### 原生函数
-**GLSL**内置了很多经典的函数如也有非常实用sin的函数如 。_cosmaxminpowexpmodclampcrossdotmixstepsmoothsteplengthdistancereflectrefractnormalize
+**GLSL**内置了很多经典的函数如也有非常实用的函数如 `sin`, `cos`, `max`, `min`, `pow`, `exp`, `mod`, `clamp`。
+除了在计算机图形编程中常用的数学函数之外，还有许多非常实用的函数，如 `cross`、`dot`、`mix`、`step`、`smoothstep`、`length`、`distance`、`reflect`、`refract` 和 `normalize`。
+以下是其中一些函数的简要解释：
+
+- `cross`：计算两个向量的叉积。
+- `dot`：计算两个向量的点积。
+- `mix`：根据第三个值，在两个值或向量之间执行线性插值。
+- `step`：比较两个值，并根据值是否大于某个阈值返回 0.0 或 1.0。
+- `smoothstep`：根据第三个值，在两个值之间执行平滑的埃尔米特插值。
+- `length`：计算向量的长度（大小）。
+- `distance`：计算两个点（向量）之间的欧几里德距离。
+- `reflect`：通过给定的法线计算入射向量的反射方向。
+- `refract`：通过给定的法线和折射率计算入射向量的折射方向。
+- `normalize`：返回一个标准化后的向量，即具有相同方向但单位长度的向量。
+
 不幸的是，没有适合初学者的文档，而且大多数时候，我们在网络上进行简单的搜索，通常最终会到达以下三个网站：
 #### Shaderific 文档
 [https://shaderific.com/glsl.html](https://shaderific.com/glsl.html)
@@ -1030,3 +1083,630 @@ gl_FragColor = vec4(vUv, 1.0, 1.0);
 - ShaderToy： https: [//www.shadertoy.com/](https://www.shadertoy.com/)
 - 代码艺术 YouTube 频道：[https://www.youtube.com/channel/UCcAlTqd9zID6aNX3TzwxJXg](https://www.youtube.com/channel/UCcAlTqd9zID6aNX3TzwxJXg)
 - 刘易斯·莱普顿 YouTube 频道：[https://www.youtube.com/channel/UC8Wzk_R1GoPkPqLo-obU_kQ](https://www.youtube.com/channel/UC8Wzk_R1GoPkPqLo-obU_kQ)
+## 
+# 29. Shader patterns 着色器图案 
+
+## 介绍 [00:00](https://threejs-journey.com/lessons/shader-patterns#)
+通常，在创建着色器时，我们需要绘制特定的图案，如星星、圆形、光透镜、波浪等。
+它可以帮助有效地查看几何体上的这些图案，也可以移动顶点，就像我们在上一课中对标志所做的那样。
+我们可以使用纹理，但绘制形状可以给我们更多的控制权；我们可以对形状参数进行动画处理，并且无需加载纹理。
+它比使用 canvas 等其他 API 进行绘图要复杂得多，因为每个片段的代码都是相同的，而我们所拥有的只是坐标和数学技能。
+是的，这节课会有一些数学。对于某些人来说，这是最令人沮丧的部分之一，但不要害怕；即使你数学成绩不好，你也会找到解决办法。
+在本课中，我们将尝试在平面上绘制各种图案。我们会非常彻底地开始，随着时间的推移，事情会变得更具挑战性。这是发现经典技术和使用内置函数的绝佳机会。
+对于每种模式，我们首先研究结果；然后，我们尝试重现它。如果您想做得更好，请暂停每个模式的课程并尝试自己做。即使你失败了，如果你自己尝试的话，解决方案也会更有意义。
+## 设置 [03:21](https://threejs-journey.com/lessons/shader-patterns#)
+目前，场景中只有一架飞机，其[ShaderMaterial](https://threejs.org/docs/#api/en/materials/ShaderMaterial)作为[PlaneGeometry](https://threejs.org/docs/index.html#api/en/geometries/PlaneGeometry)。提醒一下，[ShaderMaterial与](https://threejs.org/docs/#api/en/materials/ShaderMaterial)[RawShaderMaterial](https://threejs.org/docs/#api/en/materials/RawShaderMaterial)类似，在着色器前面添加了一些代码，例如导入矩阵、导入某些属性或设置精度。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341115384-c82d3ef7-5fd9-4f31-b9ce-64db6847cf90.png#averageHue=%231d003b&clientId=uac41ddf3-6b83-4&from=paste&id=u2ff43ea5&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u1dcf34fd-51c0-4778-b416-9072618039e&title=)
+## 将 UV 坐标发送到片段 [04:33](https://threejs-journey.com/lessons/shader-patterns#)
+因为我们将绘制平面图案，所以我们的大部分代码将在片段着色器中。但首先，我们需要将 UV 坐标从顶点着色器发送到片段着色器。
+要检索uv顶点着色器中的属性，我们应该编写如下内容：
+```glsl
+attribute vec2 uv;
+```
+但由于我们使用的是[ShaderMaterial](https://threejs.org/docs/#api/en/materials/ShaderMaterial)，因此该代码已预先添加到顶点着色器中。
+要将这个值从顶点着色器发送到片段着色器，我们需要一个varying. 我们将调用它vUv并分配它uv：
+```glsl
+varying vec2 vUv;
+
+void main()
+{
+    // ...
+
+    vUv = uv;
+}
+```
+在片段着色器中，我们可以vUv使用相同的声明检索此变化：
+```glsl
+varying vec2 vUv;
+
+void main()
+{
+    // ...
+}
+```
+我们现在可以访问uv片段着色器中的坐标为vUv。这些值从0, 0左下角到1, 1右上角。
+## 模式1 [10:38](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341115400-85043dff-edce-4197-98a2-fa3fed2316f5.png#averageHue=%23272d2c&clientId=uac41ddf3-6b83-4&from=paste&id=u1499f3de&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u1358c86a-a912-4255-b511-c7e7d361125&title=)
+这种可爱的颜色图案是最容易获得的。我们只需要使用蓝色vUv值为：gl_FragColor1.0
+```glsl
+varying vec2 vUv;
+
+void main()
+{
+    gl_FragColor = vec4(vUv, 1.0, 1.0);
+}
+```
+## 模式2 [12:37](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341115353-61258d4e-4c72-4e55-8772-c0c56cd236ee.png#averageHue=%234a2d10&clientId=uac41ddf3-6b83-4&from=paste&id=u10f6c899&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u3488e9c4-00f4-4172-a759-d4cd374b912&title=)
+这是完全相同的模式，但蓝色值为0.0：
+```glsl
+varying vec2 vUv;
+
+void main()
+{
+    gl_FragColor = vec4(vUv, 0.0, 1.0);
+}
+```
+## 模式3 [13:36](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341115618-c19a6598-3e10-446a-b9e3-349f6d907d1b.png#averageHue=%234d4d4d&clientId=uac41ddf3-6b83-4&from=paste&id=u19a00f1e&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uba2ce75a-6fb1-4f3d-a60c-ee74dead3a8&title=)
+这里事情变得更有趣了。为了获得这个梯度，我们只使用x的属性vUv，但在 的所有前三个值中 gl_FragColor：
+```glsl
+varying vec2 vUv;
+
+void main()
+{
+    gl_FragColor = vec4(vUv.x, vUv.x, vUv.x, 1.0);
+}
+```
+从现在开始，我们要画这样的黑白图案。我们可以创建一个名为 的变量，而不是分别发送r、g和上的值：bfloatstrength
+```glsl
+varying vec2 vUv;
+
+void main()
+{
+    float strength = vUv.x;
+
+    gl_FragColor = vec4(vec3(strength), 1.0);
+}
+```
+我们现在将重点关注strength变量并尝试绘制以下模式。
+您可以发表评论，以便稍后返回，而不是替换以前的模式。
+## 图案4 [16:40](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341115470-5ffd8bb4-4a9b-4b0f-a89e-36842c5896bd.png#averageHue=%233e3e3e&clientId=uac41ddf3-6b83-4&from=paste&id=u775c7375&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u3c87cc10-0fd1-40ee-9675-78f7e092f23&title=)
+该图案完全相同，但在轴上y：
+```glsl
+float strength = vUv.y;
+```
+## 图案5 [17:35](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341119994-f54a7cfb-7794-4233-823a-0782caa6495c.png#averageHue=%234d4d4d&clientId=uac41ddf3-6b83-4&from=paste&id=u32c54a25&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u229dda71-4255-4d90-98c0-f8b9c4a50a1&title=)
+此模式完全相同，但我们使用以下方法反转值1.0 - ...：
+```glsl
+float strength = 1.0 - vUv.y;
+```
+图案6 [18:18](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341119981-ce869b00-d3ee-41a6-8c8a-3d4daab56f2d.png#averageHue=%237c7c7c&clientId=uac41ddf3-6b83-4&from=paste&id=u56ba4972&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u48f9d5aa-ea92-4aab-a4b5-edc7011a615&title=)
+要像这样压缩梯度，我们只需乘以该值即可。会strength快速跳转到1，但我们无法显示比白色更亮的颜色，因此渐变的其余部分保持白色：
+```glsl
+float strength = vUv.y * 10.0;
+```
+图案7 [19:23](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341119567-65422ef4-bdd9-49b3-854c-54c88e4d4111.png#averageHue=%23454545&clientId=uac41ddf3-6b83-4&from=paste&id=u5d43260d&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ub0a8e33b-3bcc-42fb-8122-5e3754f2f50&title=)
+现在我们正在说话。为了重复梯度，我们使用模数。模运算求第一个数除以第二个数后的余数。
+
+- 0.5模1.0将是0.5
+- 0.8模1.0将是0.8
+- 1.2模块1.0将是0.2
+- 1.7模1.0将是0.7
+- 2.0模1.0将是0.0
+- 2.4模1.0将是0.4
+
+这就像第一个数字到达0第二个数字后就返回一样。
+在许多语言中，我们可以使用%来应用模数，但在 GLSL 中我们必须使用该mod(...)函数：
+```glsl
+float strength = mod(vUv.y * 10.0, 1.0);
+```
+## 图案8 [21:45](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341120190-d7cca8a9-f6c7-4c4e-ac1e-e6167817a705.png#averageHue=%23414141&clientId=uac41ddf3-6b83-4&from=paste&id=u92a968e5&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=udfcfd14c-d367-4d37-a103-a2e58a9e921&title=)
+这种模式似乎基于前一种模式，但我们没有渐变，而是0.0或1.0。
+我们可以用一条语句来完成此操作if——因为条件在 GLSL 中确实有效——但我建议出于性能原因避免使用条件。
+我们可以使用该step(...)功能。我们提供边缘值作为第一个参数，提供数字作为第二个参数。如果数值低于边缘，我们得到0.0。如果它高于边缘，我们得到1.0：
+```glsl
+float strength = mod(vUv.y * 10.0, 1.0);
+strength = step(0.5, strength);
+```
+正如您所看到的，我们step(...)在重新分配时在另一行中使用了该函数strength。这没有性能缺陷。您会看到许多着色器开发人员编写大量代码行，其中变量尽可能少，几乎没有注释，但这只是因为他们知道自己在做什么。
+做你想做的事，特别是如果你是初学者。
+## 图案9 [25:04](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341119952-a41b5eef-0cfb-4ce4-bf4e-9ce7ba67339d.png#averageHue=%231a1a1a&clientId=uac41ddf3-6b83-4&from=paste&id=uef7eb4a3&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u303163d5-ea4a-45ce-8ff1-9dce8791b8f&title=)
+此模式与前一种模式相同，但 的边缘值更高step(...)：
+```glsl
+float strength = mod(vUv.y * 10.0, 1.0);
+strength = step(0.8, strength);
+```
+## 图案10 [25:54](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341121938-356c54cd-a8ef-440e-937c-e58de0b418d3.png#averageHue=%231b1b1b&clientId=uac41ddf3-6b83-4&from=paste&id=u91e7fefb&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ueadd0984-e950-48f7-8462-1b451dd7a55&title=)
+这种模式与前一种模式相同，但我们使用的是xaxis ofvUv而不是yaxis：
+```glsl
+float strength = mod(vUv.x * 10.0, 1.0);
+strength = step(0.8, strength);
+```
+## 图案11 [26:15](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341122092-42c47400-a294-4d73-9eaa-553061c660d8.png#averageHue=%23303030&clientId=uac41ddf3-6b83-4&from=paste&id=uea83cb81&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u9e7d0d75-7e56-40c8-be77-2c74b939e89&title=)
+我们也可以将它们结合起来。在这里，我们必须将x轴的结果与轴上的结果相加y：
+```glsl
+float strength = step(0.8, mod(vUv.x * 10.0, 1.0));
+strength += step(0.8, mod(vUv.y * 10.0, 1.0));
+```
+## 图案12 [28:17](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341122312-82323ec3-6099-4c9c-a272-84346d70ab12.png#averageHue=%23050505&clientId=uac41ddf3-6b83-4&from=paste&id=u5bd57781&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u443b7eb9-ef9f-45f6-a831-86ebb8e6090&title=)
+该模式使用相同的原理，但使用乘法。我们只能看到它们的交集：
+```glsl
+float strength = step(0.8, mod(vUv.x * 10.0, 1.0));
+strength *= step(0.8, mod(vUv.y * 10.0, 1.0));
+```
+## 图案13 [29:03](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341122327-bf79809b-e5dd-43b4-8e4a-ca18c38a844a.png#averageHue=%230f0f0f&clientId=uac41ddf3-6b83-4&from=paste&id=uc2d79e57&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u20f38a99-43fa-4c05-ad4d-3f73926aaa0&title=)
+此图案与之前相同，但我们调整了轴上的台阶边缘x：
+```glsl
+float strength = step(0.4, mod(vUv.x * 10.0, 1.0));
+strength *= step(0.8, mod(vUv.y * 10.0, 1.0));
+```
+## 图案14 [30:13](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341122280-b6d8f525-802e-4426-9ecc-14583af3ff49.png#averageHue=%231a1a1a&clientId=uac41ddf3-6b83-4&from=paste&id=u70e9bfcd&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u781788aa-ecfa-44ee-ba34-a82949a5ec7&title=)
+该模式是之前模式的组合。我们在轴上创建条形x并添加轴的条形y：
+```glsl
+float strength = step(0.4, mod(vUv.x * 10.0, 1.0)) * step(0.8, mod(vUv.y * 10.0, 1.0));
+strength += step(0.8, mod(vUv.x * 10.0, 1.0)) * step(0.4, mod(vUv.y * 10.0, 1.0));
+```
+与任何语言一样，当代码变得难以忍受时，最好进行一些重构：
+```glsl
+float barX = step(0.4, mod(vUv.x * 10.0, 1.0)) * step(0.8, mod(vUv.y * 10.0, 1.0));
+float barY = step(0.8, mod(vUv.x * 10.0, 1.0)) * step(0.4, mod(vUv.y * 10.0, 1.0));
+float strength = barX + barY;
+```
+## 图案15 [33:08](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341124818-bee24e2e-a4e9-498f-932c-304a47a8b7fd.png#averageHue=%231a1a1a&clientId=uac41ddf3-6b83-4&from=paste&id=uac19e77d&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u7a6d57db-7426-410c-949e-6592a16f48d&title=)
+此模式与之前相同，但我们在条形x和y轴上应用了一个小的偏移：
+```glsl
+float barX = step(0.4, mod(vUv.x * 10.0 - 0.2, 1.0)) * step(0.8, mod(vUv.y * 10.0, 1.0));
+float barY = step(0.8, mod(vUv.x * 10.0, 1.0)) * step(0.4, mod(vUv.y * 10.0 - 0.2, 1.0));
+float strength = barX + barY;
+```
+在这种情况下，像我们这样的初学者会坚持调整这些值，直到它起作用为止。这没有问题，一旦找到解决方案，它可能就会有意义。
+## 图案16 [35:46](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341124978-a967d9e4-acd8-48dd-ad7e-ef8be7376d15.png#averageHue=%23252525&clientId=uac41ddf3-6b83-4&from=paste&id=u25c8b15a&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ufd7ac104-d140-4bce-a334-7772e3cb9a0&title=)
+让我们从另一个方向来看这个。为了得到这个结果，我们首先需要偏移 ，vUv.x所以它从-0.5到0.5。然后我们需要该值始终为正，以便它0.5不断0.0变化0.5。为此，我们可以使用以下abs(...)函数：
+```glsl
+float strength = abs(vUv.x - 0.5);
+```
+## 图案17 [37:58](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341124853-2cc2b003-59a6-4a5c-b83c-b75cfa4ae1ff.png#averageHue=%23181818&clientId=uac41ddf3-6b83-4&from=paste&id=u621ffe11&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u86726242-c5af-4b07-bf15-7561125ecd9&title=)
+这种模式看起来像是前一种模式与轴上的变化的组合y。这不是普通的组合。x这里你可以看到的是轴上的图案和轴上的图案之间的最小值y。为此，我们使用以下min(...)函数：
+```glsl
+float strength = min(abs(vUv.x - 0.5), abs(vUv.y - 0.5));
+```
+## 图案18 [39:55](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341124933-d39e34ae-b280-4d3b-b829-98baed04a5ab.png#averageHue=%23313131&clientId=uac41ddf3-6b83-4&from=paste&id=u18931e98&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u5d8789c1-184a-4def-86a5-282027cbef4&title=)
+与上面相同，但具有以下max(...)功能：
+```glsl
+float strength = max(abs(vUv.x - 0.5), abs(vUv.y - 0.5));
+```
+## 图案19 [40:36](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341124995-76143ab8-01e5-4ade-8758-b8940f2f2bf4.png#averageHue=%23717171&clientId=uac41ddf3-6b83-4&from=paste&id=uf72552a2&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ua74167dc-d326-4044-a393-36a1935987e&title=)
+对于此模式，我们只需step(...)对先前的值应用 a：
+```glsl
+float strength = step(0.2, max(abs(vUv.x - 0.5), abs(vUv.y - 0.5)));
+```
+## 图案20 [42:10](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341127555-66295736-ccb8-4842-bf97-19ba748eca8d.png#averageHue=%230b0b0b&clientId=uac41ddf3-6b83-4&from=paste&id=uc39d6b40&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ub38d3a89-958f-40e4-9d4c-b9026f90085&title=)
+该图案是一个正方形与另一个较小且倒置的正方形的乘积。
+```glsl
+float strength = step(0.2, max(abs(vUv.x - 0.5), abs(vUv.y - 0.5)));
+strength *= 1.0 - step(0.25, max(abs(vUv.x - 0.5), abs(vUv.y - 0.5)));
+```
+## 图案21 [44:47](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341127589-b74123ed-b0ed-4084-8511-fcc4a21f985b.png#averageHue=%23474747&clientId=uac41ddf3-6b83-4&from=paste&id=ua2e28af2&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u8794aee8-2d1f-4b40-8f20-2773baf8644&title=)
+对于这种模式，我们vUv.x乘以10.0，用floor(...)函数将其四舍五入到其较小的整数，然后除以得到, 和10.0之间的值：0.01.0
+```glsl
+float strength = floor(vUv.x * 10.0) / 10.0;
+```
+## 图案22 [47:28](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341127341-c1bf39e4-ffad-409b-8eae-569cb61655da.png#averageHue=%231c1c1c&clientId=uac41ddf3-6b83-4&from=paste&id=uabf63b69&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u919e5811-ab67-4681-8810-f2c432354f9&title=)
+和以前一样，我们可以通过将不同的轴相乘来组合它们：
+```glsl
+float strength = floor(vUv.x * 10.0) / 10.0 * floor(vUv.y * 10.0) / 10.0;
+```
+## 图案23 [48:04](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341127523-29a1223b-f0fe-484b-937f-bf3dd6a03dce.png#averageHue=%23474747&clientId=uac41ddf3-6b83-4&from=paste&id=ud93d8e23&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u0125461f-5518-4add-b846-f0e546fee0e&title=)
+获取此模式很复杂，因为 GLSL 中没有原生随机函数。诀窍是获得一个不可预测的值，使其看起来是随机的。
+获得这种值的一种流行方法是使用以下函数：
+```glsl
+float random(vec2 st)
+{
+    return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
+}
+```
+我们vec2向这个函数提供一个，然后我们得到一个伪随机值。
+如果您想了解有关此功能的更多信息，请参阅The Book of Shaders的链接：[https://thebookofshaders.com/10/](https://thebookofshaders.com/10/)
+我们可以在函数之外添加此函数main，并将其与以下命令一起使用vUv：
+```glsl
+varying vec2 vUv;
+
+float random(vec2 st)
+{
+    return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
+}
+
+void main()
+{
+    // ...
+
+    float strength = random(vUv);
+
+    // ...
+}
+```
+小心这个随机函数。使用错误的值可能会导致随机性中出现明显的形状。
+## 图案24 [50:57](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341127745-9c0ed32a-7faf-4c07-b073-600d721f6909.png#averageHue=%23494949&clientId=uac41ddf3-6b83-4&from=paste&id=ue6d80dda&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u0d84caa4-48fc-41e2-9c54-525d0720e57&title=)
+该模式是前两个模式的组合。首先，我们创建一个以舍入值命名的新vec2坐标gridUv：
+```glsl
+vec2 gridUv = vec2(floor(vUv.x * 10.0) / 10.0, floor(vUv.y * 10.0) / 10.0);
+```
+然后，我们将这些坐标与random函数一起使用：
+```glsl
+float strength = random(gridUv);
+```
+## 图案25 [53:20](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341129807-8e7be232-6e7c-4347-bbdb-6a2f28332ede.png#averageHue=%23484848&clientId=uac41ddf3-6b83-4&from=paste&id=u782e1471&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u487fb29f-94e6-49dc-aff1-62ea9ed5c78&title=)
+这种模式源于前一种模式。为了获得这种倾斜效果，我们必须在创建 时vUv.x添加：vUv.ygridUv
+```glsl
+vec2 gridUv = vec2(floor(vUv.x * 10.0) / 10.0, floor((vUv.y + vUv.x * 0.5) * 10.0) / 10.0);
+float strength = random(gridUv);
+```
+## 图案26 [55:23](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341129695-07247c4c-7fca-4c2e-aeec-60ea43bdd05a.png#averageHue=%23656565&clientId=uac41ddf3-6b83-4&from=paste&id=u41e9d04d&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u346b8e6f-1c1f-405e-9538-e68313ba803&title=)
+在该图案上，距左下角越远，强度越亮。
+这实际上就是 的长度vUv。vUvvalue 等于，0.0, 0.0因此长度位于0.0左下角，距离该角越远，其长度就越大。
+我们可以使用以下函数获取向量的长度（vec2、vec3或vec4）length(...)：
+```glsl
+float strength = length(vUv);
+```
+## 图案27 [57:20](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341129443-3f4c5e87-2e87-4040-8987-8627f718eadc.png#averageHue=%23383838&clientId=uac41ddf3-6b83-4&from=paste&id=uf275eeb6&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u8fe2988b-608f-4ca5-bc2f-c0eb7ba67a5&title=)
+vUv相反，我们将获得平面中心之间的距离。因为我们的平面 UV 从0.0, 0.0到1.0, 1.0，中心是0.5, 0.5。我们将创建一个vec2对应的中心并vUv使用以下distance(...)函数获取距中心的距离：
+```glsl
+float strength = distance(vUv, vec2(0.5));
+```
+当创建只有一个值的向量时，该值将传递到每个属性 -x在y我们的例子中。
+请注意，我们也可以使用 offsetvUv和 use 该length(...)函数。
+## 图案28 [59:58](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341130003-a85e9ae2-115f-4a54-888e-426ee05047c5.png#averageHue=%23565656&clientId=uac41ddf3-6b83-4&from=paste&id=u03ce1bdd&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u0b956bad-c184-46b6-a4bb-79b52eb9922&title=)
+对于此模式，我们将之前的值减去1.0：
+```glsl
+float strength = 1.0 - distance(vUv, vec2(0.5));
+```
+## 图案29 [01:00:34](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341132595-5c537300-5b61-4730-bc05-b795a4e34d86.png#averageHue=%23070707&clientId=uac41ddf3-6b83-4&from=paste&id=u733ac297&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u2affe940-df5e-43b8-b5fa-f2d04da4ed8&title=)
+创建光透镜效果时，此图案非常方便。为了得到这个结果，我们从一个小值开始，并将其除以之前计算的距离：
+```glsl
+float strength = 0.015 / (distance(vUv, vec2(0.5)));
+```
+## 图案30 [01:02:55](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341133890-1290eb48-fe01-4263-8792-529f72f460a1.png#averageHue=%23191919&clientId=uac41ddf3-6b83-4&from=paste&id=u911c3133&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ucc7d84ec-9957-42a8-8a0d-0c046dd042a&title=)
+这是相同的图案，但 UVy仅在轴上被挤压和移动：
+```glsl
+float strength = 0.15 / (distance(vec2(vUv.x, (vUv.y - 0.5) * 5.0 + 0.5), vec2(0.5)));
+```
+## 图案31 [01:06:29](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341133795-d8834e33-557a-41ae-8f32-ae6d317a68c4.png#averageHue=%23040404&clientId=uac41ddf3-6b83-4&from=paste&id=ubee8e11e&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u06f691e1-f66a-4e0e-83de-9b9ee60199c&title=)
+这是相同的模式乘以相同的公式，但第二个是基于轴的x：
+```glsl
+float strength = 0.15 / (distance(vec2(vUv.x, (vUv.y - 0.5) * 5.0 + 0.5), vec2(0.5)));
+strength *= 0.15 / (distance(vec2(vUv.y, (vUv.x - 0.5) * 5.0 + 0.5), vec2(0.5)));
+```
+## 图案32 [01:08:25](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341136061-76767c15-21e2-412d-8220-af43df604bb6.png#averageHue=%23040404&clientId=uac41ddf3-6b83-4&from=paste&id=u158df074&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u16ea5ce5-94f0-48fb-a142-e3683b0dbb6&title=)
+获得这种模式相当费力。我们需要旋转vUv中心的坐标。进行 2D 旋转是一种混合操作cos(...)，sin(...)我们不会在此处介绍。这也是使用函数的好机会。在该函数之前添加以下函数main：
+```glsl
+vec2 rotate(vec2 uv, float rotation, vec2 mid)
+{
+    return vec2(
+      cos(rotation) * (uv.x - mid.x) + sin(rotation) * (uv.y - mid.y) + mid.x,
+      cos(rotation) * (uv.y - mid.y) - sin(rotation) * (uv.x - mid.x) + mid.y
+    );
+}
+```
+然后，我们可以使用它来创建一组新的 UV，我们将其称为rotatedUV。问题是我们想要精确旋转整圆的八分之一。遗憾的是，我们无法在 GLSL 中访问 π (pi)。
+相反，我们可以创建一个包含 π 近似值的变量：
+```glsl
+float pi = 3.1415926535897932384626433832795;
+```
+因为这个变量永远不会改变，所以我们可以define在代码开头将其保存为 a ：
+```glsl
+#define PI 3.1415926535897932384626433832795
+```
+定义比变量便宜，但不能更改。最好以大写形式正确定义以将其与其他变量区分开来。
+然后我们可以将该PI值用作函数的第二个参数rotate(...)（角度）：
+```glsl
+vec2 rotatedUv = rotate(vUv, PI * 0.25, vec2(0.5));
+```
+最后，我们vUv用这个新的替换我们的rotatedUV：
+```glsl
+float strength = 0.15 / (distance(vec2(rotatedUv.x, (rotatedUv.y - 0.5) * 5.0 + 0.5), vec2(0.5)));
+strength *= 0.15 / (distance(vec2(rotatedUv.y, (rotatedUv.x - 0.5) * 5.0 + 0.5), vec2(0.5)));
+```
+## 图案33 [01:15:16](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341134892-ffb3811b-8c62-4301-83f8-083ebf86bffb.png#averageHue=%236c6c6c&clientId=uac41ddf3-6b83-4&from=paste&id=u0d0f20c3&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u51ad30ad-fa44-47ea-a573-b9cb09ffc37&title=)
+为了绘制该圆盘，我们使用该distance(...)函数与该step(...)函数并应用偏移量来控制圆盘半径：
+```glsl
+float strength = step(0.5, distance(vUv, vec2(0.5)) + 0.25);
+```
+我们还可以更改step(...)“命名边缘”的第一个参数来控制半径。
+## 图案34 [01:16:34](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341136401-f4579854-c61d-4b3f-8356-fa422b60c6dc.png#averageHue=%23181818&clientId=uac41ddf3-6b83-4&from=paste&id=u7e6dc1d2&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u872b9e1c-7e48-452b-a3e4-0b97123011c&title=)
+这种模式与前一种模式非常接近，但我们使用该abs(...)函数来保持正值：
+```glsl
+float strength = abs(distance(vUv, vec2(0.5)) - 0.25);
+```
+## 图案35 [01:17:27](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341136328-599c9663-1b97-4449-9fbb-480403e7c801.png#averageHue=%23818181&clientId=uac41ddf3-6b83-4&from=paste&id=u8830ddb6&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u3c7c99a5-1cdf-4f46-9556-d4155d548fa&title=)
+我们可以将前两个结合起来得到一个圆：
+```glsl
+float strength = step(0.02, abs(distance(vUv, vec2(0.5)) - 0.25));
+```
+## 图案36 [01:18:01](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341137777-368fb53b-0044-4fd0-adc9-dc4e44ce636f.png#averageHue=%23040404&clientId=uac41ddf3-6b83-4&from=paste&id=ud024dbb6&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ud20067b8-472f-402a-ae09-37d1b3ae014&title=)
+我们可以用以下方法反转它1.0 - ...：
+```glsl
+float strength = 1.0 - step(0.01, abs(distance(vUv, vec2(0.5)) - 0.25));
+```
+## 图案37 [01:18:25](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341138408-19824c2d-5771-4388-84f7-b5c7f6468c34.png#averageHue=%23040404&clientId=uac41ddf3-6b83-4&from=paste&id=ufd8b97d8&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u9e46a1bd-66a5-49a0-9c54-c9116fe466c&title=)
+该图案基于前一个图案，但具有波浪状失真。为了获得这个结果，我们创建一个新的 UV 变量，我们可以调用，并将基于轴的值wavedUv添加到值中：sin(...)xy
+```glsl
+vec2 wavedUv = vec2(
+    vUv.x,
+    vUv.y + sin(vUv.x * 30.0) * 0.1
+);
+```
+然后，我们用它wavedUv代替vUv：
+```glsl
+float strength = 1.0 - step(0.01, abs(distance(wavedUv, vec2(0.5)) - 0.25));
+```
+## 图案38 [01:21:07](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341138678-4d30170b-b7b6-4aff-a197-ee83c4c6184b.png#averageHue=%23030303&clientId=uac41ddf3-6b83-4&from=paste&id=uc69b7b1d&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ub5818f20-602f-4dd2-96d8-8278a0a7ad0&title=)
+对于此图案，我们还将波形畸变应用于轴x：
+```glsl
+vec2 wavedUv = vec2(
+    vUv.x + sin(vUv.y * 30.0) * 0.1,
+    vUv.y + sin(vUv.x * 30.0) * 0.1
+);
+float strength = 1.0 - step(0.01, abs(distance(wavedUv, vec2(0.5)) - 0.25));
+```
+## 图案39 [01:21:36](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341138958-0faa93ef-7935-4c69-96d5-7910af945f23.png#averageHue=%23040404&clientId=uac41ddf3-6b83-4&from=paste&id=u5b1733ef&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ue8fc247c-144c-4a75-9446-ca1bb445863&title=)
+我们只需增加sin(...)频率即可产生迷幻效果：
+```glsl
+vec2 wavedUv = vec2(
+    vUv.x + sin(vUv.y * 100.0) * 0.1,
+    vUv.y + sin(vUv.x * 100.0) * 0.1
+);
+float strength = 1.0 - step(0.01, abs(distance(wavedUv, vec2(0.5)) - 0.25));
+```
+想象一下将其动画化。
+## 图案40 [01:22:35](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341140196-e3f42089-e57d-4b74-8219-27fd8b0e5df2.png#averageHue=%23686868&clientId=uac41ddf3-6b83-4&from=paste&id=u9b48c2c1&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u678e1f33-a1d1-4d8e-8a0d-861c236441e&title=)
+这个图案实际上是 的角度vUv。要从 2D 坐标获取角度，我们可以使用atan(...)：
+```glsl
+float angle = atan(vUv.x, vUv.y);
+float strength = angle;
+```
+## 图案41 [01:24:57](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341141514-87a45c62-2a31-436f-b26f-27778c2a879d.png#averageHue=%23464646&clientId=uac41ddf3-6b83-4&from=paste&id=u849438ae&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ud5ffb85b-502a-42f2-af3a-59fb5b234ce&title=)
+此图案是相同的，但0.5在 上有一个偏移vUv，以在中心周围创建一个角度：
+```glsl
+float angle = atan(vUv.x - 0.5, vUv.y - 0.5);
+float strength = angle;
+```
+图案42 [01:25:36](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341141610-682b7b19-5875-45af-be1a-c0ab70b376aa.png#averageHue=%234c4c4c&clientId=uac41ddf3-6b83-4&from=paste&id=u707b9e2f&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uebf844b3-1d5f-4253-a4af-c202bdddd5f&title=)
+再一次，这个图案是相同的，但角度从0.0到1.0。目前，返回和atan(...)之间的值。首先，我们可以除以：-π+πPI * 2
+```glsl
+float angle = atan(vUv.x - 0.5, vUv.y - 0.5);
+angle /= PI * 2.0;
+float strength = angle;
+```
+-0.5我们得到一个从到 的值0.5。我们只需要添加0.5：
+```glsl
+float angle = atan(vUv.x - 0.5, vUv.y - 0.5);
+angle /= PI * 2.0;
+angle += 0.5;
+float strength = angle;
+```
+拥有合适的角度是玩转圆形形状的积极方式。我们将这些angle操作重新组合成一行以便更容易阅读：
+```glsl
+float angle = atan(vUv.x - 0.5, vUv.y - 0.5) / (PI * 2.0) + 0.5;
+```
+图案43 [01:28:05](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341141775-ec457d3f-c868-4255-8229-225bd06b91b3.png#averageHue=%23464646&clientId=uac41ddf3-6b83-4&from=paste&id=u4a5c5f23&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u096e5ac6-ec21-4bd1-82af-409f4d348ce&title=)
+该模式基于我们一开始使用模数时使用的相同技术，但这次使用的是angle：
+```glsl
+float angle = atan(vUv.x - 0.5, vUv.y - 0.5) / (PI * 2.0) + 0.5;
+float strength = mod(angle * 20.0, 1.0);
+```
+图案44 [01:29:47](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341141854-869b86cf-4d45-4a62-9d9b-f9f085cf3ea8.png#averageHue=%232b2b2b&clientId=uac41ddf3-6b83-4&from=paste&id=ue5301005&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u27e2cb97-89a4-46d5-90d4-9136a324bd3&title=)
+这个正在使用sin(...)：
+```glsl
+float angle = atan(vUv.x - 0.5, vUv.y - 0.5) / (PI * 2.0) + 0.5;
+float strength = sin(angle * 100.0);
+```
+## 图案45 [01:31:17](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341142502-7eed9bf1-61bb-4194-9808-e45864fa479e.png#averageHue=%23040404&clientId=uac41ddf3-6b83-4&from=paste&id=ube91cf8d&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u22dea803-293f-4000-9211-89b9bb7bcef&title=)
+我们可以使用之前的值来定义之前绘制的圆的半径：
+```glsl
+float angle = atan(vUv.x - 0.5, vUv.y - 0.5) / (PI * 2.0) + 0.5;
+float radius = 0.25 + sin(angle * 100.0) * 0.02;
+float strength = 1.0 - step(0.01, abs(distance(vUv, vec2(0.5)) - radius));
+```
+## 图案46 [01:34:05](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341144138-b9dcc787-c699-47fa-aae9-318e09ddfc5e.png#averageHue=%23131313&clientId=uac41ddf3-6b83-4&from=paste&id=ua8dc6a3d&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ue40114b7-3991-4842-b78e-81dad81a458&title=)
+这种模式称为柏林噪声。您可能已经听说过它，如果没有，您可能在不知情的情况下看到过它。柏林噪声有助于重建自然形状，如云、水、火、地形海拔，但它也可以用来制作随风移动的草或雪的动画。
+有许多 Perlin 噪声算法，它们具有不同的结果、不同的维度（2D、3D，甚至 4D），有些会重复，有些则性能更高，等等。
+以下是一个 Github 要点，列出了我们可以为 GLSL 找到的一些最流行的柏林噪音：[https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83](https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83)
+但要小心；正如我们将看到的，某些代码可能无法立即运行。我们现在将测试Stefan Gustavson的第一个经典 Perlin 噪声，这是一种 2D 噪声 - 我们提供 a ，我们得到 a 作为回报。仅将代码复制到着色器，但暂时不要使用它：vec2float
+```glsl
+//	Classic Perlin 2D Noise 
+//	by Stefan Gustavson
+//
+vec2 fade(vec2 t)
+{
+    return t*t*t*(t*(t*6.0-15.0)+10.0);
+}
+
+float cnoise(vec2 P)
+{
+    vec4 Pi = floor(P.xyxy) + vec4(0.0, 0.0, 1.0, 1.0);
+    vec4 Pf = fract(P.xyxy) - vec4(0.0, 0.0, 1.0, 1.0);
+    Pi = mod(Pi, 289.0); // To avoid truncation effects in permutation
+    vec4 ix = Pi.xzxz;
+    vec4 iy = Pi.yyww;
+    vec4 fx = Pf.xzxz;
+    vec4 fy = Pf.yyww;
+    vec4 i = permute(permute(ix) + iy);
+    vec4 gx = 2.0 * fract(i * 0.0243902439) - 1.0; // 1/41 = 0.024...
+    vec4 gy = abs(gx) - 0.5;
+    vec4 tx = floor(gx + 0.5);
+    gx = gx - tx;
+    vec2 g00 = vec2(gx.x,gy.x);
+    vec2 g10 = vec2(gx.y,gy.y);
+    vec2 g01 = vec2(gx.z,gy.z);
+    vec2 g11 = vec2(gx.w,gy.w);
+    vec4 norm = 1.79284291400159 - 0.85373472095314 * vec4(dot(g00, g00), dot(g01, g01), dot(g10, g10), dot(g11, g11));
+    g00 *= norm.x;
+    g01 *= norm.y;
+    g10 *= norm.z;
+    g11 *= norm.w;
+    float n00 = dot(g00, vec2(fx.x, fy.x));
+    float n10 = dot(g10, vec2(fx.y, fy.y));
+    float n01 = dot(g01, vec2(fx.z, fy.z));
+    float n11 = dot(g11, vec2(fx.w, fy.w));
+    vec2 fade_xy = fade(Pf.xy);
+    vec2 n_x = mix(vec2(n00, n01), vec2(n10, n11), fade_xy.x);
+    float n_xy = mix(n_x.x, n_x.y, fade_xy.y);
+    return 2.3 * n_xy;
+}
+```
+不幸的是，这段代码似乎破坏了我们的着色器，这是因为permute缺少一个名为的函数。在这里，您可以将其添加到fade函数之前：
+```glsl
+vec4 permute(vec4 x)
+{
+    return mod(((x*34.0)+1.0)*x, 289.0);
+}
+```
+现在我们可以访问一个cnoise函数，并且可以使用它vUv：
+```glsl
+float strength = cnoise(vUv);
+```
+这是一个粗略的结果，但我们仍然有一些东西。要查看预览中的更多图案，请将vUv乘以10.0：
+```glsl
+float strength = cnoise(vUv * 10.0);
+```
+## 图案47 [01:39:06](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341144438-e132f077-3f08-4ee7-88c6-16ad4c354ce5.png#averageHue=%23414141&clientId=uac41ddf3-6b83-4&from=paste&id=u6678d7e9&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u83b48e72-5089-46a6-a359-6d3f6687259&title=)
+该模式使用相同的噪声，但在其上增加了一步：
+```glsl
+float strength = step(0.0, cnoise(vUv * 10.0));
+```
+如果在某个时候你想创造一头牛，这非常有用。
+## 图案48 [01:40:29](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341144486-69fd9e4c-f5ca-4a8e-aa83-43be6ab50d27.png#averageHue=%23636363&clientId=uac41ddf3-6b83-4&from=paste&id=u51e37484&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uec79a9e5-a6ae-4690-81a0-b1df2c079ba&title=)
+对于此模式，我们使用了abs(...)值，并将结果减去1.0：
+```glsl
+float strength = 1.0 - abs(cnoise(vUv * 10.0));
+```
+你可以用它来创造闪电、水下反射或等离子能量的东西。
+## 图案49 [01:41:11](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341145201-295abdb0-20ea-4b42-ad80-c51d68db305b.png#averageHue=%232c2c2c&clientId=uac41ddf3-6b83-4&from=paste&id=u4da074ee&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ud4def188-9824-4b74-bce1-422139f6a3d&title=)
+对于此模式，我们sin(...)对噪声应用了 a：
+```glsl
+float strength = sin(cnoise(vUv * 10.0) * 20.0);
+```
+## 图案50 [01:42:10](https://threejs-journey.com/lessons/shader-patterns#)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341145322-7e80b304-04d1-4e2b-8c2a-ff2e53fc63e5.png#averageHue=%23141414&clientId=uac41ddf3-6b83-4&from=paste&id=u6f9cfafc&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ufa277af5-70a0-46c7-9edb-ee1191f33c7&title=)
+对于最后一个，我们将sin(...)和结合起来step(...)：
+```glsl
+float strength = step(0.9, sin(cnoise(vUv * 10.0) * 20.0));
+```
+简单的豌豆，黑白柠檬汁。
+## 用颜色测试一下 [01:42:59](https://threejs-journey.com/lessons/shader-patterns#)
+这很有趣，但是这些黑白颜色变得乏味了。我们一开始就有的一种很酷的颜色是当我们vUv直接在中使用时gl_FragColor：
+```glsl
+gl_FragColor = vec4(vUv, 1.0, 1.0);
+```
+我们现在可以做的是使用渐变颜色而不是白色。
+### 混合颜色
+为此，我们将使用该mix(...)函数。该函数需要 3 个参数：
+
+- 第一个输入可以是 a float、 a vec2、 avec3或 a vec4。
+- 第二个输入，其类型应相同。
+- 第三个值必须是float。它将决定获取更多第一个输入或更多第二个输入。如果我们使用0.0，返回值将是第一个输入。如果我们使用1.0，返回值将是第二个。如果我们使用0.5，该值将是两个输入之间的混合。您也可以低于0.0或高于1.0，并且将推断出值。
+
+让我们创建第一种颜色：
+```glsl
+vec3 blackColor = vec3(0.0);
+```
+让我们形成第二种颜色：
+```glsl
+vec3 uvColor = vec3(vUv, 1.0);
+```
+我们根据以下公式获得两种颜色之间的混合strength：
+```glsl
+vec3 mixedColor = mix(blackColor, uvColor, strength);
+```
+我们在gl_FragColor不改变 alpha 的情况下使用该混合：
+```glsl
+gl_FragColor = vec4(mixedColor, 1.0);
+```
+使用之前的所有模式进行有趣的测试。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341147295-6eb8846d-e819-4034-b9db-aa94487bc5d9.png#averageHue=%23000000&clientId=uac41ddf3-6b83-4&from=paste&id=uf6181cdc&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u329df21a-a597-4438-9e44-9e9c8695e55&title=)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341147908-847e289d-3dc1-4218-bebd-f0fc4e3b0924.png#averageHue=%23000000&clientId=uac41ddf3-6b83-4&from=paste&id=u73e94f3b&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ua4de3bc1-74d0-4933-a97a-490d1354222&title=)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341149297-cf421611-0ffd-48da-974a-b23a79c5e2d7.png#averageHue=%23000000&clientId=uac41ddf3-6b83-4&from=paste&id=u6cac1228&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u230d1aa6-1337-455f-9938-3b47ed766be&title=)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341149906-220e8acb-0964-4647-a8e6-8c08e3802ed1.png#averageHue=%23000000&clientId=uac41ddf3-6b83-4&from=paste&id=u2958ce7b&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u02ad1660-4fad-4f4a-941f-429eb365dd5&title=)
+### 固定强度
+如果您使用此 UV 梯度测试 #11、#14 和 #15 等图案，您会在交叉点看到一些奇怪的行为。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341150317-6f7aa97b-8601-4629-aa5e-9da62e9043ab.png#averageHue=%231e1b2f&clientId=uac41ddf3-6b83-4&from=paste&id=ua31bfb3b&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u9f9a04c0-ce2b-40ec-bab8-8604c5dab5a&title=)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341150420-2942aab0-40a9-455d-a564-8b0564787b4c.png#averageHue=%23010101&clientId=uac41ddf3-6b83-4&from=paste&id=u35da9133&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u8a3cd678-729b-44e2-b5fc-c94714db6be&title=)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341151311-104c68d2-6576-41de-86cb-1e3e3d966766.png#averageHue=%23010101&clientId=uac41ddf3-6b83-4&from=paste&id=u814305c7&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=udfe9610d-dfd0-4d85-ab75-ec27f6b146f&title=)
+看起来交叉点太亮了，事实也正是如此。这是因为strength我们在 中使用的值mix(...)高于1.0并且输出被推断 - 这意味着它超出了第二个值。
+为了限制这个值，我们可以使用clamp(...)上的函数strength。此函数将简单地设置一个值的下限和上限：
+```glsl
+// Pattern 11
+float strength = step(0.8, mod(vUv.x * 10.0, 1.0));
+strength += step(0.8, mod(vUv.y * 10.0, 1.0));
+strength = clamp(strength, 0.0, 1.0);
+
+// ...
+
+// Pattern 14
+float barX = step(0.4, mod(vUv.x * 10.0, 1.0)) * step(0.8, mod(vUv.y * 10.0, 1.0));
+float barY = step(0.8, mod(vUv.x * 10.0, 1.0)) * step(0.4, mod(vUv.y * 10.0, 1.0));
+float strength = barX + barY;
+strength = clamp(strength, 0.0, 1.0);
+
+// Pattern 15
+float barX = step(0.4, mod(vUv.x * 10.0 - 0.2, 1.0)) * step(0.8, mod(vUv.y * 10.0, 1.0));
+float barY = step(0.8, mod(vUv.x * 10.0, 1.0)) * step(0.4, mod(vUv.y * 10.0 - 0.2, 1.0));
+float strength = barX + barY;
+strength = clamp(strength, 0.0, 1.0);
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341152455-3c5afa43-9398-4164-8498-b26ccab495ab.png#averageHue=%231d192f&clientId=uac41ddf3-6b83-4&from=paste&id=u16922ecd&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u9f4bf61e-00f5-4850-92d3-7c870e6aee2&title=)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341153839-8c3affed-2889-40b5-9b48-4a10067d922b.png#averageHue=%23000000&clientId=uac41ddf3-6b83-4&from=paste&id=u8f93014a&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u668ecbad-9825-4682-ab29-af07da314f9&title=)
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341153121-9bb31b43-ef3f-4419-ac33-a0b44a6f7fcf.png#averageHue=%23000000&clientId=uac41ddf3-6b83-4&from=paste&id=u6c188cca&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ua14f0223-4fcb-4045-8ffd-d06b6e39633&title=)
+## 走得更远 [01:48:21](https://threejs-journey.com/lessons/shader-patterns#)
+还有许多其他潜在的模式和许多附加功能。本课程的目的是为您未来的项目提供基础，并在琐碎的环境中练习 GLSL。
+我们没有尝试的一件有用的事情是将这些形状放入函数中。我们可以使用正确的参数创建一个getCircle函数、一个getSquare函数等，以便轻松地重用它们。
+继续练习，不要害怕创造新的形状，进行实验，并在需要时寻求帮助。
+另外，尝试添加一些制服来为值设置动画或向调试面板添加一些调整。
+
