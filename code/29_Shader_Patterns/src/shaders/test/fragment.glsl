@@ -7,8 +7,8 @@ float random(vec2 st)
 
 void main()
 {   
-    vec2 girdUv = vec2(floor(vUv.x * 10.0) / 10.0,floor(vUv.y * 10.0) / 10.0);
-    float strength = random(girdUv);
+   vec2 gridUv = vec2(floor(vUv.x * 10.0) / 10.0, floor((vUv.y + vUv.x * 0.5) * 10.0) / 10.0);
+float strength = random(gridUv);git a
 
     gl_FragColor = vec4(vec3(strength), 10.0);
 
