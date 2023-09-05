@@ -50,6 +50,6 @@ float cnoise(vec2 P)
 
 void main()
 {   
-    float strength = sin(cnoise(vUv * 10.0) * 20.0);
+    float strength = step(0.9,sin(cnoise(vUv * 10.0) * 20.0));
     gl_FragColor = vec4(vec3(strength), 1.0);
 }
