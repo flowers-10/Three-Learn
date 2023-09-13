@@ -20,15 +20,18 @@ const canvas = document.querySelector("canvas.webgl");
 // Scene
 const scene = new THREE.Scene();
 
+
+
 /**
  * Water
  */
 // Geometry
-const waterGeometry = new THREE.PlaneGeometry(2, 2, 512, 512);
+const waterGeometry = new THREE.PlaneGeometry(4, 4, 512, 512);
 
 // Colors
 debugObject.depthColor = "#186691";
 debugObject.surfaceColor = "#9bd8ff";
+debugObject.fogColor = "#000000";
 
 gui.addColor(debugObject, "depthColor").onChange(() => {
   waterMaterial.uniforms.uDepthColor.value.set(debugObject.depthColor);
@@ -36,6 +39,15 @@ gui.addColor(debugObject, "depthColor").onChange(() => {
 gui.addColor(debugObject, "surfaceColor").onChange(() => {
   waterMaterial.uniforms.uSurfaceColor.value.set(debugObject.surfaceColor);
 });
+gui.addColor(debugObject, "fogColor").onChange(() => {
+  scene.fog.color.set(debugObject.fogColor);
+  renderer.setClearColor(debugObject.fogColor, 1);
+});
+
+// Fog
+const fog = new THREE.Fog(debugObject.fogColor, 1, 4);
+scene.fog = fog;
+
 // Material
 const waterMaterial = new THREE.ShaderMaterial({
   vertexShader: waterVertexShader,
@@ -53,7 +65,13 @@ const waterMaterial = new THREE.ShaderMaterial({
     uSurfaceColor: { value: new THREE.Color(debugObject.surfaceColor) },
     uColorOffset: { value: 0.08 },
     uColorMultiplier: { value: 5 },
+    fogColor: { value: fog.color },
+    fogNear: { value: fog.near },
+    fogFar: { value: fog.far },
   },
+  fog: true,
+  // wireframe:true,
+  side: THREE.DoubleSide,
 });
 
 gui
@@ -152,7 +170,7 @@ const camera = new THREE.PerspectiveCamera(
   75,
   sizes.width / sizes.height,
   0.1,
-  100
+  75
 );
 camera.position.set(1, 1, 1);
 scene.add(camera);
