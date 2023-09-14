@@ -1996,6 +1996,7 @@ gui.addColor(debugObject, 'surfaceColor').onChange(() => { waterMaterial.uniform
 ![011.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1694652959995-4b889f3a-b46f-4549-9d60-2d41ba4721de.gif#averageHue=%231b1c18&clientId=uc8fce7ab-530b-4&from=drop&id=u5635c2ef&originHeight=410&originWidth=656&originalType=binary&ratio=2&rotation=0&showTitle=false&size=421399&status=done&style=none&taskId=uc26633e9-ba17-40cb-838b-6076445b3fd&title=)
 您应该看到颜色调整，但更改它们不会影响材质。这是因为我们还没有在着色器中使用`uDepthColor`和`uSurfaceColor`制服。
 在片段着色器中，首先检索这些颜色：
+A
 ```glsl
 uniform vec3 uDepthColor;
 uniform vec3 uSurfaceColor;
@@ -2371,4 +2372,579 @@ gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );    //z越小,�
 
 
 ![QQ20230914-091122-HD (1).gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1694655716200-eaf0e3b1-485e-4302-b8db-9d77badd5bfd.gif#averageHue=%23a3c0bf&clientId=u6b349f1b-0df3-4&from=drop&id=ue16f288d&originHeight=370&originWidth=724&originalType=binary&ratio=1&rotation=0&showTitle=false&size=9329580&status=done&style=none&taskId=u3a412016-c299-4a37-b421-a68386a3fe3&title=)
+
+# 31. Animated galaxy 你好！银河
+## 介绍
+您还可以在粒子中使用着色器。正如我们在“粒子”课程中所看到的，为了性能原因，对几何体的每个顶点进行动画处理不是一种有效的解决方案。这就是 GPU 的作用，通过在顶点着色器中直接对这些顶点进行动画处理。
+在本课程中，我们将从我们的粒子星系开始。我们将在顶点着色器中对粒子进行动画处理，使星星以不同的速度旋转，具体取决于中心距离，并且我们将在粒子上画出一个图案，而不是那些丑陋的正方形。
+## 设置
+启动器与Galaxy Generator课程启动器几乎相同。唯一的区别是缺少旋转公式，因为我们将在着色器中执行旋转动画。
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1694657897513-f2cb8f6c-c0be-4165-8441-87b08f11176b.png#averageHue=%23e09f81&clientId=uf56e130c-7148-4&from=paste&height=1120&id=u5df870af&originHeight=1120&originWidth=1792&originalType=binary&ratio=1&rotation=0&showTitle=false&size=1855345&status=done&style=none&taskId=ue92127a1-9f3a-4768-be5c-284599a3b65&title=&width=1792)
+## 用 ShaderMaterial 替换 PointsMaterial
+粒子当前使用 `PointsMaterial` [，](https://threejs.org/docs/index.html#api/en/materials/PointsMaterial)但如果我们想编写自己的着色器，则需要使用 `ShaderMaterial` [。](https://threejs.org/docs/index.html#api/en/materials/ShaderMaterial)
+替换`PointsMaterial`为`ShaderMaterial`：
+```javascript
+material = new THREE.ShaderMaterial({
+    // ...
+})
+```
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1694657905427-aa0dcfda-58e6-4471-b26f-031aa399c55a.png#averageHue=%231c0100&clientId=uf56e130c-7148-4&from=paste&height=1120&id=ue12385b1&originHeight=1120&originWidth=1792&originalType=binary&ratio=1&rotation=0&showTitle=false&size=972888&status=done&style=none&taskId=ud5f7b5df-a4ff-4cd0-8249-0c4517c4f57&title=&width=1792)
+如果您查看日志，您应该会看到两个警告，告诉我们 `ShaderMaterial`[既不](https://threejs.org/docs/index.html#api/en/materials/ShaderMaterial)支持`size`也不支持`sizeAttenuation`。我们必须自己添加这些功能。现在，删除这些属性：
+```javascript
+material = new THREE.ShaderMaterial({
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    vertexColors: true
+})
+```
+此时此刻，有些人可能会看到像小红点一样的颗粒，而有些人可能会看到黑屏。这取决于您的 GPU 在未提供尺寸时如何处理粒子。我们不会在这上面浪费时间，因为无论如何我们都会给出一个尺寸，每个人都应该看到颗粒。
+显然，我们需要提供自己的着色器。添加以下内容`vertexShader`：
+```javascript
+material = new THREE.ShaderMaterial({
+
+    // ...
+
+    vertexShader: `
+        void main()
+        {
+            /**
+             * Position
+             */
+            vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+            vec4 viewPosition = viewMatrix * modelPosition;
+            vec4 projectedPosition = projectionMatrix * viewPosition;
+            gl_Position = projectedPosition;
+
+            /**
+             * Size
+             */
+            gl_PointSize = 2.0;
+        }
+    `
+})
+```
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1694657913238-3360acb3-bd72-47a2-8e9e-b54e9561c938.png#averageHue=%23330100&clientId=uf56e130c-7148-4&from=paste&height=1120&id=u01f3dfd4&originHeight=1120&originWidth=1792&originalType=binary&ratio=1&rotation=0&showTitle=false&size=1064043&status=done&style=none&taskId=ud6bc203c-f3f9-4152-b9d7-b819f720848&title=&width=1792)
+着色器的开头与我们之前已经看到的相同。我们通过依次使用`modelMatrix`、`viewMatrix`和`projectionMatrix`来更新位置。但是，我们还为`gl_PointSize`分配了一个名为`2.0`的新变量。
+`gl_PointSize`就像你可能想的那样。粒子将具有`2x2`的大小，无论相机的距离如何，您都应该看到`2x2`的粒子。
+这里的单位是片段（`fragments`），如果您使用像素比例为1的普通屏幕，您将得到2像素乘以2像素，因为1个片段=1个像素。但是，如果您使用像素比率更高的屏幕，比如`Retina`屏幕，1个片段将小于1个像素，您将得到较小的粒子。我们稍后会解决这个问题，以确保在任何像素比例下获得一致的结果。
+在我们改进粒子大小之前，让我们先改变颜色。
+目前粒子是红色的，因为我们没有提供任何`fragmentShader`，而Three.js使用了一个默认的`fragmentShader`，其输出为红色。
+添加以下带有白色颜色的`fragment shader`：
+```javascript
+material = new THREE.sh({
+
+        // ...
+
+        fragmentShader: `
+            void main()
+            {
+                gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+            }
+        `
+    })
+```
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1694657919395-ad3bbd83-692d-47e8-a00c-090c88175f87.png#averageHue=%23333333&clientId=uf56e130c-7148-4&from=paste&height=1120&id=uf5ef929c&originHeight=1120&originWidth=1792&originalType=binary&ratio=1&rotation=0&showTitle=false&size=1020021&status=done&style=none&taskId=u2761312e-2aed-47f3-8164-c9cf2e8af0d&title=&width=1792)
+所有颗粒都应该是白色的。
+## 将着色器移至单独的文件
+现在是将着色器移至单独文件的绝佳时机，以免它们变得太长且难以管理。
+在 `/src/` 中，创建一个`shaders/`，然后在`galaxy/`其中创建一个文件夹。
+在该文件夹中，创建一个`vertex.glsl`包含`vertexShader`属性内容的文件：
+```glsl
+void main()
+{
+    /**
+     * Position
+     */
+    vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+    vec4 viewPosition = viewMatrix * modelPosition;
+    vec4 projectedPosition = projectionMatrix * viewPosition;
+    gl_Position = projectedPosition;
+
+    /**
+     * Size
+     */
+    gl_PointSize = 2.0;
+}
+```
+还有一个`fragment.glsl`：
+```glsl
+void main()
+{
+    gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+}
+```
+项目配置已经支持`.glsl`文件。我们只需要在 `JavaScript` 中导入它们，并在材质中使用它们：
+```javascript
+import galaxyVertexShader from './shaders/galaxy/vertex.glsl'
+import galaxyFragmentShader from './shaders/galaxy/fragment.glsl'
+
+// ...
+
+material = new THREE.ShaderMaterial({
+    // ...
+
+    vertexShader: galaxyVertexShader,
+    fragmentShader: galaxyFragmentShader
+})
+```
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1694657928467-3da20bb8-e9eb-4992-8331-fd2ad06f1de1.png#averageHue=%23323131&clientId=uf56e130c-7148-4&from=paste&height=1120&id=uc79fe707&originHeight=1120&originWidth=1792&originalType=binary&ratio=1&rotation=0&showTitle=false&size=1017158&status=done&style=none&taskId=u2d775a92-d0d3-4bae-bf6b-512e1004bae&title=&width=1792)
+结果应该是一样的。
+您不需要将着色器放在单独的文件中，但这是一个很好的做法，并且语法着色可能会防止您犯错误。
+另外，如果您按照上一课中的建议安装了 `linter`，则在刷新之前您会看到潜在的错误。
+## 处理尺寸
+### 底座尺寸
+首先，我们将为每个粒子添加一个基本尺寸，并且我们希望能够通过 JavaScript 更改该值。为此，让我们使用制服将常用`uniforms uSize`属性添加到我们的材质中：
+```javascript
+material = new THREE.ShaderMaterial({
+
+    // ...
+
+    uniforms:
+    {
+        uSize: { value: 8 }
+    },
+
+    // ...
+})
+```
+我们现在可以检索 `gl_PointSize`  中的值并在 `vertexShader` 中使用它：
+```glsl
+uniform float uSize;
+        
+void main()
+{
+    // ...
+
+    gl_PointSize = uSize;
+}
+```
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1694657934719-f4781992-2377-4329-8a27-916f0e4a88b4.png#averageHue=%23828181&clientId=uf56e130c-7148-4&from=paste&height=1120&id=u6a32d49b&originHeight=1120&originWidth=1792&originalType=binary&ratio=1&rotation=0&showTitle=false&size=552842&status=done&style=none&taskId=ue1ac750e-6a85-49ee-a9dd-b5dfa511397&title=&width=1792)
+它们在这里看起来很大，但很快就会看起来更小。
+### 随机大小
+在现实生活中，星星有不同的大小。让我们添加一些随机性。我们希望为每个顶点关联一个不同的值。我们将使用一个属性。
+向几何图形添加`aScale`属性。我们已经有了`position`和一个`color`属性，我们可以按照相同的说明轻松添加新属性：
+```javascript
+geometry = new THREE.BufferGeometry()
+
+const positions = new Float32Array(parameters.count * 3)
+const colors = new Float32Array(parameters.count * 3)
+const scales = new Float32Array(parameters.count * 1)
+
+// ...
+
+for(let i = 0; i < parameters.count; i++)
+{
+    // ...
+
+    // Scale
+    scales[i] = Math.random()
+}
+
+geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+geometry.setAttribute('aScale', new THREE.BufferAttribute(scales, 1))
+```
+在创建`Float32Array`和`BufferAttribute`时，请确保使用`1`而不是`3`，因为该值是一个浮点数，而不是像其他属性一样是`vec3`——我们每个顶点只需要一个值。我们还将属性命名为`aScale`，并在前面添加了`a`。
+您可能会想要将`position`和`color`属性更改为`aPosition`和`aColor`，但这样会导致错误，因为我们正在使用`ShaderMaterial`，它会在我们的顶点着色器中添加一些代码，类似于`attribute vec3 position;` 和 `attribute vec3 color;`。
+现在，我们可以在顶点着色器中检索属性，并将`uSize`与之相乘：
+```glsl
+uniform float uSize;
+
+attribute float aScale;
+
+void main()
+{
+    // ...
+
+    gl_PointSize = uSize * aScale;
+}
+```
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1694657942920-6db3bf9a-2253-4b30-968d-52c100732502.png#averageHue=%235b5b5b&clientId=uf56e130c-7148-4&from=paste&height=1120&id=uf49f1d8e&originHeight=1120&originWidth=1792&originalType=binary&ratio=1&rotation=0&showTitle=false&size=985323&status=done&style=none&taskId=ue5c1b15e-9403-459b-8f38-60bb12810ea&title=&width=1792)
+您应该看到具有随机大小的粒子。
+### 固定像素比例
+然而，我们的粒子有一个问题。它们的大小取决于屏幕的像素比。请记住，我们使用以下行更新了渲染器的像素比：
+```javascript
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+```
+如果您的屏幕像素比例为1，粒子看起来会比像素比例为2的屏幕大两倍。
+我们需要找到一种解决方案，以使粒子的大小与像素比例无关。
+有多种方法可以实现这一点。最简单的方法是将`uSize`值乘以渲染器的像素比例。我们可以使用`getPixelRatio()`方法获取此像素比例：
+```javascript
+material = new THREE.ShaderMaterial({
+
+    // ...
+
+    uniforms:
+    {
+        uSize: { value: 8 * renderer.getPixelRatio() }
+    }
+
+    // ...
+})
+```
+很不幸，这段代码可能无法正常工作，因为我们在创建材质`material`之前已经创建了渲染器`renderer`。要修复这个问题，只需将第一次调用 `generateGalaxy` 移动到实例化渲染器`renderer`之后即可：
+```javascript
+/**
+ * Renderer
+ */
+const renderer = new THREE.WebGLRenderer({
+    canvas: canvas
+})
+
+// ...
+
+/**
+ * Generate the first galaxy
+ */
+generateGalaxy()
+```
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1694657951150-162012c7-bc7c-4f3f-8aa3-f8d37172daad.png#averageHue=%235f5f5f&clientId=uf56e130c-7148-4&from=paste&height=1120&id=u1773a088&originHeight=1120&originWidth=1792&originalType=binary&ratio=1&rotation=0&showTitle=false&size=985516&status=done&style=none&taskId=u56c78ae6-a69a-4689-8a3c-cd8a828305f&title=&width=1792)
+现在，无论像素比如何，我们的粒子看起来都一样。
+### 尺寸衰减
+
+我们删除了 `sizeAttenuation` 属性，因为 [ShaderMaterial](https://threejs.org/docs/index.html#api/en/materials/ShaderMaterial) 不支持它。我们需要自己应用这个大小衰减效果。
+作为提醒，大小衰减会使距离相机较远的粒子变小，而接近相机的粒子变大，从而模拟透视效果。
+我们不会尝试猜测正确大小的公式，而是直接进入 Three.js 依赖文件夹，并获取处理 [PointsMaterial](https://threejs.org/docs/index.html#api/en/materials/PointsMaterial) 代码中此部分的代码。
+虽然 Three.js 库文件夹中有很多代码，但它们都经过良好的组织和易于导航。请不要犹豫花费一些时间去了解它并熟悉它。
+您可以在 `/node_modules/three/src/renderers/shaders/ShaderLib/point_vert.glsl.js` 中找到处理此部分的着色器代码，它应该如下所示：
+
+```glsl
+#ifdef USE_SIZEATTENUATION
+
+    bool isPerspective = isPerspectiveMatrix( projectionMatrix );
+
+    if ( isPerspective ) gl_PointSize *= ( scale / - mvPosition.z );
+
+#endif
+```
+我们唯一需要的部分是这个：
+```glsl
+gl_PointSize *= ( scale / - mvPosition.z );
+```
+为了获得大小衰减效果，我们需要将` gl_PointSize` 乘以以下公式：`scale / -mvPosition.z`。
+根据 Three.js 的说明，`scale` 是与渲染高度相关的值。为了简化问题，我们可以将其替换为 `1.0`。
+`mvPosition` 对应于在应用了模型矩阵和视图矩阵之后的顶点位置。在我们的情况下，它是我们的 `viewPosition` 变量。
+这可能听起来有点复杂，但我们可以这样书写：
+```glsl
+gl_PointSize = uSize * aScale;
+gl_PointSize *= (1.0 / - viewPosition.z);
+```
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1694657960011-29208010-a325-49b7-860e-c8c563ce8811.png#averageHue=%231f1f1f&clientId=uf56e130c-7148-4&from=paste&height=1120&id=ua39b95e8&originHeight=1120&originWidth=1792&originalType=binary&ratio=1&rotation=0&showTitle=false&size=966966&status=done&style=none&taskId=u77effe22-273e-4227-a74d-1b9b4b04c73&title=&width=1792)
+将相机靠近颗粒以观察它们变大的情况。我们有我们的尺寸衰减。
+## 绘制我们的粒子图案
+是时候画一个更好看的粒子了。就像在“着色器模式”课程中一样，我们首先需要 UV 坐标。遗憾的是，我们无法将顶点着色器中的 UV 传递到片元着色器中。请记住，顶点着色器控制每个粒子的位置，并且生成一个面向相机的正方形平面出现在顶点的位置。
+好消息是，在片元着色器中，我们已经可以通过 `gl_PointCoord` 得到 `UV` 坐标。这个变量是特定于粒子的。
+在片元着色器中添加它以查看结果：
+```glsl
+void main()
+{
+    gl_FragColor = vec4(gl_PointCoord, 1.0, 1.0);
+}
+```
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1694657970676-430343f7-9d6a-4d77-9260-c3c9b283a4bd.png#averageHue=%232c2d06&clientId=uf56e130c-7148-4&from=paste&height=1120&id=u2f42cf60&originHeight=1120&originWidth=1792&originalType=binary&ratio=1&rotation=0&showTitle=false&size=1835988&status=done&style=none&taskId=ufe53c4b9-5652-4bd7-9509-58ce7da1856&title=&width=1792)
+您应该在每个粒子上看到常见的 UV 图案。
+现在是您尝试绘制一些星形的好时机。您可以从光盘开始，然后是点光源，为什么不是卡通中的星形或任何您想要的东西。请记住，这需要练习才能做到这一点，您的第一次尝试可能无法完成工作，但您仍然会获得经验。
+### 圆盘图案
+为了得到一个圆盘：
+
+1. 获取 `gl_PointCoord` 与中心位置 `(vec2(0.5))` 的距离。
+2. 应用一个阶梯函数，如果距离小于 `0.5` 则返回 `0.0`，如果距离大于`0.5` 则返回 `1.0`。
+3. 反转得到的值。
+
+接下来，我们可以使用这个值`strength`来表示颜色的 r、g 和 b 值的强度：
+```glsl
+void main()
+{
+    // Disc
+    float strength = distance(gl_PointCoord, vec2(0.5));
+    strength = step(0.5, strength);
+    strength = 1.0 - strength;
+
+    gl_FragColor = vec4(vec3(strength), 1.0);
+}
+```
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1694657977895-fc8d61c7-eb9d-4303-b90f-05fceb38bda7.png#averageHue=%231e1e1e&clientId=uf56e130c-7148-4&from=paste&height=1120&id=u873486d3&originHeight=1120&originWidth=1792&originalType=binary&ratio=1&rotation=0&showTitle=false&size=1009000&status=done&style=none&taskId=u8e88fe8a-d01e-4a96-842e-bd8f25661f2&title=&width=1792)
+### 漫射点图案
+为了得到一个漫反射点：
+
+1. 获取 `gl_PointCoord` 与中心位置 `(vec2(0.5))` 的距离。
+2. 将距离乘以`2.0`，使其在接触边缘之前达到 `1.0`。
+3. 反转得到的值。
+```glsl
+void main()
+{
+    // Diffuse point
+    float strength = distance(gl_PointCoord, vec2(0.5));
+    strength *= 2.0;
+    strength = 1.0 - strength;
+
+    gl_FragColor = vec4(vec3(strength), 1.0);
+}
+```
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1694657984910-e9e99ac8-2e8f-4df9-8583-b06eb2957d4a.png#averageHue=%230e0e0e&clientId=uf56e130c-7148-4&from=paste&height=1120&id=uca70d14a&originHeight=1120&originWidth=1792&originalType=binary&ratio=1&rotation=0&showTitle=false&size=1068670&status=done&style=none&taskId=u68602d2e-ed9c-4378-92a7-f4f88410876&title=&width=1792)
+这样好多了，但仍然缺乏现实感。我们在这里缺少的是一个非常强烈且快速变暗的中心。
+### 光点图案
+要获得光点：
+
+- 求`gl_PointCoord`与中心 `(vec2(0.5))`之间的距离。
+- 反转值。
+- 对其进行高次幂运算，可以选择一个较大的数值。
+
+
+
+```glsl
+void main()
+{
+    // Light point
+    float strength = distance(gl_PointCoord, vec2(0.5));
+    strength = 1.0 - strength;
+    strength = pow(strength, 10.0);
+
+    gl_FragColor = vec4(vec3(strength), 1.0);
+}
+```
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1694657993698-a6bb0598-57fd-4dbf-81e1-0b3b5ac6b780.png#averageHue=%23040404&clientId=uf56e130c-7148-4&from=paste&height=1120&id=u94254b99&originHeight=1120&originWidth=1792&originalType=binary&ratio=1&rotation=0&showTitle=false&size=745930&status=done&style=none&taskId=ueb01e42c-b191-4c44-93df-a8e99f915f2&title=&width=1792)
+该解决方案的好处是我们可以通过`pow()`值控制发光的凝聚程度。
+我们将坚持这种模式。因为灯光看起来更小，所以我们增加一点`uSize`：
+```javascript
+material = new THREE.ShaderMaterial({
+    
+    // ...
+
+    uniforms:
+    {
+        uSize: { value: 30 * renderer.getPixelRatio() }
+    },
+
+    // ...
+})
+```
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1694658004750-2f564282-c75e-42c0-af13-c340383511e5.png#averageHue=%23100f0f&clientId=uf56e130c-7148-4&from=paste&height=1120&id=uaed9b8f8&originHeight=1120&originWidth=1792&originalType=binary&ratio=1&rotation=0&showTitle=false&size=1288219&status=done&style=none&taskId=u49603a2c-524a-4fb9-b808-c83f7f89787&title=&width=1792)
+不幸的是，我们已经达到了某些计算机的性能限制，您可能会遇到帧速率下降的情况。如果是这样，请减少颗粒数量或其尺寸。
+## 处理颜色
+我们在处理过程中丢失了颜色。好消息是，我们的着色器部分支持这些颜色，我们只需要使用它们的值。
+要获取`color`颜色属性，我们应该在顶点着色器中编写类似以下的代码：
+```glsl
+attribute vec3 color;
+```
+但由于我们使用的是 `ShaderMaterial` 而不是 `RawShaderMaterial`，所以没有必要这样做。这段代码会在着色器编译时自动添加。我们只需要将它发送到片元着色器即可。为此，我们将使用一个名为 `vColor` 的 `varying`，并使用颜色属性更新该 `varying`：
+```glsl
+// ...
+
+varying vec3 vColor;
+
+void main()
+{
+    // ...
+
+    /**
+     * Color
+     */
+    vColor = color;
+}
+```
+然后，在片元着色器中，我们可以使用相同的 `varying` 声明来获取这个颜色，并将其用于在黑色和 `vColor` 之间进行 `mix(...)`，根据强度进行混合：
+```glsl
+varying vec3 vColor;
+
+void main()
+{
+    // Light point
+    float strength = distance(gl_PointCoord, vec2(0.5));
+    strength = 1.0 - strength;
+    strength = pow(strength, 10.0);
+
+    // Final color
+    vec3 color = mix(vec3(0.0), vColor, strength);
+    gl_FragColor = vec4(color, 1.0);
+}
+```
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1694658012773-e8e392ee-a6d0-4bf4-838e-534b89ba5923.png#averageHue=%23050302&clientId=uf56e130c-7148-4&from=paste&height=1120&id=ud40d4aa8&originHeight=1120&originWidth=1792&originalType=binary&ratio=1&rotation=0&showTitle=false&size=1474995&status=done&style=none&taskId=ucf20d050-485a-42aa-9d08-c97fe561924&title=&width=1792)
+现在你看到了原来的颜色。
+## 动画
+是时候制作动画了。首先，我们将使用通常的`uTime`制服。将其添加到制服并在`tick`函数中更新其值：
+```javascript
+material = new THREE.ShaderMaterial({
+
+    // ...
+
+    uniforms:
+    {
+        uTime: { value: 0 },
+        uSize: { value: 30 * renderer.getPixelRatio() }
+    },
+    
+    // ...
+})
+
+// ...
+
+const clock = new THREE.Clock()
+
+const tick = () =>
+{
+    const elapsedTime = clock.getElapsedTime()
+
+    // Update material
+    material.uniforms.uTime.value = elapsedTime
+
+    // ...
+}
+```
+然后我们可以添加`uTime`到我们的着色器中：
+```glsl
+uniform float uTime;
+```
+动画效果会很一般。我们将使星星旋转，但越靠近中心，旋转速度越快。
+以下代码将在顶点着色器的 `modelPosition` 声明之后发生。提醒一下，`modelPosition` 是应用了网格的位置、旋转和缩放后的顶点位置。现在我们需要更新这个变量。
+下面是具体流程：
+
+1. 计算粒子相对于银河中心的角度和距离。
+2. 使用相对于中心的距离和 `uTime` 来增加角度。离中心越远，旋转速度越慢。
+3. 根据新的角度更新位置。
+
+我们将使用一些三角函数。
+旋转仅在 `x` 和 `z` 轴上发生，而 `y` 轴的值可以保持不变，这样大大简化了整个过程。
+首先，使用 `atan(...)` 函数来获取角度值：
+```glsl
+vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+                
+// Rotate
+float angle = atan(modelPosition.x, modelPosition.z);
+```
+`atan`代表反正切，您可以在这里找到更多相关信息：[https://thebookofshaders.com/glossary/ ?search=atan](https://thebookofshaders.com/glossary/?search=atan)
+然后，使用向量的长度`length()`来获取`xz`点距中心的距离：
+```glsl
+vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+                
+// Rotate
+float angle = atan(modelPosition.x, modelPosition.z);
+float distanceToCenter = length(modelPosition.xz);
+```
+然后，我们计算偏移角度。正如我们之前所说，越靠近中心，角度就越大。我们还将该值自身乘以`uTime*0.2`，以减慢效果：
+```glsl
+vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+                
+// Rotate
+float angle = atan(modelPosition.x, modelPosition.z);
+float distanceToCenter = length(modelPosition.xz);
+float angleOffset = (1.0 / distanceToCenter) * uTime * 0.2;
+```
+如果你已经有了一个角度偏移量 `angleOffset`，那么将其应用于基础角度值，可以通过将两者相加来实现。
+```glsl
+vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+                
+// Rotate
+float angle = atan(modelPosition.x, modelPosition.z);
+float distanceToCenter = length(modelPosition.xz);
+float angleOffset = (1.0 / distanceToCenter) * uTime * 0.2;
+angle += angleOffset;
+```
+最后，我们使用余弦函数和正弦函数更新`modelPosition`模型在 x 和 z 轴上的位置。
+```glsl
+vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+                
+// Rotate
+float angle = atan(modelPosition.x, modelPosition.z);
+float distanceToCenter = length(modelPosition.xz);
+float angleOffset = (1.0 / distanceToCenter) * uTime * 0.2;
+angle += angleOffset;
+modelPosition.x = cos(angle);
+modelPosition.z = sin(angle);
+```
+![tutieshi_640x400_3s.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1694658393254-4fc01320-8967-4a5e-818d-237d1dad8d5c.gif#averageHue=%23010000&clientId=uf56e130c-7148-4&from=drop&id=ue99b184d&originHeight=400&originWidth=640&originalType=binary&ratio=1&rotation=0&showTitle=false&size=257180&status=done&style=none&taskId=u7c623acd-a2d2-42e5-903b-466e920a462&title=)
+
+虽然这看起来很不错，但它并不是预期的结果。`cos(...) `和 `sin(...)` 返回的是半径为`1`的圆上的位置。这就是为什么所有粒子看起来都围绕一个圆柱体旋转。
+要解决这个问题，我们可以简单地将 `cos(...)` 和 `sin(...)` 乘以顶点的初始半径，而我们已经通过 `distanceToCenter` 得到了它：
+```glsl
+vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+                
+// Rotate
+float angle = atan(modelPosition.x, modelPosition.z);
+float distanceToCenter = length(modelPosition.xz);
+float angleOffset = (1.0 / distanceToCenter) * uTime * 0.2;
+angle += angleOffset;
+modelPosition.x = cos(angle) * distanceToCenter;
+modelPosition.z = sin(angle) * distanceToCenter;
+```
+![tutieshi_640x400_6s.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1694658423074-ff220638-c866-4131-99a8-cb74dd38d9ad.gif#averageHue=%23575242&clientId=uf56e130c-7148-4&from=drop&id=u987c5ac5&originHeight=400&originWidth=640&originalType=binary&ratio=1&rotation=0&showTitle=false&size=4147040&status=done&style=none&taskId=u3097cd9d-d70b-4078-bc16-6808801ec39&title=)
+
+所有顶点都应该漂亮地旋转。
+## 修复随机性
+如果稍等一下，您会看到星星似乎形成了一条丝带形状。就像随机性在`x`和`z`轴上不再起作用一样。这是由于旋转公式将恒星拉伸成旋转模式。
+为了解决这个问题，我们可以删除属性`position`的随机性，将其保存在名为`aRandomness` 的新属性中。然后在顶点着色器中旋转星星后应用此随机性。
+创建属性并将随机性存储在其中。不要忘记消除随机性`positions`：
+```javascript
+geometry = new THREE.BufferGeometry()
+
+const positions = new Float32Array(parameters.count * 3)
+const randomness = new Float32Array(parameters.count * 3)
+
+// ...
+
+for(let i = 0; i < parameters.count; i++)
+{
+    // ...
+
+    positions[i3    ] = Math.cos(branchAngle) * radius
+    positions[i3 + 1] = 0
+    positions[i3 + 2] = Math.sin(branchAngle) * radius
+
+    randomness[i3    ] = randomX
+    randomness[i3 + 1] = randomY
+    randomness[i3 + 2] = randomZ
+
+    // ...
+}
+
+geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+geometry.setAttribute('aRandomness', new THREE.BufferAttribute(randomness, 3))
+
+// ...
+```
+在顶点着色器中，检索属性并将其应用到`modelPosition`应用旋转后的`xyz`顶点着色器中：
+```glsl
+// ...
+
+attribute vec3 aRandomness;
+attribute float aScale;
+
+ // ...
+
+void main()
+{
+    /**
+     * Position
+     */
+    vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+    
+    // Rotate
+    float angle = atan(modelPosition.x, modelPosition.z);
+    float distanceToCenter = length(modelPosition.xz);
+    float angleOffset = (1.0 / distanceToCenter) * uTime * 0.2;
+    angle += angleOffset;
+    modelPosition.x = cos(angle) * distanceToCenter;
+    modelPosition.z = sin(angle) * distanceToCenter;
+
+    // Randomness
+    modelPosition.xyz += aRandomness;
+
+    // ...
+}
+```
+
+![tutieshi_640x400_5s.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1694658468338-5358c81d-ba78-44e8-aa2a-a3f480e1a6ae.gif#averageHue=%233e382c&clientId=uf56e130c-7148-4&from=drop&id=u006ffa39&originHeight=400&originWidth=640&originalType=binary&ratio=1&rotation=0&showTitle=false&size=6490712&status=done&style=none&taskId=ub26c43eb-8342-46c6-82f8-ed0ae89cb75&title=)
+结果应该看起来好多了，丝带形状应该消失了。
+减少随机性参数以获得更好的结果：
+```javascript
+parameters.randomness = 0.2
+```
+## ![tutieshi_640x400_5s.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1694658273841-496fcbfe-14cf-4acc-a869-48024a152644.gif#averageHue=%23030202&clientId=uf56e130c-7148-4&from=drop&id=ue7599641&originHeight=400&originWidth=640&originalType=binary&ratio=1&rotation=0&showTitle=false&size=3748317&status=done&style=none&taskId=u9a0acdca-733b-420b-9b8a-95a54d66742&title=)
+## 走得更远
+您还可以将`uSize`制服添加到调试面板。
+几分钟后，我们就无法完全区分星系分支。您可以添加重置按钮或减慢速度。
+星系的中心通常有一个巨大的黑洞。为什么不尝试创建一个呢？
+
+
+
 
