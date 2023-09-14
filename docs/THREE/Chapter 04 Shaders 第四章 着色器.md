@@ -1729,7 +1729,646 @@ strength = clamp(strength, 0.0, 1.0);
 ![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1692341153121-9bb31b43-ef3f-4419-ac33-a0b44a6f7fcf.png#averageHue=%23000000&clientId=uac41ddf3-6b83-4&from=paste&id=u6c188cca&originHeight=1024&originWidth=1024&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ua14f0223-4fcb-4045-8ffd-d06b6e39633&title=)
 ## 更进一步 
 还有许多其他潜在的模式和许多附加功能。本课程的目的是为您未来的项目提供基础，并在琐碎的环境中练习 GLSL。
-我们没有尝试的一件有用的事情是将这些形状放入函数中。我们可以使用正确的参数创建一个getCircle函数、一个`getSquare`函数等，以便轻松地重用它们。
+我们没有尝试的一件有用的事情是将这些形状放入函数中。我们可以使用正确的参数创建一个`getCircle`函数、一个`getSquare`函数等，以便轻松地重用它们。
 继续练习，不要害怕创造新的形状，进行实验，并在需要时寻求帮助。
 另外，尝试添加一些制服来为值设置动画或向调试面板添加一些调整。
+# 
+30. Raging sea 波涛汹涌的大海
+## 介绍
+现在我们知道如何使用着色器并绘制一些图案，让我们合理利用它并创建一片汹涌的海洋。
+我们将设置波浪动画并使用调试面板控制参数。
+## 设置 
+目前，我们拥有的只是一个使用[MeshBasicMaterial 的](https://threejs.org/docs/#api/en/materials/MeshBasicMaterial)旋转平面。几何图形有128x128细分。我们将对顶点进行动画处理以获得波浪，并且我们需要相当多的顶点。128x128可能还不够，但如果需要，我们会增加该值。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1693961561497-851c0291-8879-4b2d-87b6-87acc2fc470a.png#averageHue=%234d4d4d&clientId=ua22598ed-f682-4&from=paste&id=u90bc29a2&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u26f8eb7b-9dcc-498c-9c1c-14e8bfb2221&title=)
+## 根据 
+[让我们用ShaderMaterial](https://threejs.org/docs/#api/en/materials/ShaderMaterial)替换材质：
+```javascript
+const waterMaterial = new THREE.ShaderMaterial()
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1693961561509-0f27de02-d8e3-4010-bf4c-d433e3a22046.png#averageHue=%234d0000&clientId=ua22598ed-f682-4&from=paste&id=ud73d2f20&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u3c9e9148-a483-4e8a-b892-7a321aa9803&title=)
+我们的项目配置已经支持 GLSL 文件，但我们需要创建这些文件。
+在中创建顶点着色器`/src/shaders/water/vertex.glsl`：
+```glsl
+void main()
+{
+    vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+    vec4 viewPosition = viewMatrix * modelPosition;
+    vec4 projectedPosition = projectionMatrix * viewPosition;
+    gl_Position = projectedPosition;
+}
+```
+现在在中创建片段着色器`/src/shaders/water/fragment.glsl`：
+```glsl
+void main()
+{
+    gl_FragColor = vec4(0.5, 0.8, 1.0, 1.0);
+}
+```
+最后，在脚本中导入这些着色器并在 `ShaderMaterial` 中使用[它们](https://threejs.org/docs/#api/en/materials/ShaderMaterial)：
+```javascript
+// ...
+
+import waterVertexShader from './shaders/water/vertex.glsl'
+import waterFragmentShader from './shaders/water/fragment.glsl'
+
+// ...
+
+const waterMaterial = new THREE.ShaderMaterial({
+    vertexShader: waterVertexShader,
+    fragmentShader: waterFragmentShader
+})
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1693961561542-b6214d16-cf77-4909-b5c7-0293fb4cfa53.png#averageHue=%23263e4d&clientId=ua22598ed-f682-4&from=paste&id=u385eecab&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u7c1e0134-3b4b-42d7-8f43-2b65e389b90&title=)
+你应该买一架蓝色飞机。如果没有，请检查日志。
+如果你凭记忆做这一切，那么恭喜你，你是个天才。如果没有，那是完全正常的，你只需要时间。
+## 大浪 Waves
+我们从大浪开始，以便快速取得显着成果。还有什么比用窦产生波浪更好的方法呢？
+在顶点着色器中，让我们根据 `x` 使用 `sin(...) `移动 `modelPosition` 的 `y` 值：
+```glsl
+vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+modelPosition.y += sin(modelPosition.x);
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1693961561465-a98145d5-5ffd-46af-9bdc-021f7aa67d36.png#averageHue=%23233947&clientId=ua22598ed-f682-4&from=paste&id=uf6a194af&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u9443dd65-34a9-491f-b102-73e5f8967b1&title=)
+位移和频率应该太高了。我们将使用制服来更好地控制它们，而不是用着色器不知从何而来的值进行简单的相乘。
+我们先从海拔开始。
+### 海拔Elevation
+将`uBigWavesElevation`制服添加到[ShaderMaterial](https://threejs.org/docs/#api/en/materials/ShaderMaterial)：
+```javascript
+const waterMaterial = new THREE.ShaderMaterial({
+    vertexShader: waterVertexShader,
+    fragmentShader: waterFragmentShader,
+    uniforms:
+    {
+        uBigWavesElevation: { value: 0.2 }
+    }
+})
+```
+我们现在可以在顶点着色器中检索并使用`uBigWavesElevation`制服：
+```glsl
+uniform float uBigWavesElevation;
+
+void main()
+{
+    // ...
+    modelPosition.y += sin(modelPosition.x) * uBigWavesElevation;
+
+    // ...
+}
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1693961562917-a99cfa57-7e9d-4a70-a7ba-7ce0dc6177cd.png#averageHue=%23253b4a&clientId=ua22598ed-f682-4&from=paste&id=u2a5c249b&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ue5c7e7a2-6138-44e2-b350-86a53a3cd42&title=)
+我们应该使用一个名为`elevation`的变量来代替直接更新`y`属性。这将在以后对这些波形进行着色时非常方便：
+```glsl
+uniform float uBigWavesElevation;
+
+void main()
+{
+    vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+
+    // Elevation
+    float elevation = sin(modelPosition.x) * uBigWavesElevation;
+    modelPosition.y += elevation;
+
+    // ...
+}
+```
+因为海拔现在是在 JavaScript 中处理的，所以我们可以将其添加到我们的 Dat.GUI 中：
+```javascript
+gui.add(waterMaterial.uniforms.uBigWavesElevation, 'value').min(0).max(1).step(0.001).name('uBigWavesElevation')
+```
+![005.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1694652775004-da3069c9-140c-44a8-9f57-2c6667b13b97.gif#averageHue=%2313120e&clientId=uc8fce7ab-530b-4&from=drop&id=uc49ec43e&originHeight=410&originWidth=656&originalType=binary&ratio=2&rotation=0&showTitle=false&size=412472&status=done&style=none&taskId=u2b491ea3-6272-4a4c-988e-527f10b6f18&title=)
+### 频率Frequency
+现在我们可以处理频率了。目前，波浪的高度仅在`x`轴上变化，但控制`x`和`z`轴都会更好。
+`uBigWavesFrequency`使用[Vector2](https://threejs.org/docs/#api/en/math/Vector2)创建制服：
+```javascript
+const waterMaterial = new THREE.ShaderMaterial({
+    vertexShader: waterVertexShader,
+    fragmentShader: waterFragmentShader,
+    uniforms:
+    {
+        uBigWavesElevation: { value: 0.2 },
+        uBigWavesFrequency: { value: new THREE.Vector2(4, 1.5) } 
+    } 
+})
+```
+在顶点着色器中，检索`uniform`变量（注意，它是一个`vec2`），并将其应用于`sin(...)`函数，初始时仅使用`x`属性。
+```glsl
+// ...
+uniform vec2 uBigWavesFrequency;
+
+void main()
+{
+    // ...
+
+    float elevation = sin(modelPosition.x * uBigWavesFrequency.x) * uBigWavesElevation;
+
+    // ...
+}
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1693961564403-273eaca3-0529-43ed-8b71-7a0628bda6c7.png#averageHue=%231a1a18&clientId=ua22598ed-f682-4&from=paste&id=u4d53b5e3&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u48b43bba-c18b-4ebf-b6ac-fa86b3e9185&title=)
+这应该会产生更多的波，因为频率更高了。
+让我们使用`uBigWavesFrequency`的第二个值（`y`）来控制`z`轴上的波浪。我们可以通过将第一个`sin(...)`乘以另一个`sin(...)`来实现：
+```glsl
+float elevation = sin(modelPosition.x * uBigWavesFrequency.x) * sin(modelPosition.z * uBigWavesFrequency.y) * uBigWavesElevation;
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1693961565669-73fe387e-a638-483e-a908-1042d02ac77d.png#averageHue=%23231a0c&clientId=ua22598ed-f682-4&from=paste&id=u751da8d1&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u64c20780-8bd8-44fb-8802-1a58afd546d&title=)
+你也应该在轴上得到波浪`z`。
+我们现在可以将这些 `x`和`y`属性添加到我们的 Dat.GUI 中：
+```javascript
+gui.add(waterMaterial.uniforms.uBigWavesFrequency.value, 'x').min(0).max(10).step(0.001).name('uBigWavesFrequencyX')
+gui.add(waterMaterial.uniforms.uBigWavesFrequency.value, 'y').min(0).max(10).step(0.001).name('uBigWavesFrequencyY')
+```
+### 
+### 动画Animate
+让我们给这些大波浪添加动画效果。我们将使用之前课程中的经过的时间来偏移`sin(...)`中的值，从而创建动画效果。
+[首先，在ShaderMaterial](https://threejs.org/docs/#api/en/materials/ShaderMaterial)中创建一个`uTime` 的`uniform`变量：
+```javascript
+const waterMaterial = new THREE.ShaderMaterial({
+    // ...
+    uniforms:
+    {
+        uTime: { value: 0 },
+        // ...
+    } 
+})
+```
+然后，在`tick`函数中更新该变量的值：
+```javascript
+const clock = new THREE.Clock()
+
+const tick = () =>
+{
+    const elapsedTime = clock.getElapsedTime()
+
+    // Water
+    waterMaterial.uniforms.uTime.value = elapsedTime
+
+    // ...
+}
+```
+在顶点着色器中，检索并在两个`sin(...)`函数中使用`uTime`：
+```glsl
+uniform float uTime;
+// ...
+
+void main()
+{
+    // ...
+
+    float elevation = sin(modelPosition.x * uBigWavesFrequency.x + uTime) * sin(modelPosition.z * uBigWavesFrequency.y + uTime) * uBigWavesElevation;
+
+    // ...
+}
+```
+![009.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1694652921340-9d8fe71d-51f7-47e5-9227-01f6001918b2.gif#averageHue=%231b1816&clientId=uc8fce7ab-530b-4&from=drop&id=ufa0880bf&originHeight=410&originWidth=656&originalType=binary&ratio=2&rotation=0&showTitle=false&size=485674&status=done&style=none&taskId=u68ec74a2-af23-4cfc-a0e1-13f84928cec&title=)
+现在你已经得到了有动画效果的波浪。尽管对于汹涌的海洋来说速度还不错，但如果我们能够进行控制就更好了。
+让我们创建一个`uBigWavesSpeed` `uniform`，并将其乘以`uTime`。为了简化操作，我们可以使用一个`float`类型，但如果你想单独控制两个轴的速度，可以使用`vec2`类型。
+在`ShaderMaterial`中创建`uBigWavesSpeed` `uniform`，并添加相应的调整：
+```javascript
+const waterMaterial = new THREE.ShaderMaterial({
+    // ...
+    uniforms:
+    {
+        // ...
+        uBigWavesSpeed: { value: 0.75 } 
+    } 
+})
+
+// ...
+gui.add(waterMaterial.uniforms.uBigWavesSpeed, 'value').min(0).max(4).step(0.001).name('uBigWavesSpeed')
+```
+在顶点着色器中，检索`uBigWavesSpeed` `uniform`，并在两个`sin(...)`函数中将`uTime`乘以它：
+
+```glsl
+// ...
+uniform float uBigWavesSpeed;
+
+void main()
+{
+    // ...
+
+    float elevation = sin(modelPosition.x * uBigWavesFrequency.x + uTime * uBigWavesSpeed) * sin(modelPosition.z * uBigWavesFrequency.y + uTime * uBigWavesSpeed) * uBigWavesElevation;
+    
+    // ...
+}
+```
+![010.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1694652946477-bbad534a-ef9f-4fbd-b0c2-ef1195e7f6fd.gif#averageHue=%232a2a27&clientId=uc8fce7ab-530b-4&from=drop&id=u7118c9e0&originHeight=410&originWidth=656&originalType=binary&ratio=2&rotation=0&showTitle=false&size=378749&status=done&style=none&taskId=u5f6e4078-e190-4212-b6eb-1fe172072a1&title=)
+我们的高度计算公式太长了，可以通过使用变量或简单的换行来进行一些重构：
+
+```glsl
+float elevation = sin(modelPosition.x * uBigWavesFrequency.x + uTime * uBigWavesSpeed) *
+                  sin(modelPosition.z * uBigWavesFrequency.y + uTime * uBigWavesSpeed) *
+                  uBigWavesElevation;
+```
+## 颜色 Color
+我们的波浪开始变得很棒，但是统一的蓝色并没有帮助。
+让我们为深度和表面分别创建两种颜色。如果你还记得，在Dat.GUI中添加Three.js颜色有点复杂。
+首先，在创建GUI实例之后，我们需要创建一个`debugObject`：
+```javascript
+const gui = new dat.GUI({ width: 340 })
+const debugObject = {}
+```
+然后，在实例化`waterMaterial`之前，我们可以将这两种颜色创建为`debugObject` 的属性，并将它们用于两个新的制服，我们将其称为`uDepthColor`和`uSurfaceColor`。这些颜色将使用[Color](https://threejs.org/docs/#api/en/math/Color)类：
+```javascript
+// Colors
+debugObject.depthColor = '#0000ff'
+debugObject.surfaceColor = '#8888ff'
+
+// Material
+const waterMaterial = new THREE.ShaderMaterial({
+    vertexShader: waterVertexShader,
+    fragmentShader: waterFragmentShader,
+    uniforms:
+    {
+        // ...
+        uDepthColor: { value: new THREE.Color(debugObject.depthColor) },
+        uSurfaceColor: { value: new THREE.Color(debugObject.surfaceColor) }
+    } 
+})
+```
+然后我们可以使用该`addColor`方法将它们添加到我们的 Dat.GUI 中。当`waterMaterial`颜色发生变化时，我们还需要更新制服`onChange(...)`：
+```javascript
+debugObject.depthColor = '#0000ff'
+debugObject.surfaceColor = '#8888ff'
+
+gui.addColor(debugObject, 'depthColor').onChange(() => { waterMaterial.uniforms.uDepthColor.value.set(debugObject.depthColor) })
+gui.addColor(debugObject, 'surfaceColor').onChange(() => { waterMaterial.uniforms.uSurfaceColor.value.set(debugObject.surfaceColor) })
+```
+![011.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1694652959995-4b889f3a-b46f-4549-9d60-2d41ba4721de.gif#averageHue=%231b1c18&clientId=uc8fce7ab-530b-4&from=drop&id=u5635c2ef&originHeight=410&originWidth=656&originalType=binary&ratio=2&rotation=0&showTitle=false&size=421399&status=done&style=none&taskId=uc26633e9-ba17-40cb-838b-6076445b3fd&title=)
+您应该看到颜色调整，但更改它们不会影响材质。这是因为我们还没有在着色器中使用`uDepthColor`和`uSurfaceColor`制服。
+在片段着色器中，首先检索这些颜色：
+```glsl
+uniform vec3 uDepthColor;
+uniform vec3 uSurfaceColor;
+```
+并仅使用一种颜色来验证一切正常：
+```glsl
+// ...
+
+void main()
+{
+    gl_FragColor = vec4(uDepthColor, 1.0);
+}
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1693961565750-d64187f0-18cb-4d8d-9972-a6436f64dafc.png#averageHue=%231c1806&clientId=ua22598ed-f682-4&from=paste&id=uc4d717c1&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uf13c27c9-e5e9-49b3-a6b0-935f5ab9cdc&title=)
+现在我们需要根据波浪的高低程度更多地使用`uDepthColor`或`uSurfaceColor`。
+请记住之前的课程，我们将使用`mix(...)`函数。这个函数需要3个参数，第一个输入值、第二个输入值和一个范围值，该值将决定如何混合这两个输入。
+如果第三个值为`0.0`，结果将是第一个输入。 如果第三个值为`1.0`，结果将是第二个输入。 如果第三个值为`0.5`，结果将是两个输入的完美混合。 如果第三个值小于`0.0`或大于`1.0`，则值将被外推。 前两个参数分别是`uDepthColor`和`uSurfaceColor`。但是控制混合的第三个值是什么呢？
+我们可以使用`elevation`，不幸的是，这个变量在顶点着色器中。
+为了将这个变量传递到片段着色器中 - 就像我们在之前的课程中做的那样 - 我们将使用一个`varying`。在顶点着色器中，创建一个`varying vElevation` ，并在`main`函数中更新它：
+```glsl
+// ...
+
+varying float vElevation;
+
+void main()
+{
+    // ...
+
+    // Varyings
+    vElevation = elevation;
+}
+```
+在片段着色器中，获取`varying`的值。然后创建一个颜色变量，根据`vElevation`混合`uDepthColor`和`uSurfaceColor`：
+```glsl
+uniform vec3 uDepthColor;
+uniform vec3 uSurfaceColor;
+
+varying float vElevation;
+
+void main()
+{
+    vec3 color = mix(uDepthColor, uSurfaceColor, vElevation);
+    gl_FragColor = vec4(color, 1.0);
+}
+```
+
+你应该能够看到颜色的微小变化。问题是，根据我们的代码，`vElevation`目前只在`-0.2`到`+0.2`之间变化。我们需要找到一种方式来控制这个`vElevation`，但只在片段着色器中进行操作。
+让我们添加一些`uniform`变量！我们将创建`uColorOffset`和`uColorMultiplier`，并将它们都添加到我们的Dat.GUI中：
+```javascript
+const waterMaterial = new THREE.ShaderMaterial({
+    vertexShader: waterVertexShader,
+    fragmentShader: waterFragmentShader,
+    uniforms:
+    {
+        // ...
+        uColorOffset: { value: 0.25 },
+        uColorMultiplier: { value: 2 },
+    } 
+})
+
+// ...
+gui.add(waterMaterial.uniforms.uColorOffset, 'value').min(0).max(1).step(0.001).name('uColorOffset')
+gui.add(waterMaterial.uniforms.uColorMultiplier, 'value').min(0).max(10).step(0.001).name('uColorMultiplier')
+```
+现在在片段着色器中获取`uColorOffset`和`uColorMultiplier`的`uniform`变量，创建一个`mixStrength`变量（为了方便阅读），基于这两个`uniform`变量，然后在`mix(...)`函数中使用该变量：
+
+```glsl
+uniform vec3 uDepthColor;
+uniform vec3 uSurfaceColor;
+uniform float uColorOffset;
+uniform float uColorMultiplier;
+
+varying float vElevation;
+
+void main()
+{
+    float mixStrength = (vElevation + uColorOffset) * uColorMultiplier;
+    vec3 color = mix(uDepthColor, uSurfaceColor, mixStrength);
+    
+    gl_FragColor = vec4(color, 1.0);
+}
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1693961565829-5d7ed3ac-c749-41a5-a887-7051905cb000.png#averageHue=%231c1705&clientId=ua22598ed-f682-4&from=paste&id=u977c1a91&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ua3411c45-ba7d-49a9-be85-e1f066655a6&title=)
+您可以获得更好的梯度。调整值以确保您喜欢的颜色：
+```glsl
+debugObject.depthColor = '#186691'
+debugObject.surfaceColor = '#9bd8ff'
+
+// ...
+
+const waterMaterial = new THREE.ShaderMaterial({
+    vertexShader: waterVertexShader,
+    fragmentShader: waterFragmentShader,
+    uniforms:
+    {
+        // ...
+
+        uColorOffset: { value: 0.08 },
+        uColorMultiplier: { value: 5 }
+    }
+})
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1693961567115-cdaec96d-5574-4bc8-aa59-7cbc59b9dba5.png#averageHue=%231f170c&clientId=ua22598ed-f682-4&from=paste&id=u9030e029&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ua90a082a-f0b2-4c4c-9582-22e6bd77221&title=)
+## 小波浪 Small Waves
+对于小波浪，我们将使用柏林噪声。我们在上一课中使用了 2D perlin 噪声，其中我们发送 2D 坐标并获得浮点值作为返回。这次，我们将使用 3D 柏林墙。这将使噪声随时间变化，以获得更真实的结果。
+转到与上一课相同的要点并复制Stefan Gustavson的经典 Perlin 3D 噪声：[https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83](https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83)
+或者将下面的代码复制到顶点着色器：
+```glsl
+// Classic Perlin 3D Noise 
+// by Stefan Gustavson
+//
+vec4 permute(vec4 x)
+{
+    return mod(((x*34.0)+1.0)*x, 289.0);
+}
+vec4 taylorInvSqrt(vec4 r)
+{
+    return 1.79284291400159 - 0.85373472095314 * r;
+}
+vec3 fade(vec3 t)
+{
+    return t*t*t*(t*(t*6.0-15.0)+10.0);
+}
+
+float cnoise(vec3 P)
+{
+    vec3 Pi0 = floor(P); // Integer part for indexing
+    vec3 Pi1 = Pi0 + vec3(1.0); // Integer part + 1
+    Pi0 = mod(Pi0, 289.0);
+    Pi1 = mod(Pi1, 289.0);
+    vec3 Pf0 = fract(P); // Fractional part for interpolation
+    vec3 Pf1 = Pf0 - vec3(1.0); // Fractional part - 1.0
+    vec4 ix = vec4(Pi0.x, Pi1.x, Pi0.x, Pi1.x);
+    vec4 iy = vec4(Pi0.yy, Pi1.yy);
+    vec4 iz0 = Pi0.zzzz;
+    vec4 iz1 = Pi1.zzzz;
+
+    vec4 ixy = permute(permute(ix) + iy);
+    vec4 ixy0 = permute(ixy + iz0);
+    vec4 ixy1 = permute(ixy + iz1);
+
+    vec4 gx0 = ixy0 / 7.0;
+    vec4 gy0 = fract(floor(gx0) / 7.0) - 0.5;
+    gx0 = fract(gx0);
+    vec4 gz0 = vec4(0.5) - abs(gx0) - abs(gy0);
+    vec4 sz0 = step(gz0, vec4(0.0));
+    gx0 -= sz0 * (step(0.0, gx0) - 0.5);
+    gy0 -= sz0 * (step(0.0, gy0) - 0.5);
+
+    vec4 gx1 = ixy1 / 7.0;
+    vec4 gy1 = fract(floor(gx1) / 7.0) - 0.5;
+    gx1 = fract(gx1);
+    vec4 gz1 = vec4(0.5) - abs(gx1) - abs(gy1);
+    vec4 sz1 = step(gz1, vec4(0.0));
+    gx1 -= sz1 * (step(0.0, gx1) - 0.5);
+    gy1 -= sz1 * (step(0.0, gy1) - 0.5);
+
+    vec3 g000 = vec3(gx0.x,gy0.x,gz0.x);
+    vec3 g100 = vec3(gx0.y,gy0.y,gz0.y);
+    vec3 g010 = vec3(gx0.z,gy0.z,gz0.z);
+    vec3 g110 = vec3(gx0.w,gy0.w,gz0.w);
+    vec3 g001 = vec3(gx1.x,gy1.x,gz1.x);
+    vec3 g101 = vec3(gx1.y,gy1.y,gz1.y);
+    vec3 g011 = vec3(gx1.z,gy1.z,gz1.z);
+    vec3 g111 = vec3(gx1.w,gy1.w,gz1.w);
+
+    vec4 norm0 = taylorInvSqrt(vec4(dot(g000, g000), dot(g010, g010), dot(g100, g100), dot(g110, g110)));
+    g000 *= norm0.x;
+    g010 *= norm0.y;
+    g100 *= norm0.z;
+    g110 *= norm0.w;
+    vec4 norm1 = taylorInvSqrt(vec4(dot(g001, g001), dot(g011, g011), dot(g101, g101), dot(g111, g111)));
+    g001 *= norm1.x;
+    g011 *= norm1.y;
+    g101 *= norm1.z;
+    g111 *= norm1.w;
+
+    float n000 = dot(g000, Pf0);
+    float n100 = dot(g100, vec3(Pf1.x, Pf0.yz));
+    float n010 = dot(g010, vec3(Pf0.x, Pf1.y, Pf0.z));
+    float n110 = dot(g110, vec3(Pf1.xy, Pf0.z));
+    float n001 = dot(g001, vec3(Pf0.xy, Pf1.z));
+    float n101 = dot(g101, vec3(Pf1.x, Pf0.y, Pf1.z));
+    float n011 = dot(g011, vec3(Pf0.x, Pf1.yz));
+    float n111 = dot(g111, Pf1);
+
+    vec3 fade_xyz = fade(Pf0);
+    vec4 n_z = mix(vec4(n000, n100, n010, n110), vec4(n001, n101, n011, n111), fade_xyz.z);
+    vec2 n_yz = mix(n_z.xy, n_z.zw, fade_xyz.y);
+    float n_xyz = mix(n_yz.x, n_yz.y, fade_xyz.x); 
+    return 2.2 * n_xyz;
+}
+```
+这次不需要修复。
+现在我们可以使用带有vec3参数的cnoise函数。
+以下是`vec3` 的三个值
+
+- x将是`modelPosition`的x
+- y将是`modelPosition`的z
+- z将是`uTime`。第三个值将使噪声以自然且真实的方式演变。
+```glsl
+elevation += cnoise(vec3(modelPosition.xz, uTime));
+```
+![016.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1694653003084-c546603d-d4c9-457f-81ca-5d493b301d0e.gif#averageHue=%231e1c19&clientId=uc8fce7ab-530b-4&from=drop&id=ua874297a&originHeight=410&originWidth=656&originalType=binary&ratio=2&rotation=0&showTitle=false&size=824475&status=done&style=none&taskId=uba70e056-06c1-47d2-b1b9-96c4f98f92e&title=)
+这不是预期的结果。首先，波浪速度太快。所以你必须`uTime`乘以`0.2`：
+```glsl
+elevation += cnoise(vec3(modelPosition.xz, uTime * 0.2));
+```
+![017.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1694653078915-72a50332-e044-4811-91b1-5ecc77c27b5b.gif#averageHue=%23191919&clientId=uc8fce7ab-530b-4&from=drop&id=u36a5a23e&originHeight=410&originWidth=656&originalType=binary&ratio=2&rotation=0&showTitle=false&size=1482655&status=done&style=none&taskId=u043daf0d-7953-40fe-8402-3a7c272668a&title=)
+其次，频率太小了。这导致波浪的大小与我们之前创建的大波浪一样。为了增加频率，将`modelPosition.xz`乘以`3.0`：
+```glsl
+elevation += cnoise(vec3(modelPosition.xz * 3.0, uTime * 0.2));
+```
+![018.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1694653347223-12759529-a830-4d4c-a6e6-c1363dc7f001.gif#averageHue=%234f4e4b&clientId=uc8fce7ab-530b-4&from=drop&id=u202ee73d&originHeight=410&originWidth=656&originalType=binary&ratio=2&rotation=0&showTitle=false&size=2260014&status=done&style=none&taskId=uf00dd9bf-493d-4468-b5bd-2b382725aaf&title=)
+第三，海浪太高了。让我们通过将噪声乘以`0.15`来减少浪高：
+```glsl
+elevation += cnoise(vec3(modelPosition.xz * 3.0, uTime * 0.2)) * 0.15;
+```
+![019.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1694653359973-7d8d0e70-c844-4f51-bdc3-38cbfb75854a.gif#averageHue=%231f1d1a&clientId=uc8fce7ab-530b-4&from=drop&id=u903d7c29&originHeight=410&originWidth=656&originalType=binary&ratio=2&rotation=0&showTitle=false&size=2173908&status=done&style=none&taskId=u9cbf8d1f-7e81-46e7-b5fe-031789ac39e&title=)
+最后，现实生活中的波浪并不那么光滑。现实的波浪有圆形的波谷和高高的波峰。为了达到这个结果，我们可以使用以下`abs(...)`函数：
+```glsl
+elevation += abs(cnoise(vec3(modelPosition.xz * 3.0, uTime * 0.2)) * 0.15);
+```
+![020.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1694653380440-e7632152-9524-48b5-bc82-61862e7abf6c.gif#averageHue=%231f1e1b&clientId=uc8fce7ab-530b-4&from=drop&id=u83376f86&originHeight=410&originWidth=656&originalType=binary&ratio=2&rotation=0&showTitle=false&size=2328332&status=done&style=none&taskId=uae07406d-d785-4f4c-a4c8-b1255a920dc&title=)
+我们得到了与我们想要的完全相反的圆形波峰和高波谷。要反转波浪，请替换+为-：
+```glsl
+elevation -= abs(cnoise(vec3(modelPosition.xz * 3.0, uTime * 0.2)) * 0.15);
+```
+![021.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1694653398326-241836f9-a5bc-411e-b518-025c8a7b1de0.gif#averageHue=%231d1c19&clientId=uc8fce7ab-530b-4&from=drop&id=ub7006acf&originHeight=410&originWidth=656&originalType=binary&ratio=2&rotation=0&showTitle=false&size=2472024&status=done&style=none&taskId=u4a497f83-c821-4ad6-b516-32bc58f70ac&title=)
+这更好，但是当你观察汹涌大海中的波浪时，它们看起来更加混乱，频率不同且不可预测。
+我们需要在更高的频率下应用更多的噪声。我们可以使用不同的值重复前一行，但这是使用`for(...)`循环的最佳时机。
+`for(...)`循环在 GLSL 中工作。只需确保使用`float`类型变量即可。我们将从 1.0 开始使用 3 次迭代：
+```glsl
+for(float i = 1.0; i <= 3.0; i++)
+{
+}
+```
+然后在循环中移动我们之前的公式：
+```glsl
+for(float i = 1.0; i <= 3.0; i++)
+{
+    elevation -= abs(cnoise(vec3(modelPosition.xz * 3.0, uTime * 0.2)) * 0.15);
+}
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1693961567207-9b6ddc06-9d81-43d2-b437-dabc59076f1a.png#averageHue=%23201a11&clientId=ua22598ed-f682-4&from=paste&id=ue0ead267&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u0d155350-9688-4a80-8a89-9970a009477&title=)
+现在，我们应用 3 次相同的公式，这应该会产生相同的波，但它们的幅度更加突出。
+让我们根据`i`变量增加频率并减少幅度：
+```glsl
+for(float i = 1.0; i <= 3.0; i++)
+{
+    elevation -= abs(cnoise(vec3(modelPosition.xz * 3.0 * i, uTime * 0.2)) * 0.15 / i);
+}
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1693961568751-cd696a1f-83c5-4e93-bdc5-9733964a7a73.png#averageHue=%231e170d&clientId=ua22598ed-f682-4&from=paste&id=u073d74a1&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ue6fdd461-ba58-4d8d-be04-f614e18e771&title=)
+这样好多了。也许你没有注意到，但我们几乎看不到较小的波浪。那是因为我们的几何体缺少顶点。将细分增加到512x512：
+```glsl
+const waterGeometry = new THREE.PlaneGeometry(2, 2, 512, 512)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1693961569621-2a85fdfa-237c-4c40-9403-551eaeccc668.png#averageHue=%231f170c&clientId=ua22598ed-f682-4&from=paste&id=u47525d1e&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ud165cfa2-faa5-4bb7-915c-52bda4e9375&title=)
+这代表了更加多的三角形，但平面是场景中唯一的几何体，并且我们在着色器中对几乎所有内容进行动画处理，这意味着 GPU 正在承担繁重的工作。
+让我们添加一些制服和调整来控制这些小波浪：
+```javascript
+const waterMaterial = new THREE.ShaderMaterial({
+    vertexShader: waterVertexShader,
+    fragmentShader: waterFragmentShader,
+    uniforms:
+    {
+        // ...
+
+        uSmallWavesElevation: { value: 0.15 },
+        uSmallWavesFrequency: { value: 3 },
+        uSmallWavesSpeed: { value: 0.2 },
+        uSmallIterations: { value: 4 },
+
+        // ...
+    }
+})
+
+// ...
+
+gui.add(waterMaterial.uniforms.uSmallWavesElevation, 'value').min(0).max(1).step(0.001).name('uSmallWavesElevation')
+gui.add(waterMaterial.uniforms.uSmallWavesFrequency, 'value').min(0).max(30).step(0.001).name('uSmallWavesFrequency')
+gui.add(waterMaterial.uniforms.uSmallWavesSpeed, 'value').min(0).max(4).step(0.001).name('uSmallWavesSpeed')
+gui.add(waterMaterial.uniforms.uSmallIterations, 'value').min(0).max(5).step(1).name('uSmallIterations')
+```
+在顶点着色器中：
+```glsl
+uniform float uSmallWavesElevation;
+uniform float uSmallWavesFrequency;
+uniform float uSmallWavesSpeed;
+uniform float uSmallIterations;
+
+// ...
+
+void main()
+{
+    // ...
+
+    for(float i = 1.0; i <= uSmallIterations; i++)
+    {
+        elevation -= abs(cnoise(vec3(modelPosition.xz * uSmallWavesFrequency * i, uTime * uSmallWavesSpeed)) * uSmallWavesElevation / i);
+    }
+
+    // ...
+}
+```
+![025.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1694653454656-bed2e71c-5e36-482d-834b-128a7241cd44.gif#averageHue=%23242423&clientId=uc8fce7ab-530b-4&from=drop&id=uf437a387&originHeight=410&originWidth=656&originalType=binary&ratio=2&rotation=0&showTitle=false&size=7812363&status=done&style=none&taskId=u285bacb8-7e6d-4350-aef5-4711e5bf016&title=)
+就是这样。
+## 走得更远
+如果你想更进一步，你可以尝试添加雾气。
+您也可以尝试放大平面。
+添加雾气是获得更身临其境的体验的好方法，可以增强迷失在大海中的感觉。但要小心，添加雾会比我们看到的更具挑战性，因为您需要自己为雾编写代码。
+
+## 拓展-雾气Fog
+首先我们在场景上引入雾气，构造器`Fog(hex, near, far)`
+```javascript
+// Colors
+// ...
+
+// Fog
+const fog = new THREE.Fog(debugObject.fogColor, 1, 4);
+scene.fog = fog;
+
+// Material
+// ...
+```
+并将它们都添加到我们的Dat.GUI中
+这么做为了同步雾气效果和背景色的同时变更，可以让视觉效果更好
+```javascript
+// Colors
+// ...
+debugObject.fogColor = "#000000";
+
+// ...
+gui.addColor(debugObject, "fogColor").onChange(() => {
+  scene.fog.color.set(debugObject.fogColor);
+  renderer.setClearColor(debugObject.fogColor, 1);
+});
+```
+最后我们在`Material`里开启雾气并在着色器中使用，添加属性`fog`为`true`即可,该值默认为`false`。
+记住还要设置`shander`中雾的参数，传递给片段着色器
+```javascript
+// Material
+const waterMaterial = new THREE.ShaderMaterial({
+  // ...
+  uniforms: {
+    // ...
+    fogColor: { value: fog.color },
+    fogNear: { value: fog.near },
+    fogFar: { value: fog.far },
+  },
+  fog: true,
+  side: THREE.DoubleSide,
+});
+```
+当我们已经拿到`fog`的属性时，就可以在`shader`中运用了，运用如下：
+```glsl
+#ifdef USE_FOG                                            =
+float depth = gl_FragCoord.z / gl_FragCoord.w;
+float fogFactor = smoothstep( fogNear, fogFar, depth );
+gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );    //z越小,颜色越暗
+#endif
+```
+
+> `gl_FragCoord.w` 是裁剪空间 `clip.w` 的倒数即 `1/clip.w` , 由上面的透视投影矩阵的推导过程可以看出，为了凑透视除法， `clip.w` 值就是 眼坐标系 `z` 值的负数，也就是距离相机的距离。
+> - 1.由上,我们可以知道`gl_FragCoord.z / gl_FragCoord.w`就表示当前片元和`camera`之间的距离即深度;
+> - 2.再由`smoothstep( fogNear, fogFar, depth )`来得到一个平滑的因子`fogFactor`,深度越大，该因子值越大。
+> - 3.再通过`mix`来混合得到最终的`rgb`值
+> 
+> `GLSL`内置`mix`函数介绍
+> `mix(x,y,a)`  `a`控制混合结果 `return x(1-a) +y*a ` 返回 线性混合的值
+> 即`fogFactor`值越大，`fogColor`占比越大。假设`fogColor`为黑色，那么综合上面所讲，这三句代码的意思就是越远越暗，符合我们对雾效的定义和预期。
+
+
+![QQ20230914-091122-HD (1).gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1694655716200-eaf0e3b1-485e-4302-b8db-9d77badd5bfd.gif#averageHue=%23a3c0bf&clientId=u6b349f1b-0df3-4&from=drop&id=ue16f288d&originHeight=370&originWidth=724&originalType=binary&ratio=1&rotation=0&showTitle=false&size=9329580&status=done&style=none&taskId=u3a412016-c299-4a37-b421-a68386a3fe3&title=)
 
