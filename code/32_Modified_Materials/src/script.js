@@ -50,6 +50,7 @@ const environmentMap = cubeTextureLoader.load([
   "/textures/environmentMaps/0/pz.jpg",
   "/textures/environmentMaps/0/nz.jpg",
 ]);
+environmentMap.colorSpace = THREE.SRGBColorSpace;
 
 scene.background = environmentMap;
 scene.environment = environmentMap;
@@ -78,8 +79,8 @@ const customUniforms = {
 };
 
 material.onBeforeCompile = (shader) => {
-  console.log(shader.vertexShader);
   shader.uniforms.uTime = customUniforms.uTime;
+
   shader.vertexShader = shader.vertexShader.replace(
     "#include <common>",
     `
@@ -93,15 +94,25 @@ material.onBeforeCompile = (shader) => {
             }
         `
   );
+
+  shader.vertexShader = shader.vertexShader.replace(
+    "#include <beginnormal_vertex>",
+    `
+            #include <beginnormal_vertex>
+
+            float angle = (position.y + uTime) * 0.9;
+            mat2 rotateMatrix = get2dRotateMatrix(angle);
+
+            objectNormal.xz = rotateMatrix * objectNormal.xz;
+        `
+  );
   shader.vertexShader = shader.vertexShader.replace(
     "#include <begin_vertex>",
     `
-        #include <begin_vertex>
-        float angle = (position.y + uTime) * 0.9;
+            #include <begin_vertex>
 
-        mat2 rotateMatrix = get2dRotateMatrix(angle);
-        transformed.xz = rotateMatrix * transformed.xz;
-    `
+            transformed.xz = rotateMatrix * transformed.xz;
+        `
   );
 };
 
@@ -122,28 +133,16 @@ depthMaterial.onBeforeCompile = (shader) => {
   );
 
   shader.vertexShader = shader.vertexShader.replace(
-    "#include <beginnormal_vertex>",
+    '#include <begin_vertex>',
     `
-        #include <beginnormal_vertex>
+        #include <begin_vertex>
 
-        float angle = (position.y + 4.0) * sin(uTime) * 0.9;
+        float angle = (position.y + uTime) * 0.9;
         mat2 rotateMatrix = get2dRotateMatrix(angle);
-    
-        objectNormal.xz = rotateMatrix * objectNormal.xz;
+
+        transformed.xz = rotateMatrix * transformed.xz;
     `
-  );
-
-  shader.vertexShader = shader.vertexShader.replace(
-    "#include <begin_vertex>",
-    `
-            #include <begin_vertex>
-
-            float angle = (position.y + uTime) * 0.9;
-            mat2 rotateMatrix = get2dRotateMatrix(angle);
-
-            transformed.xz = rotateMatrix * transformed.xz;
-        `
-  );
+)
 };
 
 /**
