@@ -71,6 +71,8 @@ const material = new THREE.MeshStandardMaterial( {
 
 material.onBeforeCompile = (shader) =>
 {   
+console.log(shader.vertexShader);
+
     shader.vertexShader = shader.vertexShader.replace(
         '#include <common>',
         `
