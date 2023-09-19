@@ -2945,6 +2945,981 @@ parameters.randomness = 0.2
 几分钟后，我们就无法完全区分星系分支。您可以添加重置按钮或减慢速度。
 星系的中心通常有一个巨大的黑洞。为什么不尝试创建一个呢？
 
+# 32. Modified materials改性材料
 
 
+## 介绍
+到目前为止，我们一直在创建全新的着色器材质。但是如果我们只想修改 Three.js 内置材质之一怎么办？[也许我们对MeshStandardMaterial](https://threejs.org/docs/#api/en/materials/MeshStandardMaterial)的结果感到满意，但我们想为其添加顶点动画。如果我们要重写整个[MeshStandardMaterial](https://threejs.org/docs/#api/en/materials/MeshStandardMaterial)，则需要花费太多时间来处理灯光、环境贴图、基于物理的渲染、所有类型的纹理等。
+[相反，我们将从MeshStandardMaterial](https://threejs.org/docs/#api/en/materials/MeshStandardMaterial)开始，尝试将我们的代码集成到其着色器中。
+有两种方法可以做到这一点：
 
+- 通过使用在编译着色器之前触发的 Three.js 钩子，让我们可以使用着色器并注入我们的代码。
+- 通过将材质重新创建为全新材质，但遵循 Three.js 代码中所做的操作，然后使用相同的参数以及我们想要添加的参数。
+
+虽然第二个选项是完全可以接受的，但我们需要在 Three.js 源代码中花费大量时间来了解如何正确设置所有内容。
+相反，我们将使用第一种技术。我们仍然会花一些时间在 Three.js 代码上，但它会容易得多。
+在本课中，我们将使模型顶点以一种有趣的方式扭曲，但材质的所有基本特征仍然有效，如阴影、纹理、法线贴图等。
+## 设置
+
+我们将使用与真实模型渲染课程相同的设置，但使用著名的Lee Perry-Smith头部模型。它只是一种流行的模型，只有一个网格和逼真的纹理，应该与我们的扭曲动画配合得很好。
+
+加载和基础材料设置都已完成。在加载模型之前创建了一个带有贴图和法线贴图的[MeshStandardMaterial](https://threejs.org/docs/#api/en/materials/MeshStandardMaterial)。然后将此材质用于模型的唯一Mesh[网格。](https://threejs.org/docs/#api/en/objects/Mesh)这个[网格](https://threejs.org/docs/#api/en/objects/Mesh)最终被添加到场景中。
+以下大部分代码将涉及材料。
+## 材料钩子函数 Hooking the material
+我们有[MeshStandardMaterial](https://threejs.org/docs/#api/en/materials/MeshStandardMaterial)，但我们想修改它的着色器。
+要修改材质，我们首先需要访问其原始着色器。为此，我们可以使用 `material` 的 `onBeforeCompile` 属性。
+如果我们给它赋予一个函数，那么在编译之前，这个函数将被调用，并以着色器选项作为第一个参数：
+```javascript
+material.onBeforeCompile = (shader) =>
+{
+    console.log(shader)
+}
+```
+现在我们可以访问 `vertexShader`、`fragmentShader` 和 `uniforms`，并且可以修改它们并查看结果。
+## 将内容添加到顶点着色器
+如果你通过`console.log(shader)`查看属性`vertexShader`顶点着色器，你会发现代码并不多。Three.js 使用自己的系统来包含着色器部分，以防止在不同的材质之间重复相同的代码。每个 `#include ...` 语句都会插入 Three.js 依赖库特定文件夹中的代码。
+这在某种程度上对我们来说是合适的，因为我们可以用简单的本地 JavaScript 的 `replace(...)` 方法替换这些部分。
+问题是，我们不知道哪部分代码是做什么的，应该替换哪部分。要理解代码，我们需要深入了解 Three.js 依赖项。
+转到 `/node_modules/three/src/renderers/shaders/` 文件夹。那里有大部分 Three.js 的着色器代码。
+所有包含的部分被称为 `chunks`，并且你可以在 `ShaderChunk/` 文件夹中找到它们。
+如果我们查看不同的 `chunks`，似乎 `begin_vertex` 部分首先处理位置，通过创建一个名为 `transformed` 的变量。
+让我们建立我们的代码在此基础上。首先，我们需要替换这部分代码。因为 `chunk` 的名称是 `begin_vertex`，我们需要替换掉`#inlcude <begin_vertex>`：
+```javascript
+material.onBeforeCompile = (shader) =>
+{
+    shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', '')
+}
+```
+这应该会破坏`Material`材质，因为我们用空字符串替换了之前的代码。我们的代码将只有几行，所以我们将使用反引号。
+先把` include ...` 放回去，不要破坏任何东西：
+```javascript
+material.onBeforeCompile = (shader) =>
+{
+    shader.vertexShader = shader.vertexShader.replace(
+        '#include <begin_vertex>',
+        `
+            #include <begin_vertex>
+        `
+    )
+}
+```
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1694867598485-d7f86e3d-e4d1-4b4b-ba0d-01c21eab037e.png#averageHue=%236c5849&clientId=u3b9a3dca-fdc1-4&from=paste&height=1120&id=u0a2c3cbe&originHeight=1120&originWidth=1792&originalType=binary&ratio=1&rotation=0&showTitle=false&size=1882614&status=done&style=none&taskId=ufb47db3e-4729-47a6-8463-da679c8ba57&title=&width=1792)
+这段代码是没有用的，因为我们用相同的东西替换了原来的内容，但是现在我们可以在 include 之后添加自己的代码。
+举个例子，让我们将头部沿着 `y` 轴移动。我们在 `/node_modules/three/src/renderers/shaders/ShaderChunks/begin_vertex.glsl.js` 文件中看到，创建了一个名为 `transformed` 的变量，应该包含顶点的位置。通过修改它的 `y` 属性来移动所有的顶点：
+```javascript
+shader.vertexShader = shader.vertexShader.replace(
+    '#include <begin_vertex>',
+    `
+        #include <begin_vertex>
+
+        transformed.y += 3.0;
+    `
+)
+```
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1694867814570-94e95e5d-f91e-40f3-81c5-bc3ab37c6b12.png#averageHue=%23695643&clientId=u3b9a3dca-fdc1-4&from=paste&height=1120&id=u6a0cc5c6&originHeight=1120&originWidth=1792&originalType=binary&ratio=1&rotation=0&showTitle=false&size=1918546&status=done&style=none&taskId=ufcbfa661-01ad-4bba-8980-afdc6bf22d1&title=&width=1792)
+正如您所看到的，它正在工作，但阴影似乎出现了问题。我们稍后会解决这个问题。
+删除`transformed.y += 3.0;`.
+## 扭转 Twisting
+让我们在顶点上进行扭曲。有多种数学方法可以实现扭曲效果，这一次，我们将创建一个矩阵。
+以下代码中仅出现 GLSL 部分。
+首先，我们将尝试以相同的角度旋转所有顶点。然后我们将根据顶点的高程偏移该角度并为其设置动画。
+创建一个`angle`具有任意值的变量：
+```glsl
+#include <begin_vertex>
+
+float angle = 0.3;
+```
+即使我们还没有移动顶点，你仍然可以刷新查看是否出现错误。
+如果记得的话，矩阵就像一个管道，你通过它发送数据 - 就像一个向量。管道会对该向量应用变换，并输出结果。我们可以创建一个缩放向量的矩阵，一个旋转矩阵，一个移动矩阵，甚至可以将它们组合在一起。这些矩阵可以处理二维变换、三维变换，甚至更多。
+在我们的例子中，我们想要进行二维变换。事实上，我们的顶点具有三维坐标，但为了进行扭曲动画，我们只是围绕 x 轴和 z 轴旋转顶点，不涉及 y 轴的上下旋转。
+要创建二维旋转矩阵，我们不会深入数学细节。相反，我们将使用这个函数来返回一个二维矩阵（mat2）：
+```glsl
+mat2 get2dRotateMatrix(float _angle)
+{
+    return mat2(cos(_angle), - sin(_angle), sin(_angle), cos(_angle));
+}
+```
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1695084389367-a21e1bd0-0f22-40a9-8f60-d54de47e6b73.png#averageHue=%23f3f3f3&clientId=uf40f9cb8-029f-4&from=paste&height=110&id=ua9124cdc&originHeight=110&originWidth=586&originalType=binary&ratio=1&rotation=0&showTitle=false&size=17029&status=done&style=none&taskId=u260c4bec-5714-4061-ace3-62eb9e5baca&title=&width=586)
+如果你想了解更多，可以在 The Book of Shaders 上找到详细信息： https: [//thebookofshaders.com/08/](https://thebookofshaders.com/08/)
+但是我们到底应该在哪里添加这个功能呢？如果它是我们自己的着色器，我们会将其放在`main`函数之前，而这正是我们要做的。函数之外的一大块`main`是`common`. 该块的优点是存在于所有着色器上。让我们像替换块一样替换这部分`begin_vertex`：
+```javascript
+material.onBeforeCompile = (shader) =>
+{
+    shader.vertexShader = shader.vertexShader.replace(
+        '#include <common>',
+        `
+            #include <common>
+        `
+    )
+
+    // ...
+}
+```
+我们现在可以在我们的`'#include <common>'`里添加`get2dRotateMatrix`：
+```javascript
+material.onBeforeCompile = (shader) =>
+{
+    shader.vertexShader = shader.vertexShader.replace(
+        '#include <common>',
+        `
+            #include <common>
+
+            mat2 get2dRotateMatrix(float _angle)
+            {
+                return mat2(cos(_angle), - sin(_angle), sin(_angle), cos(_angle));
+            }
+        `
+    )
+
+    // ...
+}
+```
+虽然没有什么变化，但我们现在可以在着色器的任意位置使用 `get2dRotateMatrix` 函数了，就像在 `begin_vertex` 代码块中一样。这是因为所有的代码块都被合并成一个代码块。
+使用 `get2dRotateMatrix` 函数创建 `rotateMatrix` 变量：
+```glsl
+#include <begin_vertex>
+
+float angle = 0.3;
+mat2 rotateMatrix = get2dRotateMatrix(angle);
+```
+我们现在可以使用一个名为 `rotateMatrix` 的矩阵来旋转一个 `vec2` 向量。让我们将这个矩阵应用到 `x` 和 `z` 属性上：
+```glsl
+#include <begin_vertex>
+
+float angle = 0.3;
+mat2 rotateMatrix = get2dRotateMatrix(angle);
+
+transformed.xz = rotateMatrix * transformed.xz;
+```
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1695085850886-cd2ccd26-b097-4747-995a-db785adebb20.png#averageHue=%236d5a4a&clientId=uf40f9cb8-029f-4&from=paste&height=1120&id=uc6957d88&originHeight=1120&originWidth=1792&originalType=binary&ratio=1&rotation=0&showTitle=false&size=1904347&status=done&style=none&taskId=ua2957e93-9327-4a51-a9fe-ea0be180daa&title=&width=1792)
+头部应该进行旋转。同样，不要担心阴影；我们稍后会处理这个问题。
+我们几乎完成了扭曲旋转的部分。我们只需要根据仰角`angle`变化角度即可：
+```glsl
+float angle = position.y * 0.9;
+```
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/35159616/1695085892227-57aadbd8-162b-4cd0-8641-4127867f9ba4.png#averageHue=%23534336&clientId=uf40f9cb8-029f-4&from=paste&height=1120&id=u9420d4ff&originHeight=1120&originWidth=1792&originalType=binary&ratio=1&rotation=0&showTitle=false&size=1782138&status=done&style=none&taskId=u0addea3a-4e27-4e7b-b376-e177fa70fe1&title=&width=1792)
+可怜的头。是时候为角度设置动画了。
+## 动画化
+我们将使用与之前相同的技术，向着色器传递一个名为 `uTime` 的 `uniform`。我们已经可以通过 `shader.uniforms` 访问到 `uniforms`。让我们以与更新 [ShaderMaterial](https://threejs.org/docs/#api/en/materials/ShaderMaterial) 相同的方式更新它：
+```javascript
+material.onBeforeCompile = function(shader)
+{
+    shader.uniforms.uTime = { value: 0 }
+
+    // ...
+}
+```
+我们现在可以在`common`块中检索我们的`uTime`制服：
+```glsl
+#include <common>
+
+uniform float uTime;
+
+mat2 get2dRotateMatrix(float _angle)
+{
+    return mat2(cos(_angle), - sin(_angle), sin(_angle), cos(_angle));
+}
+```
+并在`begin_vertex`块中使用它：
+```glsl
+#include <begin_vertex>
+
+float angle = (position.y + uTime) * 0.9;
+mat2 rotateMatrix = get2dRotateMatrix(angle);
+
+transformed.xz = rotateMatrix * transformed.xz;
+```
+您应该得到相同的结果，因为我们没有为该`uTime`值设置动画。不幸的是，我们遇到了 JavaScript 问题。我们没有明显的方法来访问函数中的统一`tick`。[与ShaderMaterial](https://threejs.org/docs/#api/en/materials/ShaderMaterial)不同，我们不能只访问`uniformsof material`，这是由于 Three.js 结构的原因。
+有很多方法可以解决这个问题。我们所需要的只是获得这些制服。让我们`customUniforms`在材质之前创建一个对象并添加我们的uTime内部：
+```glsl
+const customUniforms = {
+    uTime: { value: 0 }
+}
+```
+然后，我们在onBeforeCompile函数中使用该对象：
+```javascript
+material.onBeforeCompile = (shader) =>
+{
+    shader.uniforms.uTime = customUniforms.uTime
+
+    // ...
+}
+```
+因为 `ourcustomUniforms`已在`onBeforeCompile`范围之外声明，所以我们可以简单地使用`elapsedTime`变量在`tick`函数中更新它：
+```javascript
+const clock = new THREE.Clock()
+
+const tick = () =>
+{
+    const elapsedTime = clock.getElapsedTime()
+
+    // Update material
+    customUniforms.uTime.value = elapsedTime
+
+    // ...
+}
+```
+![tutieshi_640x400_6s.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1695086379469-aa4a7629-d7ef-45b8-a7cb-5c0a7c754302.gif#averageHue=%23524233&clientId=uf40f9cb8-029f-4&from=drop&id=ub51874ed&originHeight=400&originWidth=640&originalType=binary&ratio=1&rotation=0&showTitle=false&size=9640839&status=done&style=none&taskId=u033a49e0-0769-4144-8164-79527d56577&title=)
+现在，头部正在旋转。
+下面让我们修复阴影。
+## 修复阴影
+正如我们在之前的课程中所看到的，当使用阴影时，Three.js 会从光源的视角对场景进行渲染。这些渲染会生成阴影或光照下的场景的图片。当进行这些渲染时，所有的材质都会被专门用于该光影渲染的另一组材质替换。问题是，这种类型的材质不会发生扭曲，因为它与我们修改后的 [MeshStandardMaterial](https://threejs.org/docs/#api/en/materials/MeshStandardMaterial) 没有关系。
+我们可以尝试在头部后面添加一个平面来验证这一点：
+```javascript
+/**
+ * Plane
+ */
+const plane = new THREE.Mesh(
+    new THREE.PlaneGeometry(15, 15, 15),
+    new THREE.MeshStandardMaterial()
+)
+plane.rotation.y = Math.PI
+plane.position.y = - 5
+plane.position.z = 5
+scene.add(plane)
+```
+![tutieshi_640x400_6s.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1695087326335-a9b26f3e-d254-49f3-9d6b-3a090fff86a8.gif#averageHue=%23645951&clientId=uf40f9cb8-029f-4&from=drop&id=u3ab4772c&originHeight=400&originWidth=640&originalType=binary&ratio=1&rotation=0&showTitle=false&size=4947489&status=done&style=none&taskId=u0356c9b7-b785-4662-95a0-f61b98790ad&title=)
+我们需要找到一种方法来扭曲这个材质。
+用于阴影的材质是 [MeshDepthMaterial](https://threejs.org/docs/#api/en/materials/MeshDepthMaterial)，我们无法轻易地访问到该材质，但是我们可以通过在网格上使用 `customDepthMaterial` 属性来覆盖它，以告诉 Three.js 使用自定义材质。
+首先，让我们创建一个自定义材质。我们将使用 [MeshDepthMaterial](https://threejs.org/docs/#api/en/materials/MeshDepthMaterial)，因为这正是 Three.js 在这些渲染中使用的材质。我们将称之为 `depthMaterial`，并将 `depthPacking` 属性设置为 `THREE.RGBADepthPacking`：
+```javascript
+const depthMaterial = new THREE.MeshDepthMaterial({
+    depthPacking: THREE.RGBADepthPacking
+})
+```
+在这里我们不会详细解释 `depthPacking` 是什么，但它只是一种更好的方法，通过单独使用 r、g、b 和 a 来存储深度，以获得更好的精度。Three.js 需要这个配置。
+为了应用我们的自定义深度材质，在模型加载完成后，我们将 `customDepthMaterial` 属性更改为我们自己的 `depthMaterial`：
+```javascript
+gltfLoader.load(
+    '/models/LeePerrySmith/LeePerrySmith.glb',
+    (gltf) =>
+    {
+        // ...
+
+        mesh.material = material // Update the material
+        mesh.customDepthMaterial = depthMaterial // Update the depth material
+
+        // ...
+    }
+)
+```
+在这里，我们只对模型中的一个网格进行了操作，但如果我们有一个更复杂的模型，包含多个网格，我们将需要遍历并更新所有的材质。
+现在，我们可以将之前对着色器所做的所有更改应用到 `depthMaterial` 上。
+请将 `onBeforeCompile` 的部分复制粘贴过来：
+```javascript
+depthMaterial.onBeforeCompile = (shader) =>
+{
+    shader.uniforms.uTime = customUniforms.uTime
+    shader.vertexShader = shader.vertexShader.replace(
+        '#include <common>',
+        `
+            #include <common>
+
+            uniform float uTime;
+
+            mat2 get2dRotateMatrix(float _angle)
+            {
+                return mat2(cos(_angle), - sin(_angle), sin(_angle), cos(_angle));
+            }
+        `
+    )
+    shader.vertexShader = shader.vertexShader.replace(
+        '#include <begin_vertex>',
+        `
+            #include <begin_vertex>
+
+            float angle = (position.y + uTime) * 0.9;
+            mat2 rotateMatrix = get2dRotateMatrix(angle);
+
+            transformed.xz = rotateMatrix * transformed.xz;
+        `
+    )
+}
+```
+如果你观察平面上的阴影，你也应该看到阴影有扭曲。但我们仍然有一个问题。阴影的旋转动画很好，但模型上的核心阴影似乎不对，看起来阴影随着顶点旋转。
+![tutieshi_640x400_8s.gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1695087975507-7f67df03-fb4f-415f-92dd-3ca3648d0124.gif#averageHue=%23615750&clientId=uf40f9cb8-029f-4&from=drop&id=u6d27793a&originHeight=400&originWidth=640&originalType=binary&ratio=1&rotation=0&showTitle=false&size=3882143&status=done&style=none&taskId=udce48f68-58f1-4344-81cc-d0d1d39abe5&title=)
+这是一个与**法线**相关的问题。
+## 修复法线
+在前面的课程中，我们看到法线是与每个顶点关联的坐标，它告诉我们面朝什么方向。如果我们看到这些法线，它们将是整个模型上指向外部的箭头。这些法线用于照明、反射和阴影等。
+当我们旋转顶点时，我们只是旋转了位置，但没有旋转法线。我们需要修改处理法线的块。
+等一下，这部分有点棘手。
+负责处理法线的代码块首先被称为 `beginnormal_vertex`。让我们将其替换为材质中的代码块，而不是 `depthMaterial`，因为后者不需要法线：
+
+```javascript
+material.onBeforeCompile = (shader) =>
+{
+    // ...
+
+    shader.vertexShader = shader.vertexShader.replace(
+        '#include <beginnormal_vertex>',
+        `
+            #include <beginnormal_vertex>
+        `
+    )
+
+    // ...
+}
+```
+如果您查看位于` /node_modules/three/src/renderers/shaders/ShaderChunks/beginnormal_vertex.glsl.js` 的代码块，您会发现法线变量的名称是 `objectNormal`。我们可能会尝试做与转换变量相同的事情：
+```glsl
+#include <beginnormal_vertex>
+
+float angle = (position.y + 4.0) * sin(uTime) * 0.9;
+mat2 rotateMatrix = get2dRotateMatrix(angle);
+
+objectNormal.xz = rotateMatrix * objectNormal.xz;
+```
+很不幸，这将导致着色器错误，并显示以下消息：
+> 'angle' : 重定义和 'rotateMatrix' : 重定义。
+
+这是因为我们忘记了所有这些着色器代码块最终都会合并成一个唯一的着色器。我们在 `beginnormal_vertex` 代码块中添加的代码将与添加到 `begin_vertex` 的代码并排放置，而我们不能有两个具有相同名称的变量声明。
+我们需要删除重复的声明。如果您查看初始的 `vertexShader`，您会发现 `beginnormal_vertex` 在 `begin_vertex` 之前。这意味着我们应该从 `begin_vertex` 中移除 `angle` 和 `rotateMatrix` 代码块：
+```javascript
+material.onBeforeCompile = function(shader)
+{
+    // ...
+
+    shader.vertexShader = shader.vertexShader.replace(
+        '#include <beginnormal_vertex>',
+        `
+            #include <beginnormal_vertex>
+
+            float angle = (position.y + uTime) * 0.9;
+            mat2 rotateMatrix = get2dRotateMatrix(angle);
+
+            objectNormal.xz = rotateMatrix * objectNormal.xz;
+        `
+    )
+    shader.vertexShader = shader.vertexShader.replace(
+        '#include <begin_vertex>',
+        `
+            #include <begin_vertex>
+
+            transformed.xz = rotateMatrix * transformed.xz;
+        `
+    )
+}
+```
+![tutieshi_640x400_12s (1).gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1695088777254-d8b1f5c4-3ec8-47f0-8a55-62ef4e7ad347.gif#averageHue=%23776960&clientId=uf40f9cb8-029f-4&from=drop&id=u228fa1a2&originHeight=400&originWidth=640&originalType=binary&ratio=1&rotation=0&showTitle=false&size=2625013&status=done&style=none&taskId=u0c36cf9c-925b-48f8-9ac9-6790c9c4eba&title=)
+现在应该一切正常了，我们的 `begin_vertex` 正在使用来自 `beginnormal_vertex` 代码块的 `angle` 和 `rotateMatrix`。
+## 更进一步
+我们的课程到此结束，但如果您愿意，您可以进一步了解。
+您可以使用调试面板甚至鼠标来控制扭曲。
+您可以测试其他动画。例如，这个公式看起来更令人不安 - 确保同时更改`material`和`depthMaterial`：
+```glsl
+float angle = (sin(position.y + uTime)) * 0.4;
+```
+![tutieshi_640x400_8s (1).gif](https://cdn.nlark.com/yuque/0/2023/gif/35159616/1695089647130-3545dd93-5ed2-4c99-bf80-6cf9aa148de8.gif#averageHue=%23796a63&clientId=uf40f9cb8-029f-4&from=drop&id=uaf8c3731&originHeight=400&originWidth=640&originalType=binary&ratio=1&rotation=0&showTitle=false&size=3547065&status=done&style=none&taskId=u13714450-e3e4-4bd2-a085-6588163dcb1&title=)
+您还可以改进我们处理 GLSL 代码的方式。拥有专用文件可能会很方便。
+
+# 33.  Post-processing后期处理
+
+
+## 介绍 [00:00](https://threejs-journey.com/lessons/post-processing#)
+后处理是指在最终图像（渲染）上添加效果。人们主要在电影制作中使用这种技术，但我们也可以在 WebGL 中做到这一点。
+后期处理可以通过细微的处理来稍微改善图像或创建巨大的效果。
+以下是一些可以使用后处理的示例：
+
+- 景深
+- 盛开
+- 神雷
+- 运动模糊
+- 毛刺效应
+- 概要
+- 颜色变化
+- 抗锯齿
+- 反射和折射
+- ETC。
+## 设置 [01:24](https://threejs-journey.com/lessons/post-processing#)
+我们将使用与真实模型渲染课程相同的设置，但使用[Leonardo Carrion的](https://www.artstation.com/theblueturtle)[损坏头盔](https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/DamagedHelmet)模型。这是一个流行的模型，具有许多细节和良好的纹理，应该与我们的后期处理相得益彰。
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1695090797326-d4ccee08-f40d-41bf-8b22-ec0fdc8fde74.png#averageHue=%23645644&clientId=uf40f9cb8-029f-4&from=paste&id=ua3d7ce4b&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u14cf9fb0-8835-4125-9136-1fbaeb1b50c&title=)
+## 怎么运行的 [01:57](https://threejs-journey.com/lessons/post-processing#)
+大多数时候，后处理的工作方式是相同的。
+### 渲染目标
+我们不是在画布中渲染，而是在所谓的渲染目标中进行渲染。该渲染目标将为我们提供与通常纹理非常相似的纹理。以更简单的方式，我们在纹理而不是屏幕上的画布中进行渲染。
+术语“渲染目标”特定于 Three.js。其他上下文主要使用“缓冲区”一词。
+然后将该纹理应用于面向相机并覆盖整个视图的平面。该平面使用带有特殊片段着色器的材质来执行后处理效果。如果后处理效果包括使图像变红，则它只会乘以该片段着色器中像素的红色值。
+大多数后期处理效果不仅仅只是调整颜色值，但您已经明白了。
+在 Three.js 中，这些“效果”称为“通道”。从现在开始我们将引用该术语。
+### 乒乓缓冲
+我们可以在后期处理中进行多次处理：一次进行运动模糊，一次进行颜色变化，一次进行景深等。因为我们可以进行多次处理，所以后期处理需要两个渲染目标。原因是我们无法在绘制渲染目标的同时获取其纹理。这个想法是在第一个渲染目标中绘制，同时从第二个渲染目标中获取纹理。在下一个通道中，我们切换这些渲染目标，从第二个渲染目标中获取纹理，然后在第一个渲染目标上进行绘制。在下一次传递时，我们再次切换它们，一次又一次。这就是我们所说的乒乓缓冲。
+### 画布上的最后一次传递
+最后一次不会出现在渲染目标中，因为我们可以将其直接放在画布上，以便用户可以看到最终结果。
+### 到底
+所有这些对于初学者来说可能非常复杂，但幸运的是，我们不必自己做。
+实际上，我们甚至可以在不解释那些渲染目标、纹理、乒乓缓冲等的情况下开始，但了解幕后真正发生的事情总是好的。
+我们所要做的就是使用[EffectComposer](https://threejs.org/docs/index.html#examples/en/postprocessing/EffectComposer)类，它将为我们处理大部分繁重的工作。
+## 效果作曲家 [13:11](https://threejs-journey.com/lessons/post-processing#)
+正如我们所说，[EffectComposer](https://threejs.org/docs/index.html#examples/en/postprocessing/EffectComposer)将处理创建渲染目标、执行乒乓操作、将前一通道的纹理发送到当前通道、在画布上绘制最后一个等的所有过程。
+首先，我们需要导入它，因为它在THREE变量中不可用：
+```javascript
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+```
+我们还需要一个名为 的第一遍RenderPass。此通道负责场景的第一次渲染，但不是在画布中进行，而是在 EffectComposer 内创建的渲染目标中[进行](https://threejs.org/docs/index.html#examples/en/postprocessing/EffectComposer)：
+```javascript
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+```
+我们现在可以实例化[EffectComposer](https://threejs.org/docs/index.html#examples/en/postprocessing/EffectComposer)并使用我们的rendereras 参数。与[WebGLRenderer](https://threejs.org/docs/index.html#api/en/renderers/WebGLRenderer)一样，我们需要使用 提供像素比setPixelRatio(...)并使用 调整其大小setSize(...)。我们将使用与以下相同的参数renderer：
+```javascript
+/**
+ * Post processing
+ */
+const effectComposer = new EffectComposer(renderer)
+effectComposer.setSize(sizes.width, sizes.height)
+effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+```
+然后我们可以实例化我们的第一遍并将其添加到我们的方法effectComposer中addPass(...)。RenderPass 需要scene和camera作为参数：
+```javascript
+const renderPass = new RenderPass(scene, camera)
+effectComposer.addPass(renderPass)
+```
+在该tick函数中，我们将使用 来实现渲染，而不是像以前那样进行渲染effectComposer。将其替换renderer.render(...)为以下代码：
+```javascript
+const tick = () =>
+{
+    // ...
+
+    // Render
+    // renderer.render(scene, camera)
+    effectComposer.render()
+
+    // ...
+}
+```
+将effectComposer开始使用乒乓球及其渲染目标进行渲染。但因为我们只有一个通道——the——renderPass它会像以前一样直接在画布中渲染它。
+是时候添加一些简洁的后处理通道了。
+您可以在文档中找到可用通道的列表：[https://thirdjs.org/docs/index.html#examples/en/postprocessing/EffectComposer](https://threejs.org/docs/index.html#examples/en/postprocessing/EffectComposer)
+我们将使用其中的一些来看看如何进行设置，然后我们将创建自己的通行证。
+## 点屏通行证 [22:06](https://threejs-journey.com/lessons/post-processing#)
+将DotScreenPass应用某种黑白光栅效果。我们只需要导入DotScreenPass：
+```javascript
+import { DotScreenPass } from 'three/examples/jsm/postprocessing/DotScreenPass.js'
+```
+实例化它并将其添加到effectComposer. 确保将其添加到以下内容之后renderPass：
+```javascript
+const dotScreenPass = new DotScreenPass()
+effectComposer.addPass(dotScreenPass)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1695090797262-98263361-f772-4736-9c63-a1dec211ce43.png#averageHue=%231b1b1b&clientId=uf40f9cb8-029f-4&from=paste&id=u85eaaf27&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ud1d45d96-2e04-433a-850b-08e9157356d&title=)
+要禁用通行证，只需对其进行注释或将其enabled属性更改为false：
+```javascript
+const dotScreenPass = new DotScreenPass()
+dotScreenPass.enabled = false
+effectComposer.addPass(dotScreenPass)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1695090797162-6cb1e12c-af62-42a7-995f-cf13d9015862.png#averageHue=%23645644&clientId=uf40f9cb8-029f-4&from=paste&id=u85f9dbcb&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=udfc11dcf-4256-4e8b-a850-e4d3b2bd428&title=)
+用它来分别测试不同的通道。
+## 故障通道 [23:44](https://threejs-journey.com/lessons/post-processing#)
+这GlitchPass会增加屏幕故障，就像电影中摄像机被黑一样。
+导入它并添加它，就像DotScreenPass：
+```javascript
+import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass.js'
+
+// ...
+
+const glitchPass = new GlitchPass()
+effectComposer.addPass(glitchPass)
+```
+有些通道还具有可编辑属性。它们GlitchPass有一个goWild属性，如果true，将导致不间断的故障：
+如果您对闪光或快速移动敏感，请务必小心！
+```javascript
+glitchPass.goWild = true
+```
+## RGB移位通道 [25:41](https://threejs-journey.com/lessons/post-processing#)
+有些通道需要额外的工作，例如 RGBShift 通道。
+RGBShift 不能作为通道使用，而是作为着色器使用。我们需要导入这个着色器并将其应用到 a ShaderPass，然后将此 ShaderPass 添加到effectComposer. 这正是在DotScreenPass和 中发生的事情GlitchPass，但这次我们必须自己做。
+首先，导入ShaderPass和RGBShiftShader位于three/examples/jsm/shaders/：
+```javascript
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
+import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader.js'
+```
+然后ShaderPass使用RGBShiftShaderas 参数实例化并将其添加到effectComposer：
+```javascript
+// ...
+
+const rgbShiftPass = new ShaderPass(RGBShiftShader)
+effectComposer.addPass(rgbShiftPass)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1695090799114-9344c9fd-0c9d-42cb-9c8c-342a9deda1c6.png#averageHue=%232a2213&clientId=uf40f9cb8-029f-4&from=paste&id=u7ab090df&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uc5eded90-174d-474d-86e1-f19ad47ac19&title=)
+就这样。
+## 修复颜色 [28:34](https://threejs-journey.com/lessons/post-processing#)
+您可能已经注意到渲染中的颜色变化，就好像一切都变暗了，您是对的。禁用以前的着色器dotScreenPass和 以便使用- 不使用rgbShiftPass可以更清楚地看到它。glitchPassgoWild
+这里发生的事情是renderer.colorSpace = THREE.SRGBColorSpace不再起作用了。你可以评论它，你会发现没有什么区别。通道在渲染目标中进行渲染，并且这些通道不以相同的方式支持色彩空间。
+我们需要再添加一个名为 的通道GammaCorrectionShader，用于将颜色空间转换为 SRGB。
+此通行证的工作方式与通行证完全相同RGBShiftShader。首先，我们需要导入它：
+```javascript
+import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js'
+```
+然后，我们可以ShaderPass用 theGammaCorrectionShader作为参数来实例化 a。确保将其作为最后一遍进行：
+```javascript
+// ...
+
+const gammaCorrectionPass = new ShaderPass(GammaCorrectionShader)
+effectComposer.addPass(gammaCorrectionPass)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1695090797208-6e4fd055-f87d-40f9-b66e-50bca387f6f7.png#averageHue=%235a673d&clientId=uf40f9cb8-029f-4&from=paste&id=ue4f0c377&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ue0d06a49-f2ba-4001-8ee4-b3ca8b5b0d7&title=)
+颜色应该是固定的。
+如果您想了解有关 Gamma 颜色校正的更多信息，请查看这篇《[每个程序员都应该了解 Gamma》](https://blog.johnnovak.net/2016/09/21/what-every-coder-should-know-about-gamma/)一文。
+## 调整大小 [33:02](https://threejs-journey.com/lessons/post-processing#)
+将窗口缩小到最小分辨率，刷新并将分辨率增加到最大尺寸。一切看起来都应该很糟糕，就像我们拉伸的小图像一样。
+这是因为[EffectComposer](https://threejs.org/docs/index.html#examples/en/postprocessing/EffectComposer)及其通道需要调整大小。我们还需要设置适当的像素比，就像我们为renderer.
+在回调函数中，像实例化[EffectComposer](https://threejs.org/docs/index.html#examples/en/postprocessing/EffectComposer)时一样window.addEventListener('resize', ...)调用setSize(...)和方法：setPixelRatio(...)
+```javascript
+window.addEventListener('resize', () =>
+{
+    // ...
+
+    // Update effect composer
+    effectComposer.setSize(sizes.width, sizes.height)
+    effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+})
+```
+您可以根据需要调整窗口大小；分辨率应该没问题。
+## 修复抗锯齿 [36:05](https://threejs-journey.com/lessons/post-processing#)
+还有另一个功能似乎停止工作。如果您查看头盔上的边缘，您会发现锯齿又回来了 - 如果您使用的屏幕的像素比高于1，您可能看不到问题。
+当心; 如果您只有可用的renderPass，则不会看到问题，因为渲染是在具有抗锯齿支持的画布中完成的。至少启用一次才能看到问题。
+[这是因为EffectComposer](https://threejs.org/docs/index.html#examples/en/postprocessing/EffectComposer)使用的渲染目标不支持默认的抗锯齿。我们有四个可用选项：
+
+- 告别抗锯齿。
+- 提供我们自己的渲染目标，我们在其上添加抗锯齿，但这不适用于所有现代浏览器。
+- 使用通道进行抗锯齿，但性能较差且结果略有不同。
+- 前面两个选项的组合，我们测试浏览器是否支持渲染目标上的抗锯齿，如果不支持，我们使用抗锯齿通道。
+
+事情突然变得复杂起来。
+### 将抗锯齿添加到渲染目标
+默认情况下，[EffectComposer](https://threejs.org/docs/index.html#examples/en/postprocessing/EffectComposer)使用不带抗锯齿的[WebGLRenderTarget 。](https://threejs.org/docs/?q=rendertarget#api/en/renderers/WebGLRenderTarget)
+幸运的是，我们可以提供自己的渲染目标作为 的第二个参数EffectComposer。我们将首先提供相同的渲染目标并确保一切正常。然后，我们将添加抗锯齿。
+如果您查看位于中的[EffectComposer](https://threejs.org/docs/index.html#examples/en/postprocessing/EffectComposer)的代码，/node_modules/three/examples/jsm/postprocessing/EffectComposer.js您将看到renderTarget使用特定参数进行实例化。
+前两个参数是width和height。setSize(...)我们可以使用随机值，因为当函数被调用时渲染目标将被调整大小effectComposer：
+```javascript
+const renderTarget = new THREE.WebGLRenderTarget(
+    800,
+    600
+)
+```
+然后，我们可以将其发送renderTarget至effectComposer：
+```javascript
+const effectComposer = new EffectComposer(renderer, renderTarget)
+```
+我们应该得到完全相同的结果，但现在我们可以控制渲染目标。
+WebGLRenderTarget类实际上可以接收第三个参数，该参数是一个对象[并且](https://threejs.org/docs/?q=rendertarget#api/en/renderers/WebGLRenderTarget)包含一些选项。
+我们需要提供的唯一选项是samples启用抗锯齿的属性：
+```javascript
+const renderTarget = new THREE.WebGLRenderTarget(
+    800,
+    600,
+    {
+        samples: 2
+    }
+)
+```
+样本越多，抗锯齿效果越好，0相当于完全没有样本。请注意，该值的每次增加都会降低性能。
+正如我们前面所说，如果用户的像素比率高于1，则像素密度已经足够高，无法区分锯齿。在这种情况下，我们实际上并不需要抗锯齿，我们应该让samples属性1.
+renderer我们可以从以下内容中检索像素比samples: renderer.getPixelRatio()：
+```javascript
+const renderTarget = new THREE.WebGLRenderTarget(
+    800,
+    600,
+    {
+        samples: renderer.getPixelRatio() === 1 ? 2 : 0
+    }
+)
+```
+就是这样！
+遗憾的是，这并不适用于所有浏览器。这是 WebGL 2 支持的问题。人们几年前更新了 WebGL，浏览器也慢慢添加了对不同功能的支持。您可以在此处查看支持情况：[https://caniuse.com/#feat=webgl2](https://caniuse.com/#feat=webgl2)
+在撰写本课程时，Safari 和 iOS Safari 等主流浏览器最近才支持它。
+### 使用抗锯齿通道
+让我们评论该samples属性，以便正确测试抗锯齿通过：
+```javascript
+const renderTarget = new THREE.WebGLRenderTarget(
+    800,
+    600,
+    {
+        // samples: renderer.getPixelRatio() === 1 ? 2 : 0
+    }
+)
+```
+我们对于抗锯齿通道有不同的选择：
+
+- FXAA：性能良好，但结果只是“还可以”并且可能很模糊
+- SMAA：通常比 FXAA 更好，但性能较差 — 不要与 MSAA 混淆
+- SSAA：质量最好但性能最差
+- TAA：表现良好但结果有限
+- 还有许多其他人。
+
+选择最佳的抗锯齿通道取决于性能和视觉期望。尝试它们，直到您对以合理的帧速率看到的内容感到满意为止。
+在本课中，我们将讨论 SMAA。
+前面我们说过应该gammaCorrectionPass在最后添加 ，但是抗锯齿通道应该添加在它之后以便优化它。
+导入SMAAPass、实例化它并将其添加到effectComposer：
+```javascript
+import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
+
+// ...
+
+const smaaPass = new SMAAPass()
+effectComposer.addPass(smaaPass)
+```
+别名应该消失了。
+### 结合两个解决方案
+samples我们之前添加到[WebGLRenderTarget](https://threejs.org/docs/index.html#api/en/renderers/WebGLRenderTarget)的属性的一个很酷的事情是，如果它不受支持（因为浏览器正在使用 WebGL 1），它将被忽略而不会触发任何错误。
+这意味着我们可以这样设置，并且SMAAPass仅当用户的屏幕像素比等于1且其配置不支持 WebGL 2 时才添加。
+要了解浏览器是否支持 WebGL 2，我们可以capabilities使用renderer. 此属性包含有关支持内容的许多详细信息。我们需要的属性是isWebGL2：
+```javascript
+if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2)
+{
+    const smaaPass = new SMAAPass()
+    effectComposer.addPass(smaaPass)
+
+    console.log('Using SMAA')
+}
+```
+我们在每个浏览器上都能得到一张漂亮的图片，而且缺点也很小。
+如果你想用 WebGL1 测试你的代码，你可以用[WebGL1Renderer替换你的](https://threejs.org/docs/?q=WebGL1Renderer#api/en/renderers/WebGL1Renderer)[WebGLRenderer](https://threejs.org/docs/?q=WebGLRender#api/en/renderers/WebGLRenderer)：
+```javascript
+const renderer = new THREE.WebGL1Renderer({
+    // ...
+})
+```
+完成测试后，不要忘记将其放回去。
+## 虚幻BloomPass [01:04:16](https://threejs-journey.com/lessons/post-processing#)
+让我们回到我们的通行证，可能是最酷的一个，UnrealBloomPass。
+此通道将为我们的渲染添加光晕，看起来令人惊叹。它对于重建光辉、火焰、激光、光剑或放射性物质等东西很有用。
+导入UnrealBloomPass并将其添加到effectComposer：
+```javascript
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
+
+// ...
+
+const unrealBloomPass = new UnrealBloomPass()
+effectComposer.addPass(unrealBloomPass)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1695090804890-6b8b4e2d-9097-497e-b7a6-b290092a80dd.png#averageHue=%23e8d6c8&clientId=uf40f9cb8-029f-4&from=paste&id=u158425a2&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u1df2590a-3fa3-4ba3-a3b0-d8d875138b5&title=)
+一切都显得太明亮了。我们需要调整一些参数。主要有3个参数：
+
+- strength: 发光有多强。
+- radius：亮度可以传播多远。
+- threshold：达到什么光度极限时，物体开始发光。
+
+使用以下参数并将调整添加到您的 Dat.GUI：
+```javascript
+unrealBloomPass.strength = 0.3
+unrealBloomPass.radius = 1
+unrealBloomPass.threshold = 0.6
+
+gui.add(unrealBloomPass, 'enabled')
+gui.add(unrealBloomPass, 'strength').min(0).max(2).step(0.001)
+gui.add(unrealBloomPass, 'radius').min(0).max(2).step(0.001)
+gui.add(unrealBloomPass, 'threshold').min(0).max(1).step(0.001)
+```
+这可能太亮了，但你明白了。
+## 创建我们自己的通行证 [01:07:18](https://threejs-journey.com/lessons/post-processing#)
+创建我们自己的通道就像制作自定义着色器一样简单。
+### 色调通行证
+我们将从一个轻松的通道开始，让我们可以控制色调。
+首先，我们创建一个着色器。着色器是一个具有以下属性的简单对象：
+
+- uniforms：与我们使用的制服格式相同。
+- vertexShader：这个几乎总是相同的代码，并将飞机放在视图前面。
+- fragmentShader：将进行后处理效果的片段着色器。
+
+让我们用最少的代码创建该着色器：
+```javascript
+const TintShader = {
+    uniforms:
+    {
+    },
+    vertexShader: `
+        void main()
+        {
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+    `,
+    fragmentShader: `
+        void main()
+        {
+            gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+        }
+    `
+}
+```
+然后我们创建通行证并将ShaderPass其添加到我们的effectComposer：
+```javascript
+const tintPass = new ShaderPass(TintShader)
+effectComposer.addPass(tintPass)
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1695090810715-06095cad-06e6-475a-b32c-3bac35007a1d.png#averageHue=%23fa0300&clientId=uf40f9cb8-029f-4&from=paste&id=u5ccf723b&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uebcb6fac-4704-430f-85f3-819bcff5869&title=)
+屏幕应该变成红色，因为我们的片段着色器将 屏幕设置gl_FragColor为红色。
+我们需要从上一个通道获取纹理。该纹理会自动存储在tDiffuse制服中。我们必须为制服添加一个null值[——EffectComposer](https://threejs.org/docs/index.html#examples/en/postprocessing/EffectComposer)将更新它——并在 中检索该值fragmentShader：
+```javascript
+const TintShader = {
+    uniforms:
+    {
+        tDiffuse: { value: null }
+    },
+
+    // ...
+
+    fragmentShader: `
+        uniform sampler2D tDiffuse;
+        
+        void main()
+        {
+            gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+        }
+    `
+}
+```
+现在我们已经有了上一遍的纹理，我们需要检索像素，就像我们在上一课中所做的那样。要从（纹理）获取像素sampler2D，我们需要使用texture2D(...). 它需要纹理作为第一个参数，UV 坐标作为第二个参数。
+问题是我们现在没有这些 UV 坐标。我们需要像往常一样创建一个包含来自顶点着色器的varying命名：vUvuv
+```javascript
+const TintShader = {
+
+    // ...
+
+    vertexShader: `
+        varying vec2 vUv;
+
+        void main()
+        {
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+
+            vUv = uv;
+        }
+    `,
+    fragmentShader: `
+        uniform sampler2D tDiffuse;
+
+        varying vec2 vUv;
+
+        void main()
+        {
+            vec4 color = texture2D(tDiffuse, vUv);
+            gl_FragColor = color;
+        }
+    `
+}
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1695090811771-d2eadb0c-42a2-4faa-b6bb-d8023c245371.png#averageHue=%23645644&clientId=uf40f9cb8-029f-4&from=paste&id=ue0b934c9&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u1e879459-2956-4fd1-b47a-a3b3c9f8114&title=)
+渲染回来了。但现在，我们可以使用fragmentShader.
+要更改色调，请使用r、g和b属性color：
+```javascript
+const TintShader = {
+
+    // ...
+
+    fragmentShader: `
+        uniform sampler2D tDiffuse;
+
+        varying vec2 vUv;
+
+        void main()
+        {
+            vec4 color = texture2D(tDiffuse, vUv);
+            color.r += 0.1;
+
+            gl_FragColor = color;
+        }
+    `
+}
+```
+![](https://cdn.nlark.com/yuque/0/2023/png/35159616/1695090811862-25d2589a-87a6-4cba-a164-1ffece22b0e4.png#averageHue=%238b624b&clientId=uf40f9cb8-029f-4&from=paste&id=u15cb52f7&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u54116d59-137d-4e56-9665-0c2df14cfb0&title=)
+为了更进一步，让我们创建一个制服来控制色调。首先，将 添加uTint到uniforms：
+```javascript
+const TintShader = {
+    uniforms:
+    {
+        tDiffuse: { value: null },
+        uTint: { value: null }
+    },
+
+    // ...
+
+    fragmentShader: `
+        uniform sampler2D tDiffuse;
+        uniform vec3 uTint;
+
+        varying vec2 vUv;
+
+        void main()
+        {
+            vec4 color = texture2D(tDiffuse, vUv);
+            color.rgb += uTint;
+
+            gl_FragColor = color;
+        }
+    `
+}
+```
+正如您所看到的，我们将值设置为null。不要直接在着色器对象中设置值。创建通道后，您必须在材质上设置它们，因为着色器旨在多次使用 - 即使您不这样做。它就像通行证的模板：
+```javascript
+const tintPass = new ShaderPass(TintShader)
+tintPass.material.uniforms.uTint.value = new THREE.Vector3()
+```
+然后我们可以将调整添加到 Dat.GUI 中：
+```javascript
+gui.add(tintPass.material.uniforms.uTint.value, 'x').min(- 1).max(1).step(0.001).name('red')
+gui.add(tintPass.material.uniforms.uTint.value, 'y').min(- 1).max(1).step(0.001).name('green')
+gui.add(tintPass.material.uniforms.uTint.value, 'z').min(- 1).max(1).step(0.001).name('blue')
+```
+### 位移通行证
+让我们尝试另一个自定义通行证。这次，我们不会摆弄颜色，而是使用 UV 来产生我们所说的位移。
+创建一个名为 的新着色器DisplacementShader，然后创建一个名为 的新通道并将其添加displacementPass到：ShaderPasseffectComposer
+```javascript
+const DisplacementShader = {
+    uniforms:
+    {
+        tDiffuse: { value: null }
+    },
+    vertexShader: `
+        varying vec2 vUv;
+
+        void main()
+        {
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+
+            vUv = uv;
+        }
+    `,
+    fragmentShader: `
+        uniform sampler2D tDiffuse;
+
+        varying vec2 vUv;
+
+        void main()
+        {
+            vec4 color = texture2D(tDiffuse, vUv);
+
+            gl_FragColor = color;
+        }
+    `
+}
+
+const displacementPass = new ShaderPass(DisplacementShader)
+effectComposer.addPass(displacementPass)
+```
+现在，让我们创建一个newUv基于vUv但有一些变形的：
+```javascript
+const DisplacementShader = {
+
+    // ...
+
+    fragmentShader: `
+        uniform sampler2D tDiffuse;
+
+        varying vec2 vUv;
+
+        void main()
+        {
+            vec2 newUv = vec2(
+                vUv.x,
+                vUv.y + sin(vUv.x * 10.0) * 0.1
+            );
+            vec4 color = texture2D(tDiffuse, newUv);
+
+            gl_FragColor = color;
+        }
+    `
+}
+```
+在这里，我们仅sin(...)在y基于x轴的轴上应用 a。您应该看到渲染效果在波动。
+让我们为其制作动画。添加uTime制服：
+```javascript
+const DisplacementShader = {
+    uniforms:
+    {
+        tDiffuse: { value: null },
+        uTime: { value: null }
+    },
+    
+    // ...
+
+    fragmentShader: `
+        uniform sampler2D tDiffuse;
+        uniform float uTime;
+
+        varying vec2 vUv;
+
+        void main()
+        {
+            vec2 newUv = vec2(
+                vUv.x,
+                vUv.y + sin(vUv.x * 10.0 + uTime) * 0.1
+            );
+            vec4 color = texture2D(tDiffuse, newUv);
+
+            gl_FragColor = color;
+        }
+    `
+}
+```
+0创建通道后将其值设置为：
+```javascript
+const displacementPass = new ShaderPass(DisplacementShader)
+displacementPass.material.uniforms.uTime.value = 0
+effectComposer.addPass(displacementPass)
+```
+和往常一样，在tick函数中更新它：
+```javascript
+const clock = new THREE.Clock()
+
+const tick = () =>
+{
+    const elapsedTime = clock.getElapsedTime()
+
+    // Update passes
+    displacementPass.material.uniforms.uTime.value = elapsedTime
+
+    // ...
+}
+```
+波浪现在已动画化。
+### 未来界面位移
+我们可以使用纹理来代替正弦位移。您可以在 中找到一个非常朴素的蜂巢未来界面，具有正常的纹理/static/textures/interfaceNormalMap.png。
+添加uNormalMap制服：
+```javascript
+const DisplacementShader = {
+    uniforms:
+    {
+        // ...
+        uNormalMap: { value: null }
+    },
+
+    // ...
+}
+```
+在加载纹理时更新它——TextureLoader[已经](https://threejs.org/docs/index.html#api/en/loaders/TextureLoader)在代码中了：
+```javascript
+displacementPass.material.uniforms.uNormalMap.value = textureLoader.load('/textures/interfaceNormalMap.png')
+```
+现在更新fragmentShader DisplacementShader：
+```javascript
+const DisplacementShader = {
+    // ...
+
+    fragmentShader: `
+        uniform sampler2D tDiffuse;
+        uniform float uTime;
+        uniform sampler2D uNormalMap;
+
+        varying vec2 vUv;
+
+        void main()
+        {
+            vec3 normalColor = texture2D(uNormalMap, vUv).xyz * 2.0 - 1.0;
+            vec2 newUv = vUv + normalColor.xy * 0.1;
+            vec4 color = texture2D(tDiffuse, newUv);
+
+            vec3 lightDirection = normalize(vec3(- 1.0, 1.0, 0.0));
+            float lightness = clamp(dot(normalColor, lightDirection), 0.0, 1.0);
+            color.rgb += lightness * 2.0;
+
+            gl_FragColor = color;
+        }
+    `
+}
+```
+我们不会透露这里发生的情况，因为这不是实现此效果的正确方法，但您应该看到引人注目的界面位移。遗憾的是，纹理适合屏幕，如果你的分辨率不成比例，它看起来不会很好。不用担心，反正只是为了节目。
+## 走得更远 [01:35:36](https://threejs-journey.com/lessons/post-processing#)
+您现在可以做的是尝试其他通行证，如果您有一些想法或者您想尝试一些事情，则可能会添加新的自定义通行证。
+请记住，您添加的每个通道都必须在每个帧上渲染。这可能会带来严重的性能缺陷。
+您还可以将自定义通道分离到不同的文件中，甚至拆分文件中的着色器.glsl。这样，您可以获得更干净且可重用的代码。
