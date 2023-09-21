@@ -28,28 +28,6 @@ const textureLoader = new THREE.TextureLoader();
 const seaTexture = textureLoader.load("sea.png");
 
 /**
- * Raindrops
- */
-// Geometry
-const raindropsGeometry = new THREE.PlaneGeometry(10, 10, 512, 512);
-
-// Material
-const raindropsMaterial = new THREE.ShaderMaterial({
-  vertexShader: raindropsVertexShader,
-  fragmentShader: raindropsFragmentShader,
-  uniforms: {
-    iTime: { value: 0.0 },
-    iChannel0: { value: seaTexture },
-  },
-
-  // wireframe:true,
-});
-
-// Mesh
-const raindrops = new THREE.Mesh(raindropsGeometry, raindropsMaterial);
-scene.add(raindrops);
-
-/**
  * Sizes
  */
 const sizes = {
@@ -81,7 +59,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-camera.position.set(0, 0, 4);
+camera.position.set(0, 0, 2);
 scene.add(camera);
 
 // Controls
@@ -96,6 +74,35 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setClearColor('#fff', 1);
+/**
+ * Raindrops
+ */
+// Geometry
+const raindropsGeometry = new THREE.PlaneGeometry(10, 10, 512, 512);
+
+// Material
+const { width, height } = renderer.getSize(new THREE.Vector2());
+
+const iResolution = new THREE.Vector3(width, height, renderer.pixelRatio);
+
+console.log(iResolution);
+
+const raindropsMaterial = new THREE.ShaderMaterial({
+  vertexShader: raindropsVertexShader,
+  fragmentShader: raindropsFragmentShader,
+  uniforms: {
+    iTime: { value: 0.0 },
+    iResolution: { value: iResolution },
+    iChannel0: { value: seaTexture },
+  },
+
+  // wireframe:true,
+});
+
+// Mesh
+const raindrops = new THREE.Mesh(raindropsGeometry, raindropsMaterial);
+scene.add(raindrops);
 
 /**
  * Animate
@@ -106,7 +113,7 @@ const tick = () => {
   const elapsedTime = clock.getElapsedTime();
 
   // iTime
-  raindropsMaterial.uniforms.iTime.value = elapsedTime
+  raindropsMaterial.uniforms.iTime.value = elapsedTime;
 
   // Update controls
   controls.update();
