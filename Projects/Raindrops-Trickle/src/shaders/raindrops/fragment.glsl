@@ -2,6 +2,7 @@
 
 uniform float iTime;  // 时间参数
 uniform vec3 iResolution;  // 分辨率参数
+uniform float iStaticDropsSum; // 静态雨滴个数
 
 varying vec2 vUv;  // 顶点着色器传递过来的纹理坐标
 
@@ -27,16 +28,16 @@ float Saw(float b, float t) {
     return S(0., b, t) * S(1., b, t);
 }
 
-
+// 静态雨滴
 float StaticDrops(vec2 uv, float t) {
-	uv *= 40.;  // 放大 uv 坐标
+	uv *= iStaticDropsSum;  // 放大 uv 坐标
 	vec2 id = floor(uv);  // 获取每个格子的 id
 	uv = fract(uv) - .5;  // 将每个格子的中点移动到格子中心位置
 	vec3 n = N13(id.x * 107.45 + id.y * 3543.654);  // 根据 id 生成噪声
 	vec2 p = (n.xy - .5) * .7;  // 打散圆心的位置
-	float d = length(uv - p);  // 计算点到圆心位置的距离
+	float d = length(uv - p);  // 计算点到圆心位置的距离(静态雨滴)
 	float fade = Saw(.025, fract(t + n.z));  // 随机雨滴随着时间渐入渐出
-	float c = S(.3, 0., d) * fract(n.z * 10.) * fade;  // 静态雨滴形状
+	float c = S(.3, 0., d) * fract(n.z * 10.) * fade;  // 获得静态雨滴形状
 	return c;
 }
 

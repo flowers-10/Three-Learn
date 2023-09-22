@@ -86,7 +86,7 @@ const { width, height } = renderer.getSize(new THREE.Vector2());
 
 const iResolution = new THREE.Vector3(width, height, renderer.pixelRatio);
 
-console.log(iResolution);
+// console.log(iResolution);
 
 const raindropsMaterial = new THREE.ShaderMaterial({
   vertexShader: raindropsVertexShader,
@@ -95,10 +95,18 @@ const raindropsMaterial = new THREE.ShaderMaterial({
     iTime: { value: 0.0 },
     iResolution: { value: iResolution },
     iChannel0: { value: seaTexture },
+    iStaticDropsSum: { value: 40.0 },
   },
 
   // wireframe:true,
 });
+
+gui
+  .add(raindropsMaterial.uniforms.iStaticDropsSum, "value")
+  .min(0)
+  .max(50)
+  .step(1)
+  .name("iStaticDropsSum");
 
 // Mesh
 const raindrops = new THREE.Mesh(raindropsGeometry, raindropsMaterial);
