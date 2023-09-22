@@ -74,7 +74,7 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setClearColor('#fff', 1);
+renderer.setClearColor("#fff", 1);
 /**
  * Raindrops
  */
@@ -93,20 +93,40 @@ const raindropsMaterial = new THREE.ShaderMaterial({
   fragmentShader: raindropsFragmentShader,
   uniforms: {
     iTime: { value: 0.0 },
+    iAnimationSpeed: { value: 0.2 },
     iResolution: { value: iResolution },
     iChannel0: { value: seaTexture },
-    iStaticDropsSum: { value: 40.0 },
+    iStaticDropsSum: { value: 5.0 },
+    iStaticDropsFade: { value: 0.25 },
   },
 
   // wireframe:true,
 });
 
 gui
+  .add(raindropsMaterial.uniforms.iAnimationSpeed, "value")
+  .min(0)
+  .max(1)
+  .step(0.1)
+  .name("AnimationSpeed");
+
+gui
+  .add(raindropsMaterial.uniforms.iStaticDropsFade, "value")
+  .min(0)
+  .max(1)
+  .step(0.1)
+  .name("StaticDropsFade");
+
+gui
   .add(raindropsMaterial.uniforms.iStaticDropsSum, "value")
   .min(0)
   .max(50)
   .step(1)
-  .name("iStaticDropsSum");
+  .name("StaticDropsSum");
+
+
+
+
 
 // Mesh
 const raindrops = new THREE.Mesh(raindropsGeometry, raindropsMaterial);
