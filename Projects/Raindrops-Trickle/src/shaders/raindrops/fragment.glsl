@@ -46,45 +46,59 @@ float StaticDrops(vec2 uv, float t) {
 
 // 动态雨滴
 vec2 DropLayer2(vec2 uv, float t) {
-    vec2 UV = uv;
-    
-    uv.y += t*0.75;
-    vec2 a = vec2(5., 1.);
-    vec2 grid = a*2.;
-		// uv放大 x 10倍 y 2倍
-    vec2 id = floor(uv*grid);
-    float colShift = N(id.x); //得到随机数
-  	uv.y += colShift; //y轴偏移
+ vec2 UV = uv;
+  //整体画布跟着匀速运动
+  uv.y += t * 0.75;
+  vec2 a = vec2(6., 1.);
+  vec2 grid = a * 2.;
+  /* 放大uv x：12倍 y:2倍 */
+  vec2 id = floor(uv * grid);
 
-		id = floor(uv * grid);  //重新获取y轴偏移后的格子
-  	vec3 n = N13(id.x * 35.2 + id.y * 2376.1);
-  	vec2 st = fract(uv * grid) - vec2(.5, 0); //将坐标原点由0,0 移动到0.5,0
+  float colShift = N(id.x); //得到随机数
+  uv.y += colShift; //y轴偏移
 
-		//左右随机错落
-  	float x = n.x - .5;
-  	/* y轴上下运动 上快下慢 */
-  	float y = UV.y * 20.;
- 		// 增加落痕路径自然扭曲
- 	 	float wiggle = sin(y + sin(y));
- 	 	x += wiggle * (.5 - abs(x)) * (n.z - .5);
+  id = floor(uv * grid);  //重新获取y轴偏移后的格子
+  vec3 n = N13(id.x * 35.2 + id.y * 2376.1);
+  vec2 st = fract(uv * grid) - vec2(.5, 0); //将坐标原点由0,0 移动到0.5,0
 
-  	//上下随机错落
-  	float ti = fract(t + n.z);
-  	y = (Saw(.85, ti) - .5) * .9 + .5;
-  	vec2 p = vec2(x, y);
-  	float d = length((st - p) * a.yx);
+  //左右随机错落
+  float x = n.x - .5;
+  /* y轴上下运动 上快下慢 */
+  float y = UV.y * 20.;
+  // 增加落痕路径自然扭曲
+  float wiggle = sin(y + sin(y));
+  x += wiggle * (.5 - abs(x)) * (n.z - .5);
+  x *= .7;
 
-		 // 落痕
+  //上下随机错落
+  float ti = fract(t + n.z);
+  y = (Saw(.85, ti) - .5) * .9 + .5;
+  vec2 p = vec2(x, y);
+  float d = length((st - p) * a.yx);
+
+  float mainDrop = S(.4, .0, d);
+  // 落痕
   float r = sqrt(S(1., y, st.y));
   float cd = abs(st.x - x);
 
   //雨滴形状
   float trail = S(.23 * r, .15 * r * r, cd);
- //截取前面的一部分落痕
+
+  //截取前面的一部分落痕
   float trailFront = S(-.02, .02, st.y - y);
   trail *= trailFront * r * r;
-	float trail2 = S(.2 * r, .0, cd);
-    return vec2(trail2);
+
+  y = UV.y;
+  float trail2 = S(.2 * r, .0, cd);
+  float droplets = max(0., (sin(y * (1. - y) * 120.) - st.y)) * trail2 * trailFront * n.z;
+  //增加落痕路径上的小水滴
+  y = fract(y * 10.) + (st.y - .5);
+  float dd = length(st - vec2(x, y));
+  droplets = S(.3, 0., dd);
+  float m = mainDrop + droplets * r * trailFront;
+
+    //m += st.x>a.y*.45 || st.y>a.x*.165 ? 1.2 : 0.;
+  return vec2(m, trail);
 }
 
 
