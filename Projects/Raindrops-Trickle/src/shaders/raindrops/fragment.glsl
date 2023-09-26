@@ -63,19 +63,26 @@ vec2 DropLayer2(vec2 uv, float t) {
 		//左右随机错落
   	float x = n.x - .5;
   	/* y轴上下运动 上快下慢 */
-  	float y = UV.y * 20.;
- 		// 增加落痕路径自然扭曲
- 	 	float wiggle = sin(y + sin(y));
- 	 	x += wiggle * (.5 - abs(x)) * (n.z - .5);
-  	x *= .7;
+  	// float y = UV.y * 20.;
+ 		// // 增加落痕路径自然扭曲
+ 	 	// float wiggle = sin(y + sin(y));
+ 	 	// x += wiggle * (.5 - abs(x)) * (n.z - .5);
+  	// x *= .7;
 
   	//上下随机错落
   	float ti = fract(t + n.z);
-  	y = (Saw(.85, ti) - .5) * .9 + .5;
+  	float y = (Saw(.85, ti) - .5) * .9 + .5;
   	vec2 p = vec2(x, y);
   	float d = length((st - p) * a.yx);
 
-    return p;
+		 // 落痕
+  float r = sqrt(S(1., y, st.y));
+  float cd = abs(st.x - x);
+
+  //雨滴形状
+  float trail = S(.23 * r, .15 * r * r, cd);
+
+    return vec2(trail);
 }
 
 
