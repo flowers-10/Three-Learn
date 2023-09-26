@@ -81,7 +81,9 @@ vec2 DropLayer2(vec2 uv, float t) {
 
   //雨滴形状
   float trail = S(.23 * r, .15 * r * r, cd);
-
+ //截取前面的一部分落痕
+  float trailFront = S(-.02, .02, st.y - y);
+  trail *= trailFront * r * r;
     return vec2(trail);
 }
 
