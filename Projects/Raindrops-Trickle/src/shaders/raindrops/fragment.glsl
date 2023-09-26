@@ -44,12 +44,34 @@ float StaticDrops(vec2 uv, float t) {
 	return c;
 }
 
+// 动态雨滴
+vec2 DropLayer2(vec2 uv, float t) {
+    vec2 UV = uv;
+    
+    // uv.y += t*0.75;
+    vec2 a = vec2(5., 1.);
+    vec2 grid = a*2.;
+		// uv放大 x 10倍 y 2倍
+    vec2 id = floor(uv*grid);
+    float colShift = N(id.x); //得到随机数
+  	uv.y += colShift; //y轴偏移
+
+		id = floor(uv * grid);  //重新获取y轴偏移后的格子
+  	vec3 n = N13(id.x * 35.2 + id.y * 2376.1);
+  	vec2 st = fract(uv * grid) - vec2(.5, 0); //将坐标原点由0,0 移动到0.5,0
+    return st;
+}
+
+
+
 void main() {
 	vec2 uv = (gl_FragCoord.xy - .5 * iResolution.xy) / iResolution.y;  // 计算归一化的纹理坐标
 	vec2 UV = gl_FragCoord.xy / iResolution.xy;  // 计算原始纹理坐标
 	float T = iTime;
 
 	float t = T * iAnimationSpeed;  // 时间因子
-    float staticDrops = S(.3, 1.,StaticDrops(uv, t));
-    gl_FragColor = vec4(staticDrops,0.,0.,1.);// 输出最终颜色
+	vec2 d = DropLayer2(uv, t);
+    float drops = S(.3, 1.,d.y + d.x);
+
+    gl_FragColor = vec4(vec3(drops),1.);// 输出最终颜色
 }
