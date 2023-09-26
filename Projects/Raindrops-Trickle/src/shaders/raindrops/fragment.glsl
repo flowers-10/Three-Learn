@@ -48,7 +48,7 @@ float StaticDrops(vec2 uv, float t) {
 vec2 DropLayer2(vec2 uv, float t) {
     vec2 UV = uv;
     
-    // uv.y += t*0.75;
+    uv.y += t*0.75;
     vec2 a = vec2(5., 1.);
     vec2 grid = a*2.;
 		// uv放大 x 10倍 y 2倍
@@ -59,7 +59,23 @@ vec2 DropLayer2(vec2 uv, float t) {
 		id = floor(uv * grid);  //重新获取y轴偏移后的格子
   	vec3 n = N13(id.x * 35.2 + id.y * 2376.1);
   	vec2 st = fract(uv * grid) - vec2(.5, 0); //将坐标原点由0,0 移动到0.5,0
-    return st;
+
+		//左右随机错落
+  	float x = n.x - .5;
+  	/* y轴上下运动 上快下慢 */
+  	float y = UV.y * 20.;
+ 		// 增加落痕路径自然扭曲
+ 	 	float wiggle = sin(y + sin(y));
+ 	 	x += wiggle * (.5 - abs(x)) * (n.z - .5);
+  	x *= .7;
+
+  	//上下随机错落
+  	float ti = fract(t + n.z);
+  	y = (Saw(.85, ti) - .5) * .9 + .5;
+  	vec2 p = vec2(x, y);
+  	float d = length((st - p) * a.yx);
+
+    return p;
 }
 
 
