@@ -6,6 +6,7 @@ uniform float iAnimationSpeed; // 动画速度
 uniform vec3 iResolution;  // 分辨率参数
 uniform float iStaticDropsSum; // 静态雨滴个数
 uniform float iStaticDropsFade; // 静态雨滴淡入淡出速度
+uniform float iDropLayerSum; // 雨滴落痕条数、
 
 varying vec2 vUv;  // 顶点着色器传递过来的纹理坐标
 
@@ -50,8 +51,8 @@ vec2 DropLayer2(vec2 uv, float t) {
   //整体画布跟着匀速运动
   uv.y += t * 0.75;
   vec2 a = vec2(6., 1.);
-  vec2 grid = a * 2.;
-  /* 放大uv x：12倍 y:2倍 */
+  vec2 grid = a * iDropLayerSum;
+  /* 放大uv x：6 * iDropLayerSum倍 y:1 * iDropLayerSum倍 */
   vec2 id = floor(uv * grid);
 
   float colShift = N(id.x); //得到随机数

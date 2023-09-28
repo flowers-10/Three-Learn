@@ -98,6 +98,8 @@ const raindropsMaterial = new THREE.ShaderMaterial({
     iChannel0: { value: seaTexture },
     iStaticDropsSum: { value: 5.0 },
     iStaticDropsFade: { value: 0.25 },
+    iDropLayerSum: { value: 2.0 },
+    iDropLayer2: { value: 0.25 },
   },
 
   // wireframe:true,
@@ -123,6 +125,13 @@ gui
   .max(50)
   .step(1)
   .name("StaticDropsSum");
+
+  gui
+  .add(raindropsMaterial.uniforms.iDropLayerSum, "value")
+  .min(1)
+  .max(5)
+  .step(0.1)
+  .name("DropLayerSum");
 
 
 
