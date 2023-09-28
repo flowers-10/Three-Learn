@@ -111,6 +111,8 @@ void main() {
 	float t = T * iAnimationSpeed;  // 时间因子
 	vec2 d = DropLayer2(uv, t);
     float drops = S(.3, 1.,d.y + d.x);
+	float staticDrops = S(.3, 1., StaticDrops(uv ,t));
+	
 
-    gl_FragColor = vec4(vec3(drops),1.);// 输出最终颜色
+    gl_FragColor = vec4(vec3(drops + staticDrops),1.);// 输出最终颜色
 }
