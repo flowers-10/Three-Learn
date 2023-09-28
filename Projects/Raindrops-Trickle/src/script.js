@@ -96,10 +96,11 @@ const raindropsMaterial = new THREE.ShaderMaterial({
     iAnimationSpeed: { value: 0.2 },
     iResolution: { value: iResolution },
     iChannel0: { value: seaTexture },
-    iStaticDropsSum: { value: 5.0 },
+    iStaticDropsSum: { value: 40.0 },
     iStaticDropsFade: { value: 0.25 },
     iDropLayerSum: { value: 2.0 },
-    iDropLayer2: { value: 0.25 },
+    iVignette: { value: 0.5 },
+    iLightningFrequency: { value: 0.5 },
   },
 
   // wireframe:true,
@@ -126,16 +127,27 @@ gui
   .step(1)
   .name("StaticDropsSum");
 
-  gui
+gui
   .add(raindropsMaterial.uniforms.iDropLayerSum, "value")
   .min(1)
   .max(5)
   .step(0.1)
   .name("DropLayerSum");
 
+gui
+  .add(raindropsMaterial.uniforms.iVignette, "value")
+  .min(-0.3)
+  .max(1.2)
+  .step(0.1)
+  .name("Vignette");
 
-
-
+  gui
+  .add(raindropsMaterial.uniforms.iLightningFrequency, "value")
+  .min(0)
+  .max(2)
+  .step(0.1)
+  .name("LightningFrequency");
+  
 
 // Mesh
 const raindrops = new THREE.Mesh(raindropsGeometry, raindropsMaterial);

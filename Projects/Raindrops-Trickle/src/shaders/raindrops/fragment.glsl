@@ -1,12 +1,17 @@
 #define S(a, b, t) smoothstep(a, b, t)  // 定义了一个名为 S 的宏，该宏使用 smoothstep 函数来进行插值
+#define USE_POST_PROCESSING
 
 uniform float iTime;  // 时间参数
 uniform float iAnimationSpeed; // 动画速度
-
-uniform vec3 iResolution;  // 分辨率参数
+uniform float iLightningFrequency; // 闪电频率
 uniform float iStaticDropsSum; // 静态雨滴个数
 uniform float iStaticDropsFade; // 静态雨滴淡入淡出速度
-uniform float iDropLayerSum; // 雨滴落痕条数、
+uniform float iDropLayerSum; // 雨滴落痕条数
+uniform float iVignette; // 暗角范围
+
+uniform vec3 iResolution;  // 分辨率参数
+uniform sampler2D iChannel0;  // 纹理参数
+
 
 varying vec2 vUv;  // 顶点着色器传递过来的纹理坐标
 
@@ -75,16 +80,15 @@ vec2 DropLayer2(vec2 uv, float t) {
   float ti = fract(t + n.z);
   y = (Saw(.85, ti) - .5) * .9 + .5;
   vec2 p = vec2(x, y);
+
   float d = length((st - p) * a.yx);
 
   float mainDrop = S(.4, .0, d);
   // 落痕
   float r = sqrt(S(1., y, st.y));
   float cd = abs(st.x - x);
-
   //雨滴形状
   float trail = S(.23 * r, .15 * r * r, cd);
-
   //截取前面的一部分落痕
   float trailFront = S(-.02, .02, st.y - y);
   trail *= trailFront * r * r;
@@ -102,6 +106,17 @@ vec2 DropLayer2(vec2 uv, float t) {
   return vec2(m, trail);
 }
 
+vec2 Drops(vec2 uv, float t, float l0, float l1, float l2) {
+  float s = StaticDrops(uv, t) * l0;
+  vec2 m1 = DropLayer2(uv, t) * l1;
+  vec2 m2 = DropLayer2(uv * 1.85, t) * l2;
+
+  float c = s + m1.x + m2.x;
+  c = S(.3, 1., c);
+
+  return vec2(c, max(m1.y * l0, m2.y * l1));
+}
+
 
 
 void main() {
@@ -110,10 +125,41 @@ void main() {
 	float T = iTime;
 
 	float t = T * iAnimationSpeed;  // 时间因子
-	vec2 d = DropLayer2(uv, t);
-    float drops = S(.3, 1.,d.y + d.x);
-	float staticDrops = S(.3, 1., StaticDrops(uv ,t));
+	float rainAmount = sin(T * .05) * .3 + .7;  // 雨量
+
+	float maxBlur = mix(3., 6., rainAmount);  // 最大模糊程度
+	float minBlur = 2.;  // 最小模糊程度
+
+	float staticDrops = S(-.5, 1., rainAmount) * 2.;  // 静态雨滴形状
+	float layer1 = S(.25, .75, rainAmount);  // 第一层落痕形状
+	float layer2 = S(.0, .5, rainAmount);  // 第二层落痕形状
+	
+	vec2 c = Drops(uv, t, staticDrops, layer1, layer2);  // 落痕形状和拖尾形状
+	vec2 n;
+
+	#ifdef CHEAP_NORMALS
+		n = vec2(dFdx(c.x), dFdy(c.x));  // 利用前后颜色计算法线
+	#else
+		vec2 e = vec2(.001, 0.);
+		float cx = Drops(uv + e, t, staticDrops, layer1, layer2).x;  // 利用前后颜色计算 x 方向的法线分量
+		float cy = Drops(uv + e.yx, t, staticDrops, layer1, layer2).x;  // 利用前后颜色计算 y 方向的法线分量
+		n = vec2(cx - c.x, cy - c.x);  // 法线
+	#endif
+
+	vec3 col = textureLod(iChannel0, UV + n, maxBlur + 0.1).rgb;  // 在纹理上采样得到颜色
+
 	
 
-    gl_FragColor = vec4(vec3(drops + staticDrops),1.);// 输出最终颜色
+	#ifdef USE_POST_PROCESSING
+		t = (T+3.) * iLightningFrequency;				
+		float lightning = sin(t * sin(t * 10.));
+		lightning *= pow(max(0.,sin(t+sin(t))), 10.);
+		col *= 1. + lightning;
+		// 增加蓝色滤镜
+		col *= vec3(.8, .9,1.3);
+		//  暗角效果
+		col *= 1.-dot(UV-= iVignette, UV);	
+	#endif
+
+    gl_FragColor = vec4(col, 1.);  // 输出最终颜色
 }
