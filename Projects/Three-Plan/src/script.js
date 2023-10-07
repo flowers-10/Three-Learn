@@ -2,6 +2,10 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'lil-gui'
 
+import testVertexShader from './shaders/test/vertex.glsl'
+import testFragmentShader from './shaders/test/fragment.glsl'
+
+
 /**
  * Base
  */
@@ -18,10 +22,13 @@ const scene = new THREE.Scene()
  * Object
  */
 // Geometry
-const geometry = new THREE.PlaneGeometry(2, 2, 128, 128)
+const geometry = new THREE.PlaneGeometry(2, 2, 1, 1)
 
 // Material
-const material = new THREE.MeshBasicMaterial()
+const material = new THREE.RawShaderMaterial({
+    vertexShader: testVertexShader,
+    fragmentShader: testFragmentShader
+})
 
 // Mesh
 const mesh = new THREE.Mesh(geometry, material)
@@ -54,12 +61,13 @@ window.addEventListener('resize', () =>
  * Camera
  */
 // Base camera
-const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
+const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 1000)
 camera.position.set(1, 1, 1)
 scene.add(camera)
 
 // Controls
 const controls = new OrbitControls(camera, canvas)
+// 启用阻尼
 controls.enableDamping = true
 
 /**
