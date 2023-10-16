@@ -19,66 +19,51 @@ const scene = new THREE.Scene()
  * Loaders
  */
 const gltfLoader = new GLTFLoader()
-const cubeTextureLoader = new THREE.CubeTextureLoader()
-const textureLoader = new THREE.TextureLoader()
 
 /**
- * Update all materials
+ * Object
  */
-const updateAllMaterials = () =>
-{
-    scene.traverse((child) =>
-    {
-        if(child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial)
-        {
-            child.material.envMapIntensity = 2.5
-            child.material.needsUpdate = true
-            child.castShadow = true
-            child.receiveShadow = true
-        }
-    })
-}
+// Geometry
+const geometry = new THREE.PlaneGeometry(2, 2, 128, 128)
+
+// Material
+const material = new THREE.MeshBasicMaterial()
+
+// Mesh
+const mesh = new THREE.Mesh(geometry, material)
+scene.add(mesh)
+
+
 
 /**
  * Environment map
  */
-const environmentMap = cubeTextureLoader.load([
-    '/textures/environmentMaps/0/px.jpg',
-    '/textures/environmentMaps/0/nx.jpg',
-    '/textures/environmentMaps/0/py.jpg',
-    '/textures/environmentMaps/0/ny.jpg',
-    '/textures/environmentMaps/0/pz.jpg',
-    '/textures/environmentMaps/0/nz.jpg'
-])
+// const environmentMap = cubeTextureLoader.load([
+//     '/textures/environmentMaps/0/px.jpg',
+//     '/textures/environmentMaps/0/nx.jpg',
+//     '/textures/environmentMaps/0/py.jpg',
+//     '/textures/environmentMaps/0/ny.jpg',
+//     '/textures/environmentMaps/0/pz.jpg',
+//     '/textures/environmentMaps/0/nz.jpg'
+// ])
 
-scene.background = environmentMap
-scene.environment = environmentMap
+// scene.background = environmentMap
+// scene.environment = environmentMap
 
 /**
  * Models
  */
-gltfLoader.load(
-    '/models/DamagedHelmet/glTF/DamagedHelmet.gltf',
-    (gltf) =>
-    {
-        gltf.scene.scale.set(2, 2, 2)
-        gltf.scene.rotation.y = Math.PI * 0.5
-        scene.add(gltf.scene)
 
-        updateAllMaterials()
-    }
-)
+
+/**
+ * Raycaster
+ */
+// const raycaster = new THREE.Raycaster()
 
 /**
  * Lights
  */
-const directionalLight = new THREE.DirectionalLight('#ffffff', 3)
-directionalLight.castShadow = true
-directionalLight.shadow.mapSize.set(1024, 1024)
-directionalLight.shadow.camera.far = 15
-directionalLight.shadow.normalBias = 0.05
-directionalLight.position.set(0.25, 3, - 2.25)
-scene.add(directionalLight)
+
 
 /**
  * Sizes
@@ -123,10 +108,6 @@ const renderer = new THREE.WebGLRenderer({
     antialias: true
 })
 renderer.shadowMap.enabled = true
-renderer.shadowMap.type = THREE.PCFShadowMap
-renderer.useLegacyLights = false
-renderer.toneMapping = THREE.ReinhardToneMapping
-renderer.toneMappingExposure = 1.5
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
