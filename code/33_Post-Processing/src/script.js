@@ -174,8 +174,16 @@ effectComposer.addPass(rgbShiftPass);
 const gammaCorrectionPass = new ShaderPass(GammaCorrectionShader);
 effectComposer.addPass(gammaCorrectionPass);
 // 抗锯齿通道
-const smaaPass = new SMAAPass()
-effectComposer.addPass(smaaPass)
+// const smaaPass = new SMAAPass()
+// effectComposer.addPass(smaaPass)
+if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2)
+{
+    const smaaPass = new SMAAPass()
+    effectComposer.addPass(smaaPass)
+
+    console.log('Using SMAA')
+}
+
 
 /**
  * Animate
