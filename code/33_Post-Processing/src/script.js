@@ -9,8 +9,8 @@ import { GlitchPass } from "three/examples/jsm/postprocessing/GlitchPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { RGBShiftShader } from "three/examples/jsm/shaders/RGBShiftShader.js";
 import { GammaCorrectionShader } from "three/examples/jsm/shaders/GammaCorrectionShader.js";
-import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
+import { SMAAPass } from "three/examples/jsm/postprocessing/SMAAPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 
 /**
  * Base
@@ -146,14 +146,10 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 /**
  * Post processing
  */
-const renderTarget = new THREE.WebGLRenderTarget(
-    800,
-    600,
-    {
-        samples:renderer.getPixelRatio() === 1 ? 2 : 0
-    }
-)
-const effectComposer = new EffectComposer(renderer,renderTarget);
+const renderTarget = new THREE.WebGLRenderTarget(800, 600, {
+  samples: renderer.getPixelRatio() === 1 ? 2 : 0,
+});
+const effectComposer = new EffectComposer(renderer, renderTarget);
 effectComposer.setSize(sizes.width, sizes.height);
 effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 const renderPass = new RenderPass(scene, camera);
@@ -177,24 +173,60 @@ effectComposer.addPass(gammaCorrectionPass);
 // 抗锯齿通道
 // const smaaPass = new SMAAPass()
 // effectComposer.addPass(smaaPass)
-if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2)
-{
-    const smaaPass = new SMAAPass()
-    effectComposer.addPass(smaaPass)
+if (renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2) {
+  const smaaPass = new SMAAPass();
+  effectComposer.addPass(smaaPass);
 
-    console.log('Using SMAA')
+  console.log("Using SMAA");
 }
 
-const unrealBloomPass = new UnrealBloomPass()
-effectComposer.addPass(unrealBloomPass)
-unrealBloomPass.strength = 0.3
-unrealBloomPass.radius = 1
-unrealBloomPass.threshold = 0.6
+const unrealBloomPass = new UnrealBloomPass();
+effectComposer.addPass(unrealBloomPass);
+unrealBloomPass.strength = 0.3;
+unrealBloomPass.radius = 1;
+unrealBloomPass.threshold = 0.6;
 
-gui.add(unrealBloomPass, 'enabled')
-gui.add(unrealBloomPass, 'strength').min(0).max(2).step(0.001)
-gui.add(unrealBloomPass, 'radius').min(0).max(2).step(0.001)
-gui.add(unrealBloomPass, 'threshold').min(0).max(1).step(0.001)
+gui.add(unrealBloomPass, "enabled");
+gui.add(unrealBloomPass, "strength").min(0).max(2).step(0.001);
+gui.add(unrealBloomPass, "radius").min(0).max(2).step(0.001);
+gui.add(unrealBloomPass, "threshold").min(0).max(1).step(0.001);
+
+const TintShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    uTint: { value: null }
+  },
+  vertexShader: `
+    varying vec2 vUv;
+
+    void main()
+    {
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+
+        vUv = uv;
+    }
+`,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform vec3 uTint;
+    varying vec2 vUv;
+
+    void main()
+    {
+        vec4 color = texture2D(tDiffuse, vUv);
+        color.rgb += uTint;
+
+        gl_FragColor = color;
+    }
+`,
+};
+
+const tintPass = new ShaderPass(TintShader)
+tintPass.material.uniforms.uTint.value = new THREE.Vector3()
+gui.add(tintPass.material.uniforms.uTint.value, 'x').min(- 1).max(1).step(0.001).name('red')
+gui.add(tintPass.material.uniforms.uTint.value, 'y').min(- 1).max(1).step(0.001).name('green')
+gui.add(tintPass.material.uniforms.uTint.value, 'z').min(- 1).max(1).step(0.001).name('blue')
+effectComposer.addPass(tintPass);
 
 /**
  * Animate
