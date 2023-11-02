@@ -8,6 +8,7 @@ import { DotScreenPass } from 'three/examples/jsm/postprocessing/DotScreenPass.j
 import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass.js'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader.js'
+import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js'
 
 /**
  * Base
@@ -151,12 +152,15 @@ effectComposer.addPass(dotScreenPass)
 // 故障通道
 const glitchPass = new GlitchPass()
 // glitchPass.goWild = true
-glitchPass.enabled = false
+glitchPass.enabled = true
 effectComposer.addPass(glitchPass)
 // rgb通道，可自定义特效
 const rgbShiftPass = new ShaderPass(RGBShiftShader)
+rgbShiftPass.enabled = false
 effectComposer.addPass(rgbShiftPass)
-
+// 修复颜色
+const gammaCorrectionPass = new ShaderPass(GammaCorrectionShader)
+effectComposer.addPass(gammaCorrectionPass)
 
 /**
  * Animate
