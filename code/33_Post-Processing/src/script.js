@@ -6,7 +6,8 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { DotScreenPass } from 'three/examples/jsm/postprocessing/DotScreenPass.js'
 import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass.js'
-
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
+import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader.js'
 
 /**
  * Base
@@ -143,12 +144,20 @@ effectComposer.setSize(sizes.width, sizes.height)
 effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 const renderPass = new RenderPass(scene, camera)
 effectComposer.addPass(renderPass)
+// 点阵通道
 const dotScreenPass = new DotScreenPass()
 dotScreenPass.enabled = false
 effectComposer.addPass(dotScreenPass)
+// 故障通道
 const glitchPass = new GlitchPass()
 // glitchPass.goWild = true
+glitchPass.enabled = false
 effectComposer.addPass(glitchPass)
+// rgb通道，可自定义特效
+const rgbShiftPass = new ShaderPass(RGBShiftShader)
+effectComposer.addPass(rgbShiftPass)
+
+
 /**
  * Animate
  */
