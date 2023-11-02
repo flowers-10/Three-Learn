@@ -194,7 +194,7 @@ gui.add(unrealBloomPass, "threshold").min(0).max(1).step(0.001);
 const TintShader = {
   uniforms: {
     tDiffuse: { value: null },
-    uTint: { value: null }
+    uTint: { value: null },
   },
   vertexShader: `
     varying vec2 vUv;
@@ -221,12 +221,64 @@ const TintShader = {
 `,
 };
 
-const tintPass = new ShaderPass(TintShader)
-tintPass.material.uniforms.uTint.value = new THREE.Vector3()
-gui.add(tintPass.material.uniforms.uTint.value, 'x').min(- 1).max(1).step(0.001).name('red')
-gui.add(tintPass.material.uniforms.uTint.value, 'y').min(- 1).max(1).step(0.001).name('green')
-gui.add(tintPass.material.uniforms.uTint.value, 'z').min(- 1).max(1).step(0.001).name('blue')
+const tintPass = new ShaderPass(TintShader);
+tintPass.material.uniforms.uTint.value = new THREE.Vector3();
+gui
+  .add(tintPass.material.uniforms.uTint.value, "x")
+  .min(-1)
+  .max(1)
+  .step(0.001)
+  .name("red");
+gui
+  .add(tintPass.material.uniforms.uTint.value, "y")
+  .min(-1)
+  .max(1)
+  .step(0.001)
+  .name("green");
+gui
+  .add(tintPass.material.uniforms.uTint.value, "z")
+  .min(-1)
+  .max(1)
+  .step(0.001)
+  .name("blue");
 effectComposer.addPass(tintPass);
+
+const DisplacementShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    uTime: { value: null },
+  },
+  vertexShader: `
+        varying vec2 vUv;
+
+        void main()
+        {
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+
+            vUv = uv;
+        }
+    `,
+  fragmentShader: `
+        uniform sampler2D tDiffuse;
+        uniform float uTime;
+        varying vec2 vUv;
+
+        void main()
+        {   
+            vec2 newUv = vec2(
+                vUv.x,
+                vUv.y + sin(vUv.x * 10.0 + uTime) * 0.1
+            );
+            vec4 color = texture2D(tDiffuse, newUv);
+
+            gl_FragColor = color;
+        }
+    `,
+};
+
+const displacementPass = new ShaderPass(DisplacementShader);
+displacementPass.material.uniforms.uTime.value = 0;
+effectComposer.addPass(displacementPass);
 
 /**
  * Animate
@@ -242,6 +294,9 @@ const tick = () => {
   // Render
   // renderer.render(scene, camera)
   effectComposer.render();
+
+  // Update passes
+  displacementPass.material.uniforms.uTime.value = elapsedTime;
 
   // Call tick again on the next frame
   window.requestAnimationFrame(tick);
