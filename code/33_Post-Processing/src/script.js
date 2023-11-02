@@ -144,7 +144,14 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 /**
  * Post processing
  */
-const effectComposer = new EffectComposer(renderer);
+const renderTarget = new THREE.WebGLRenderTarget(
+    800,
+    600,
+    {
+        samples:renderer.getPixelRatio() === 1 ? 2 : 0
+    }
+)
+const effectComposer = new EffectComposer(renderer,renderTarget);
 effectComposer.setSize(sizes.width, sizes.height);
 effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 const renderPass = new RenderPass(scene, camera);
@@ -156,11 +163,11 @@ effectComposer.addPass(dotScreenPass);
 // 故障通道
 const glitchPass = new GlitchPass();
 // glitchPass.goWild = true
-glitchPass.enabled = false;
+glitchPass.enabled = true;
 effectComposer.addPass(glitchPass);
 // rgb通道，可自定义特效
 const rgbShiftPass = new ShaderPass(RGBShiftShader);
-rgbShiftPass.enabled = true;
+rgbShiftPass.enabled = false;
 effectComposer.addPass(rgbShiftPass);
 // 修复颜色
 const gammaCorrectionPass = new ShaderPass(GammaCorrectionShader);
