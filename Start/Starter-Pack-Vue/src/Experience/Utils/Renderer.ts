@@ -1,8 +1,8 @@
 import * as THREE from "three";
-import Experience from "./Experience";
-import Sizes from "./Utils/Sizes";
-import Time from "./Utils/Time";
-import Camera from "./Utils/Camera";
+import Experience from "../Experience";
+import Sizes from "./Sizes";
+import Time from "./Time";
+import Camera from "./Camera";
 
 export default class Renderer {
   public experience: Experience;
@@ -27,7 +27,7 @@ export default class Renderer {
       canvas: this.canvas,
       antialias: true,
     });
-    this.instance.physicallyCorrectLights = true;
+    this.instance.useLegacyLights = true;
     this.instance.toneMapping = THREE.CineonToneMapping;
     this.instance.toneMappingExposure = 1.75;
     this.instance.shadowMap.enabled = true;
@@ -44,5 +44,17 @@ export default class Renderer {
 
   update() {
     this.instance.render(this.scene, this.camera?.instance);
+    // this.info()
+  }
+
+  info(message: string = "当前内存：") {
+    console.log(message, this.instance.info.memory);
+  }
+
+  dispose() {
+    this.instance.clear();
+    this.instance.setSize(0, 0);
+    this.instance.dispose();
+    this.info("清空内存后：");
   }
 }
