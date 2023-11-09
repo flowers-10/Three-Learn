@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@types/three": "^0.158.2",
     "cannon-es": "^0.20.0",
     "dat.gui": "^0.7.9",
     "three": "^0.154.0",

@@ -2,9 +2,14 @@ import * as THREE from "three";
 
 import Sizes from "./Utils/Sizes";
 import Time from "./Utils/Time";
-import Camera from "./Utils/Camera";
-import Renderer from "./Utils/Renderer";
+import sources from './Utils/sources'
+import Resources from './Utils/Resources.js'
+
+import Camera from "./World/Camera";
+import Renderer from "./World/Renderer";
 import World from "./World/World";
+
+
 
 let instance: Experience | null = null;
 
@@ -12,11 +17,12 @@ export default class Experience {
   public canvas: HTMLCanvasElement | undefined;
   public sizes: Sizes | undefined;
   public time: Time | undefined;
-  public scene: THREE.Scene;
+  public scene!: THREE.Scene;
   public camera: Camera | undefined;
   public renderer: Renderer | undefined;
   public world: World | undefined;
-
+  public resources: Resources | undefined;
+  
   constructor(canvas?: HTMLCanvasElement) {
     //  Singleton
     if (instance) {
@@ -33,6 +39,7 @@ export default class Experience {
     this.sizes = new Sizes();
     this.time = new Time();
     this.scene = new THREE.Scene();
+    this.resources = new Resources(sources)
     this.camera = new Camera();
     this.renderer = new Renderer();
     this.world = new World();
@@ -50,6 +57,7 @@ export default class Experience {
   }
   update() {
     this.camera?.update();
+    this.world?.update();
     this.renderer?.update();
   }
 
@@ -85,5 +93,7 @@ export default class Experience {
       this.camera.dispose();
     }
     instance = null;
+     // 销毁dom
+     this.canvas?.remove()
   }
 }

@@ -13,6 +13,9 @@ export default defineConfig({
       "@": resolve(__dirname, "./src"),
     },
   },
+  build: {
+    assetsDir: 'static'
+  },
   server: {
     port: 8848,
   },

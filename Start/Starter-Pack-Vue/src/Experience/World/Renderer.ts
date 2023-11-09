@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import Experience from "../Experience";
-import Sizes from "./Sizes";
-import Time from "./Time";
+import Sizes from "../Utils/Sizes";
+import Time from "../Utils/Time";
 import Camera from "./Camera";
 
 export default class Renderer {
@@ -11,7 +11,7 @@ export default class Renderer {
   public time: Time | undefined;
   public scene: THREE.Scene;
   public camera: Camera | undefined;
-  public instance: THREE.WebGLRenderer;
+  public instance!: THREE.WebGLRenderer;
   constructor() {
     this.experience = new Experience();
     this.canvas = this.experience.canvas;
@@ -38,13 +38,12 @@ export default class Renderer {
   }
 
   resize() {
-    this.instance.setSize(this.sizes?.width, this.sizes!.height);
+    this.instance.setSize(this.sizes!.width, this.sizes!.height);
     this.instance.setPixelRatio(Math.min(this.sizes!.pixelRatio!, 2));
   }
 
   update() {
-    this.instance.render(this.scene, this.camera?.instance);
-    // this.info()
+    this.instance.render(this.scene, this.camera!.instance);
   }
 
   info(message: string = "当前内存：") {
