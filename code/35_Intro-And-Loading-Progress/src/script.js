@@ -1,21 +1,32 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { gsap } from 'gsap'
+import { gsap } from "gsap";
 
 /**
  * Loaders
  */
+const loadingBarElement = document.querySelector(".loading-bar");
+
 const loadingManager = new THREE.LoadingManager(
   // Loaded
   () => {
-    console.log("loaded");
-    gsap.to(overlayMaterial.uniforms.uAlpha, { duration: 3, value: 0 })
+    setTimeout(() => {
+      gsap.to(overlayMaterial.uniforms.uAlpha, {
+        duration: 3,
+        value: 0,
+        delay: 1,
+      });
+
+      loadingBarElement.classList.add("ended");
+      loadingBarElement.style.transform = "";
+    }, 500);
   },
 
   // Progress
-  () => {
-    console.log("progress");
+  (itemUrl, itemsLoaded, itemsTotal) => {
+    const progressRatio = itemsLoaded / itemsTotal;
+    loadingBarElement.style.transform = `scaleX(${progressRatio})`;
   }
 );
 const gltfLoader = new GLTFLoader(loadingManager);
