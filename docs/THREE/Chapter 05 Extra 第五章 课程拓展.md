@@ -1415,15 +1415,15 @@ const loadingManager = new THREE.LoadingManager(
 就是这样。现在，您有了一个带有 HTML 加载栏的方案了。
 
 # 36. Mixing HTML and WebGL 混合 HTML 和 WebGL
-## 介绍 [00:00](https://threejs-journey.com/lessons/mixing-html-and-webgl#)
-在本课中，我们将学习如何将 HTML 集成到场景中。我的意思是拥有一个遵循场景中特定 3D 位置的交互式 HTML 元素，因此看起来它们是 WebGL 的一部分。
-为了证明这一点，我们将向模型添加兴趣点。这些兴趣点将使用 HTML 制作，并且始终坚持其关联的 3D 位置。因为这些点将由 HTML 组成，所以我们将能够使用 CSS 来设计它们，添加交互（例如:hover添加过渡）。
-## 设置 [00:26](https://threejs-journey.com/lessons/mixing-html-and-webgl#)
+## 介绍 
+在本课程中，我们将学习如何将 HTML 集成到场景中。通过这种方式，我指的是在场景中有一个交互式的 HTML 元素，它会跟随特定的 3D 位置，看起来就像它们是 WebGL 的一部分。
+为了演示这一点，我们将向模型添加兴趣点。这些兴趣点将由 HTML 制作，并始终粘附到它们关联的 3D 位置。由于这些点将由 HTML 制作，我们将能够使用 CSS 进行设计，添加诸如 `:hover` 之类的交互以及添加过渡效果。
+## 设置
 [启动器由我们在介绍中所做的内容以及Leonardo Carrion](http://www.leonardocarrion.com/)的[损坏头盔](https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/DamagedHelmet)后处理课程中的加载进度课程组成。
 ![](https://cdn.nlark.com/yuque/0/2024/png/35159616/1706093760308-1d3bc349-5e44-4ac9-a1f8-b791b70da617.png#averageHue=%2385745f&clientId=u0e3d060c-c079-4&from=paste&id=udff86883&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u6edafd4c-1b8f-46cb-ae54-5424610b25d&title=)
-## 超文本标记语言 [00:48](https://threejs-journey.com/lessons/mixing-html-and-webgl#)
+## 超文本标记语言
 首先，让我们创建一个 HTML 点。在课程结束时，我们将添加更多要点。
-在文件中，在和加载栏/src/index.html后面添加点：<canvas>
+在`/src/index.html`文件中，在`<canvas>`和加载栏后面添加点：
 ```html
 <canvas class="webgl"></canvas>
 
@@ -1434,13 +1434,13 @@ const loadingManager = new THREE.LoadingManager(
     <div class="text">Lorem ipsum, dolor sit amet consectetur adipisicing elit</div>
 </div>
 ```
-我们放置在该点内的文本不应在页面上可见，因为它隐藏在<canvas>.
-我们使用该类point能够定位 CSS 中的所有点，也使用该类point-0来定位 JavaScript 中的此特定元素。接下来的点将有point-1、point-2等。
-<div>我们的点是由a with a labelclass和a <div>with a class组成的text。
-标签将是一个小整数，看起来就像粘在模型上一样，当我们将鼠标悬停在该标签上时，文本就会显示出来。
-## CSS [02:34](https://threejs-journey.com/lessons/mixing-html-and-webgl#)
+我们放置在该点内的文本不应在页面上可见，因为它隐藏在`<canvas>`下方.
+我们使用该类`point`能够定位 `CSS` 中的所有点，也使用该类`point-0`来定位 `JavaScript` 中的此特定元素。接下来的点将有`point-1`、`point-2`等。
+我们的兴趣点由一个带有 `label` 类的 `<div>` 和一个带有 `text `类的 `<div> `组成。
+`label` 将是一个小圆形数字，看起来就像粘在模型上，而当我们悬停在该标签上时，文本将显示出来。
+## CSS
 我们将把整个 CSS 添加到一行中。通常，您必须逐步进行，但我们知道我们要去哪里。
-转到/src/style.css文件并首先将点定位在屏幕中间：
+转到`/src/style.css`文件并首先将点定位在屏幕中间：
 ```css
 .point
 {
@@ -1450,7 +1450,7 @@ const loadingManager = new THREE.LoadingManager(
 }
 ```
 ![](https://cdn.nlark.com/yuque/0/2024/png/35159616/1706093761257-bc6593b5-18ac-454f-8bd0-33de2e1768ad.png#averageHue=%2380705c&clientId=u0e3d060c-c079-4&from=paste&id=u0ed59c90&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u0f368d4a-8743-4b1a-ba9c-42639104b74&title=)
-您应该在屏幕中间看到黑色文本。我们从中心开始，因为 Three.js 将提供**0**屏幕中心的坐标。
+您应该在屏幕中间看到黑色文本。我们从中心开始，因为 Three.js 将提供屏幕中心的坐标0,0。
 我们先来设计一下标签：
 ```css
 .point .label
@@ -1473,7 +1473,7 @@ const loadingManager = new THREE.LoadingManager(
 ```
 ![](https://cdn.nlark.com/yuque/0/2024/png/35159616/1706093760437-fc6cbe43-dded-4ee7-a1cb-4066d54ea824.png#averageHue=%23726452&clientId=u0e3d060c-c079-4&from=paste&id=u83b606d6&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u1223897c-791b-4c65-9ba0-d34a7729117&title=)
 您应该看到标签。
-这里没什么太难的。我们简单地将元素圆角化border-radius: 50%;，并使用降低不透明度的黑色背景background: #00000077;；并对与 的边界做了同样的事情border: 1px solid #ffffff77;。然后，我们将白色文本置于元素的中间。
+这里没什么太难的。我们简单地将元素圆角化`border-radius: 50%;`，并使用降低不透明度的黑色背景`background: #00000077;`；并对与 的边界做了同样的事情`border: 1px solid #ffffff77;`。然后，我们将白色文本置于元素的中间。
 让我们对文本做同样的事情：
 ```css
 .point .text
@@ -1495,9 +1495,9 @@ const loadingManager = new THREE.LoadingManager(
 ```
 ![](https://cdn.nlark.com/yuque/0/2024/png/35159616/1706093795839-77d015b5-1a0a-4b3f-aaa8-4ef79ff5d238.png#averageHue=%2380705c&clientId=u0e3d060c-c079-4&from=paste&id=ue0980c18&originHeight=1120&originWidth=1792&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ub9d8cbd9-dc52-47e5-960f-d56162aee63&title=)
 您应该会看到标签下方的文字。
-我们在这里实现的与标签非常相似，但有一个固定的border-radius、一个特定的line-height和一个padding。
+我们在这里实现的与标签非常相似，但有一个固定的`border-radius`、一个特定的`line-height`和一个`padding`。
 现在我们有了两个元素，让我们准备交互。首先，我们希望默认隐藏文本。
-将其设置opacity为0：
+将其设置`opacity`为`0`：
 ```css
 .point .text
 {
@@ -1512,8 +1512,9 @@ const loadingManager = new THREE.LoadingManager(
     opacity: 1;
 }
 ```
+![004.gif](https://cdn.nlark.com/yuque/0/2024/gif/35159616/1708336499014-bf1b512f-7887-46e1-9219-fa684c0c0399.gif#averageHue=%237f6f5a&clientId=uf2d43201-893a-4&from=drop&id=u59e1b5bf&originHeight=410&originWidth=656&originalType=binary&ratio=1&rotation=0&showTitle=false&size=543515&status=done&style=none&taskId=ub7479b03-97b1-4dc7-9404-68d62cdb04e&title=)
 当标签悬停时，文本应该显示。
-我们希望文本淡入淡出，而不是这种粗糙的幻影。为此，我们可以使用transition.
+我们希望文本淡入淡出，而不是这种粗糙的幻影。为此，我们可以使用`transition`.
 将过渡添加到文本中，但不仅仅是在悬停时添加过渡。这样，当光标离开该点时也会发生转换：
 ```css
 .point .text
@@ -1524,7 +1525,8 @@ const loadingManager = new THREE.LoadingManager(
 ```
 文本应该淡入和淡出。
 我们有一个小问题。当文本不可见时，我们可以直接将其悬停。
-为了解决这个问题，我们可以停用文本上的指针事件。这可以通过 CSS 属性来完成pointer-events：
+![005.gif](https://cdn.nlark.com/yuque/0/2024/gif/35159616/1708336514819-65aa6997-065b-48bf-8e62-bcb7d6677a7b.gif#averageHue=%237e6f59&clientId=uf2d43201-893a-4&from=drop&id=ude6f7bce&originHeight=410&originWidth=656&originalType=binary&ratio=1&rotation=0&showTitle=false&size=563392&status=done&style=none&taskId=u303f32f2-60a7-4af5-ad12-56361bb44ee&title=)
+为了解决这个问题，我们可以停用文本上的指针事件。这可以通过 CSS 属性来完成`pointer-events`：
 ```css
 .point .text
 {
@@ -1532,8 +1534,9 @@ const loadingManager = new THREE.LoadingManager(
     pointer-events: none;
 }
 ```
+![006.gif](https://cdn.nlark.com/yuque/0/2024/gif/35159616/1708336526282-8d22fb1b-f9e9-4bcb-9a66-801369e7052a.gif#averageHue=%237c6c58&clientId=uf2d43201-893a-4&from=drop&id=u09a236d1&originHeight=410&originWidth=656&originalType=binary&ratio=1&rotation=0&showTitle=false&size=571548&status=done&style=none&taskId=ua1af1538-4ecd-4084-801c-7d891edb04f&title=)
 文本不应该是“可悬停的”。
-目前，当我们将数字悬停在标签中时，光标会变为文本选择。为了解决这个问题，我们可以使用 CSS 属性更改整个标签上的光标**cursor**。
+目前，当我们将数字悬停在标签中时，光标会变为文本选择。为了解决这个问题，我们可以使用 CSS 属性更改整个标签上的光标cursor。
 ```css
 .point .label
 {
@@ -1541,9 +1544,10 @@ const loadingManager = new THREE.LoadingManager(
     cursor: help;
 }
 ```
-A ”？” 当鼠标悬停在标签上时，应该出现在光标的位置。
-我们几乎完成了 CSS 的工作。我们现在需要做的是准备一种显示和隐藏标签的方法。因此，我们将默认隐藏它们，仅当**visible**该点上存在类时才显示它们。
-为了隐藏它们，我们将使用 a**transform**和 a **scale**，并且我们还将添加一个过渡，以便比例将被动画化：
+![008.gif](https://cdn.nlark.com/yuque/0/2024/gif/35159616/1708336991393-a893ef3a-7a6f-480d-b0e3-e243cff24da7.gif#clientId=uf2d43201-893a-4&from=drop&id=ucac6f46a&originHeight=410&originWidth=656&originalType=binary&ratio=1&rotation=0&showTitle=false&size=582415&status=done&style=none&taskId=u4e541bb0-79d9-4a51-beb4-0dd150b6bb9&title=)
+ ”？” 当鼠标悬停在标签上时，应该出现在光标的位置。
+我们几乎完成了 CSS 的工作。我们现在需要做的是准备一种显示和隐藏标签的方法。因此，我们将默认隐藏它们，仅当该点上存在类`visible`时才显示它们。
+为了隐藏它们，我们将使用 `atransform`和  `scale`，并且我们还将添加一个过渡，以便比例将被动画化：
 ```css
 .point .label
 {
@@ -1557,19 +1561,20 @@ A ”？” 当鼠标悬停在标签上时，应该出现在光标的位置。
     transform: scale(1, 1);
 }
 ```
-标签应该消失了。但是，如果我们使用**开发人员工具visible**面板将类直接添加到元素中，我们应该会看到标签出现。
-现在，让我们**visible**直接在 HTML 中添加类，以便我们可以定位点。我们稍后将删除该类。
+标签应该消失了。但是，如果我们使用开发人员工具`visible`面板将类直接添加到元素中，我们应该会看到标签出现。
+![009.gif](https://cdn.nlark.com/yuque/0/2024/gif/35159616/1708337055832-6c671a10-403c-4bb2-b86c-592117de4884.gif#averageHue=%23887b64&clientId=uf2d43201-893a-4&from=drop&id=ue00ed415&originHeight=410&originWidth=656&originalType=binary&ratio=1&rotation=0&showTitle=false&size=1676577&status=done&style=none&taskId=u5c95f4d6-47b1-4d1a-b42c-052bc96c4f1&title=)
+现在，让我们`visible`直接在 `HTML` 中添加类，以便我们可以定位点。我们稍后将删除该类。
 ```html
 <div class="point point-0 visible">
 ```
-
+![image.png](https://cdn.nlark.com/yuque/0/2024/png/35159616/1708337116816-ee1aacfd-e7e0-471b-a897-02e4c953fb1d.png#clientId=uf2d43201-893a-4&from=paste&height=1120&id=ub0428d99&originHeight=1120&originWidth=1792&originalType=binary&ratio=1&rotation=0&showTitle=false&size=2318699&status=done&style=none&taskId=ufd6597e4-d5ef-4d2a-aeb4-2c1242de0eb&title=&width=1792)
 现在该点应该是可见的。
-## JavaScript [20:36](https://threejs-journey.com/lessons/mixing-html-and-webgl#)
-现在 HTML 和 CSS 中的一切都已准备就绪，我们可以切换到 JavaScript。
-### 存储点
+## JavaScript
+现在 HTML 和 CSS 中的一切都已准备就绪，我们可以切换到 `JavaScript`。
+存储点
 首先，我们需要一种方法来存储所有点——即使我们现在只有一个点。我们将使用一组对象，每个对象对应一个点。
 每个点对象都有两个属性：3D 位置和对 HTML 元素的引用。
-创建**points**内部有一个点的数组：
+创建`points`内部有一个点的数组：
 ```javascript
 const points = [
     {
@@ -1578,10 +1583,10 @@ const points = [
     }
 ]
 ```
-我们使用[Vector3](https://threejs.org/docs/#api/en/math/Vector3)来定位位置并**document.querySelector(...)**从 HTML 中检索元素。
-### 更新点位置
-我们将直接在函数中更新每个帧上的点 HTML 元素**tick**。
-在**tick**函数中，更新控件后，立即循环遍历**points**数组中的每个元素 - 即使我们只有一个元素。您可以使用任何循环技术，但我们将采用**for(... of ...)**：
+我们使用[Vector3](https://threejs.org/docs/#api/en/math/Vector3)来定位位置并`document.querySelector(...)`从 HTML 中检索元素。
+更新点位置
+我们将直接在`tick`函数中更新每个帧上的点 HTML 元素。
+在`tick`函数中，更新控件后，立即循环遍历`points`数组中的每个元素 - 即使我们只有一个元素。您可以使用任何循环技术，但我们将采用`(for... of ...)`：
 ```javascript
 const tick = () =>
 {
@@ -1598,7 +1603,7 @@ const tick = () =>
 }
 ```
 我们需要获取该点的 3D 场景位置的 2D 屏幕位置。这部分非常简单。
-首先，我们需要克隆点的位置。这很重要，因为以下代码将直接修改[Vector3](https://threejs.org/docs/#api/en/math/Vector3)。要克隆位置，请使用以下**clone()**方法：
+首先，我们需要克隆点的位置。这很重要，因为以下代码将直接修改[Vector3](https://threejs.org/docs/#api/en/math/Vector3)。要克隆位置，请使用以下`clone()`方法：
 ```javascript
 const tick = () =>
 {
@@ -1612,7 +1617,7 @@ const tick = () =>
     // ...
 }
 ```
-要获取 2D 屏幕位置，我们需要调用该**project(...)**方法并使用**camera**as 参数：
+要获取 2D 屏幕位置，我们需要调用该`project(...)`方法并使用`camera` 参数：
 ```javascript
 const tick = () =>
 {
@@ -1629,10 +1634,10 @@ const tick = () =>
     // ...
 }
 ```
-**0**您应该在日志中看到一个接近的值。如果移动相机使头盔位于最左侧（使用右键单击并拖放），您将获得接近 的值**-1**。如果移动相机使头盔位于最右侧，您将获得接近 的值**+1**。
-让我们关注价值，稍后**x**我们会看到。**y**
+您应该在日志中看到一个接近的`0`值。如果移动相机使头盔位于最左侧（使用右键单击并拖放），您将获得接近 `-1`的值。如果移动相机使头盔位于最右侧，您将获得接近` +1`的值。
+让我们关注`x`轴，稍后我们会看到`y`。
 问题是我们不能那样使用这个值。我们希望能够使用像素移动点元素。
-为了从投影屏幕位置到屏幕上的像素，我们需要乘以渲染大小的一半，并且我们已经在对象中拥有这个值**sizes**：
+为了从投影屏幕位置到屏幕上的像素，我们需要乘以渲染大小的一半，并且我们已经在对象中拥有这个值`sizes`：
 ```javascript
 const tick = () =>
 {
@@ -1651,7 +1656,7 @@ const tick = () =>
 }
 ```
 再次移动相机将头盔放置在远端，然后查看日志中的值。应该有几百。
-现在该值看起来正确了，让我们更新点元素。为此，我们将在 的**style**属性中应用翻译**transform**。**px**不要忘记在函数末尾写入**translateX**：
+现在该值看起来正确了，让我们更新点元素。为此，我们将在 `style`的属性中应用`transform`。不要忘记在`translateX`函数末尾写入`px`：
 ```javascript
 const tick = () =>
 {
@@ -1669,8 +1674,10 @@ const tick = () =>
     // ...
 }
 ```
-该点似乎在 X 轴上移动良好。让我们添加 Y 轴。
-**translateY**使用**y**属性和值添加变量**sizes.height**。然后，将其应用于变换：
+
+![011.gif](https://cdn.nlark.com/yuque/0/2024/gif/35159616/1708337338181-2ea09cea-cd84-465a-a908-f7c6ed749c1c.gif#averageHue=%237d6e59&clientId=uf2d43201-893a-4&from=drop&id=u0e9724d3&originHeight=410&originWidth=656&originalType=binary&ratio=1&rotation=0&showTitle=false&size=12957661&status=done&style=none&taskId=uf9433754-225b-4fc3-8743-320cedc6dae&title=)
+该点似乎在` X` 轴上移动良好。让我们添加 `Y` 轴。
+`translateY`使用`y`属性和值添加变量`sizes.height`。然后，将其应用于变换：
 ```javascript
 const tick = () =>
 {
@@ -1689,8 +1696,9 @@ const tick = () =>
     // ...
 }
 ```
-我们快到了，遗憾的是，Y 轴似乎是倒置的。事实上，在 CSS 中，正值**translateY**会下降，而在 Three.js 中，正值**y**会上升。
-我们需要对**translateY**变量取反：
+![012.gif](https://cdn.nlark.com/yuque/0/2024/gif/35159616/1708337360043-806a1851-aad5-4c62-b72b-0de39e06ee55.gif#averageHue=%2391856c&clientId=uf2d43201-893a-4&from=drop&id=udc833d88&originHeight=410&originWidth=656&originalType=binary&ratio=1&rotation=0&showTitle=false&size=10331350&status=done&style=none&taskId=u8ad54bd7-1664-46f3-93f3-d4d28b2d79c&title=)
+我们快到了，遗憾的是，`Y` 轴似乎是倒置的。事实上，在 CSS 中，正值`translateY`会下降，而在 Three.js 中，正值`y`会上升。
+我们需要对`translateY`变量取反：
 ```javascript
 const tick = () =>
 {
@@ -1709,21 +1717,23 @@ const tick = () =>
     // ...
 }
 ```
+![013.gif](https://cdn.nlark.com/yuque/0/2024/gif/35159616/1708337370780-0f4c0119-f68d-4548-9dab-2e70f9827ab3.gif#averageHue=%23796a56&clientId=uf2d43201-893a-4&from=drop&id=u34d654b3&originHeight=410&originWidth=656&originalType=binary&ratio=1&rotation=0&showTitle=false&size=7063217&status=done&style=none&taskId=u92752005-462f-432f-b0fc-dcbb54403f2&title=)
+
 点元素应完美遵循其 3D 位置。
 ### 显示和隐藏元素
 最后，如果该点前面有东西，我们需要隐藏该点。
-首先，删除**visible**HTML 中的类：
+首先，删除visibleHTML 中的类：
 ```html
 <div class="point point-0">
 ```
 为了测试某物是否在该点的前面，我们将使用[Raycaster](https://threejs.org/docs/#api/en/core/Raycaster)。我们将从相机向该点发射一条光线。如果没有相交的对象，我们将显示该点。如果有的话，我们测试交叉路口的距离。如果交点比该点更远，则说明该物体位于该点的后面，我们可以将其显示出来。如果交点比该点更近，则相交的对象位于该点的前面，我们将其隐藏。
-让我们在函数之外的任何地方创建一个[Raycaster](https://threejs.org/docs/#api/en/core/Raycaster)**tick**：
+让我们在函数之外的任何地方创建一个[Raycaster](https://threejs.org/docs/#api/en/core/Raycaster)tick：
 ```javascript
 const raycaster = new THREE.Raycaster()
 ```
-在**tick**函数中，更新[Raycaster](https://threejs.org/docs/#api/en/core/Raycaster)，使其从相机到达点。为此，请使用**setFromCamera(...)**.
-如果您还记得**Raycaster**课程中的内容，则第一个参数**setFromCamera(...)**应该是与屏幕上的位置相对应的[Vector2 ，第二个参数应该是相机。](https://threejs.org/docs/#api/en/math/Vector2)
-在**Raycaster**课程中，我们必须将光标的屏幕位置（以像素为单位）转换为适合 Three.js 坐标的值。然而，就我们而言，我们已经拥有这些价值观。我们可以改为使用**screenPosition**. 是的，**screenPosition**是一个[Vector3](https://threejs.org/docs/#api/en/math/Vector3)，但只会使用它的**x**和属性：**y**
+在tick函数中，更新[Raycaster](https://threejs.org/docs/#api/en/core/Raycaster)，使其从相机到达点。为此，请使用`setFromCamera(...)`.
+如果您还记得`Raycaster`课程中的内容，则第一个参数`setFromCamera(...)`应该是与屏幕上的位置相对应的[Vector2 ，第二个参数应该是相机。](https://threejs.org/docs/#api/en/math/Vector2)
+在`Raycaster`课程中，我们必须将光标的屏幕位置（以像素为单位）转换为适合 Three.js 坐标的值。然而，就我们而言，我们已经拥有这些。我们可以改为使用`screenPosition`. 是的，`screenPosition`是一个[Vector3](https://threejs.org/docs/#api/en/math/Vector3)，但只会使用它的`x`和`y`属性：
 ```javascript
 const tick = () =>
 {
@@ -1742,8 +1752,8 @@ const tick = () =>
     // ...
 }
 ```
-我们将使用该方法针对场景中的每个对象测试[Raycaster 。](https://threejs.org/docs/#api/en/core/Raycaster)**intersectObjects(...)**
-为此，请使用**scene.children**作为第一个参数和**true**第二个参数。第二个参数将启用递归测试，这意味着该算法也将遍历子代的子代以及子代的子代的子代，等等：
+我们将使用该方法`intersectObjects(...)`针对场景中的每个对象测试[Raycaster 。](https://threejs.org/docs/#api/en/core/Raycaster)
+为此，请使用`scene.children`作为第一个参数和`true`第二个参数。第二个参数将启用递归测试，这意味着该算法也将遍历子代的子代以及子代的子代的子代，等等：
 ```javascript
 const tick = () =>
 {
@@ -1764,7 +1774,7 @@ const tick = () =>
 }
 ```
 首先，我们能做的是测试是否存在相交。如果没有交点，则该点前面没有物体，我们可以将其显示出来。如果存在相交，我们将不得不进行更多测试，但现在我们先隐藏这一点。
-为了说明这一点，我们可以添加**visible**带有 的类**classList.add(...)**。为了隐藏这一点，我们可以**visible**使用以下方法删除该类**classList.remove(...)**：
+为了说明这一点，我们可以通过`classList.add(...)`添加带有 `visible`的类。为了隐藏这一点，我们可以使用以下方法`classList.remove(...)`删除该`visible`类：
 ```javascript
 const tick = () =>
 {
@@ -1793,11 +1803,13 @@ const tick = () =>
     // ...
 }
 ```
+
+![014.gif](https://cdn.nlark.com/yuque/0/2024/gif/35159616/1708337396832-061ef7b1-7575-4dfd-a661-ada1c7827306.gif#averageHue=%237a6a56&clientId=uf2d43201-893a-4&from=drop&id=u2b3e7b24&originHeight=410&originWidth=656&originalType=binary&ratio=1&rotation=0&showTitle=false&size=19537060&status=done&style=none&taskId=u48b15049-b1e4-4c14-8ad2-5a9de57220d&title=)
 不完全是我们想要的，但我们正在实现目标。
 问题是，如果有任何东西与光线相交，我们就会隐藏该点。但如果交点位于点后面，则该交点不应该隐藏。
 我们需要计算到该点的距离，然后计算交点的距离并进行比较。
-这些intersectObjects(...)方法返回交集数组。这些交叉点按距离排序，最近的排在前面。这意味着如果有多个交叉点，我们不必测试所有交叉点，我们只需测试第一个交叉点即可。
-要获取相交距离，这是可以管理的，因为该值已在相交对象中作为属性提供distance：
+这些`intersectObjects(...)`方法返回交集数组。这些交叉点按距离排序，最近的排在前面。这意味着如果有多个交叉点，我们不必测试所有交叉点，我们只需测试第一个交叉点即可。
+要获取相交距离，这是可以管理的，因为该值已在相交对象中作为`distance`属性提供：
 ```javascript
 const tick = () =>
 {
@@ -1826,8 +1838,8 @@ const tick = () =>
     // ...
 }
 ```
-获取点距离有点困难。我们需要从 point 开始position，因为它是一个[Vector3](https://threejs.org/docs/#api/en/math/Vector3)，所以我们可以使用它的distanceTo()方法。
-该方法需要另一个[Vector3](https://threejs.org/docs/#api/en/math/Vector3)作为参数。它将计算第一个和第二个之间的距离。我们可以position使用camera：
+获取点距离`position`有点困难。我们需要从 `point` 开始，因为它是一个[Vector3](https://threejs.org/docs/#api/en/math/Vector3)，所以我们可以使用它的`distanceTo()`方法。
+该方法需要另一个[Vector3](https://threejs.org/docs/#api/en/math/Vector3)作为参数。它将计算第一个`position`和第二个之间`position`的距离。我们可以使用`camera`：
 ```javascript
 const tick = () =>
 {
@@ -1857,7 +1869,7 @@ const tick = () =>
     // ...
 }
 ```
-我们现在需要做的就是比较这两个距离。如果**intersectionDistance**低于**pointDistance**，则意味着相交的对象比该点更近，应该隐藏。否则，该点应该出现：
+我们现在需要做的就是比较这两个距离。如果`intersectionDistance`低于`pointDistance`，则意味着相交的对象比该点更近，应该隐藏。否则，该点应该出现：
 ```javascript
 const tick = () =>
 {
@@ -1896,10 +1908,11 @@ const tick = () =>
     // ...
 }
 ```
+![015.gif](https://cdn.nlark.com/yuque/0/2024/gif/35159616/1708337422682-82a04fd3-4fca-442c-a17a-c1ed6afdd363.gif#averageHue=%23796a56&clientId=uf2d43201-893a-4&from=drop&id=ua8033d8c&originHeight=410&originWidth=656&originalType=binary&ratio=1&rotation=0&showTitle=false&size=17415468&status=done&style=none&taskId=ued26ee76-a26d-4d50-91e9-c2dc6e4043e&title=)
 现在一切正常。
 ### 等待场景准备好
-我们现在遇到的问题是，场景加载时关键点是可见的。一个简单的解决方法是创建一个变量，并在一切准备就绪后将**false**其设置为。**true**在**tick**函数中，如果该变量为 ，我们只会更新点**true**。
-创建一个**sceneReady**变量**false**，并在**loadingManager**success 函数中将**2000ms**其设置为**true**：
+我们现在遇到的问题是，场景加载时关键点是可见的。一个简单的解决方法是创建一个变量，并在一切准备就绪后将其设置为`false`。在`tick`函数中，如果该变量为`true` ，我们只会更新点。
+创建一个`sceneReady`变量`false`，并在`loadingManagersuccess` 函数中将其设置为`true`：
 ```javascript
 let sceneReady = false
 const loadingManager = new THREE.LoadingManager(
@@ -1917,7 +1930,7 @@ const loadingManager = new THREE.LoadingManager(
     // ...
 )
 ```
-最后，在**tick**函数中，将整个点循环放入语句中**if**：
+最后，在`tick`函数中，将整个点循环放入`if`语句中：
 ```javascript
 const tick = () =>
 {
@@ -1934,8 +1947,10 @@ const tick = () =>
     // ...
 }
 ```
+
+![016.gif](https://cdn.nlark.com/yuque/0/2024/gif/35159616/1708337430781-30027bcf-2b97-4d76-9d37-166762c43ee0.gif#averageHue=%23000000&clientId=uf2d43201-893a-4&from=drop&id=ucc5cfa48&originHeight=410&originWidth=656&originalType=binary&ratio=1&rotation=0&showTitle=false&size=2784372&status=done&style=none&taskId=u657774af-e7f7-4049-991a-82f08196c6a&title=)
 这些点应该只在场景准备好并且介绍几乎完全消失时显示。
-## 添加更多积分 [56:04](https://threejs-journey.com/lessons/mixing-html-and-webgl#)
+## 添加更多点
 就是这样！我们的观点很好地发挥作用。我们现在可以添加更多点并更改文本以获得更有说服力的内容。
 在 HTML 中：
 ```html
@@ -1969,8 +1984,10 @@ const points = [
     }
 ]
 ```
-## 更进一步 [57:49](https://threejs-journey.com/lessons/mixing-html-and-webgl#)
+
+![017.gif](https://cdn.nlark.com/yuque/0/2024/gif/35159616/1708337445739-55f3e483-a6cb-43e7-89a0-2d1f47fc2e42.gif#averageHue=%23000000&clientId=uf2d43201-893a-4&from=drop&id=uccf64cdf&originHeight=410&originWidth=656&originalType=binary&ratio=1&rotation=0&showTitle=false&size=14334933&status=done&style=none&taskId=u61d77b11-2eb9-454e-bbb5-f655adb8174&title=)
+## 更进一步
 我们在这里所做的只是其中一种方法。你可能会采取不同的做法，而且可能会更好。这取决于你、项目、动画、表演、代码的灵活性等等。
-性能还有改进的空间。目前，我们正在更新每一帧上的所有点。我们只能更新可见的。
+性能还有改进的空间。目前，我们正在更新每一帧上的所有点。我们可以只更新可见的。
 请记住，将 HTML 与 WebGL 结合通常会降低性能。避免这样做，如果您别无选择，请密切关注帧速率并定期在不同设备上进行测试。
 
