@@ -64,23 +64,19 @@ gltfLoader.load("portal.glb", (gltf) => {
   });
   scene.add(gltf.scene);
   // Get each object
-  const portalLightMesh = gltf.scene.children.find(
-    (child) => child.name === "portalLight"
-  );
-  const poleLightAMesh = gltf.scene.children.find(
-    (child) => child.name === "poleLightA"
-  );
-  const poleLightBMesh = gltf.scene.children.find(
-    (child) => child.name === "poleLightB"
-  );
+  const bakedMesh = gltf.scene.children.find((child) => child.name === 'baked')
+  const portalLightMesh = gltf.scene.children.find((child) => child.name === 'portalLight')
+  const poleLightAMesh = gltf.scene.children.find((child) => child.name === 'poleLightA')
+  const poleLightBMesh = gltf.scene.children.find((child) => child.name === 'poleLightB')
+
+  // Apply materials
+  bakedMesh.material = bakedMaterial
+  portalLightMesh.material = portalLightMaterial
+  poleLightAMesh.material = poleLightMaterial
+  poleLightBMesh.material = poleLightMaterial
   //   console.log(portalLightMesh);
   //   console.log(poleLightAMesh);
   //   console.log(poleLightBMesh);
-
-  // Apply materials
-  portalLightMesh.material = portalLightMaterial
-  poleLightAMesh.material = poleLightMaterial;
-  poleLightBMesh.material = poleLightMaterial;
 });
 
 /**
