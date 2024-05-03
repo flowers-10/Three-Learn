@@ -79,13 +79,23 @@ gui.addColor(rendererParameters, "clearColor").onChange(() => {
 /**
  * Material
  */
+const materialParameters = {};
+materialParameters.color = "#70c1ff";
+gui.addColor(materialParameters, "color").onChange(() => {
+  material.uniforms.uColor.value.set(materialParameters.color);
+});
+
 const material = new THREE.ShaderMaterial({
   uniforms: {
     uTime: new THREE.Uniform(0),
+    uColor: new THREE.Uniform(new THREE.Color(materialParameters.color)),
   },
-  transparent:true,
+  side: THREE.DoubleSide,
+  depthWrite: false,
+  transparent: true,
   vertexShader: holographicVertexShader,
   fragmentShader: holographicFragmentShader,
+  blending: THREE.AdditiveBlending,
 });
 /**
  * Objects
@@ -122,18 +132,18 @@ const tick = () => {
   const elapsedTime = clock.getElapsedTime();
 
   // Rotate objects
-//   if (suzanne) {
-//     suzanne.rotation.x = -elapsedTime * 0.1;
-//     suzanne.rotation.y = elapsedTime * 0.2;
-//   }
+  if (suzanne) {
+    suzanne.rotation.x = -elapsedTime * 0.1;
+    suzanne.rotation.y = elapsedTime * 0.2;
+  }
   // Update material
   material.uniforms.uTime.value = elapsedTime;
 
-//   sphere.rotation.x = -elapsedTime * 0.1;
-//   sphere.rotation.y = elapsedTime * 0.2;
+  sphere.rotation.x = -elapsedTime * 0.1;
+  sphere.rotation.y = elapsedTime * 0.2;
 
-//   torusKnot.rotation.x = -elapsedTime * 0.1;
-//   torusKnot.rotation.y = elapsedTime * 0.2;
+  torusKnot.rotation.x = -elapsedTime * 0.1;
+  torusKnot.rotation.y = elapsedTime * 0.2;
 
   // Update controls
   controls.update();
