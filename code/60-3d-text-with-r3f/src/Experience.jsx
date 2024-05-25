@@ -1,4 +1,5 @@
 import {
+    Sparkles,
   useMatcapTexture,
   Center,
   Text3D,
