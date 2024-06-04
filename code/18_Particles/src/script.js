@@ -32,17 +32,18 @@ scene.add(cube);
  */
 // Geometry
 const particlesGeometry = new THRRE.BufferGeometry();
-const count = 20000;
-const positions = new Float32Array(count * 3);
+const count = 1;
+const positions = new Float32Array(1);
 const colors = new Float32Array(count * 3);
 
 for (let i = 0; i < count * 3; i++) {
   positions[i] = (Math.random() - 0.5) * 10;
   colors[i] = Math.random();
 }
+
 particlesGeometry.setAttribute(
   "position",
-  new THRRE.BufferAttribute(positions, 3)
+  [1,1,1]
 );
 particlesGeometry.setAttribute("color", new THRRE.BufferAttribute(colors, 3));
 // Material
