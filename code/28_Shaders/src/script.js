@@ -26,7 +26,7 @@ const flagTexture = textureLoader.load('/textures/flag-french.jpg')
  * Test mesh
  */
 // Geometry
-const geometry = new THREE.PlaneGeometry(1, 1, 32, 32);
+const geometry = new THREE.PlaneGeometry(10, 10, 32, 32);
 console.log(geometry.attributes.uv)
 // const count = geometry.attributes.position.count;
 // const randoms = new Float32Array(count);
@@ -43,6 +43,8 @@ const material = new THREE.ShaderMaterial({
   uniforms: {
     uFrequency: { value: new THREE.Vector2(10, 5) },
     uTime: { value: 0 },
+    iResolution: { value: new THREE.Vector2() },
+    iTime: { value: 0.0 },
     uColor: { value: new THREE.Color('orange') },
     uTexture: { value: flagTexture }
   },
@@ -72,6 +74,9 @@ const sizes = {
   width: window.innerWidth,
   height: window.innerHeight,
 };
+
+material.uniforms.iResolution.value.set(sizes.width, sizes.height);
+
 
 window.addEventListener("resize", () => {
   // Update sizes
@@ -123,6 +128,7 @@ const tick = () => {
 
   // Update material
   material.uniforms.uTime.value = elapsedTime;
+  material.uniforms.iTime.value = elapsedTime;
   // Update controls
   controls.update();
 
