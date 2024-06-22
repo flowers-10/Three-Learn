@@ -9,3 +9,17 @@ body,
     height: 100%;
     background: ivory;
 }
+
+.r3f
+{
+    touch-action: none;
+}
+
+.htmlScreen iframe
+{
+    width: 1024px;
+    height: 670px;
+    border: none;
+    border-radius: 20px;
+    background: #000000;
+}
